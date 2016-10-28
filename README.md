@@ -44,11 +44,9 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `estimator::LightGBMEstimator`: the estimator to use in the prediction.
 * `X::Array{T<:Real,2}`: the features data.
 
-### Estimators 
+### Estimators
 
 #### `LightGBMRegression`
-
-##### Constructor
 ```julia
 LightGBMRegression(; [num_iterations = 10,
                       learning_rate = .1,
@@ -86,8 +84,7 @@ LightGBMRegression(; [num_iterations = 10,
 ```
 Return a LightGBMRegression estimator.
 
-#### LightGBMBinary
-##### Constructor
+#### `LightGBMBinary`
 ```julia
 LightGBMBinary(; [num_iterations = 10,
                   learning_rate = .1,
@@ -125,8 +122,7 @@ LightGBMBinary(; [num_iterations = 10,
 ```
 Return a LightGBMBinary estimator.
 
-#### LightGBMLambdaRank
-##### Constructor
+#### `LightGBMLambdaRank`
 ```julia
 LightGBMLambdaRank(; [num_iterations = 10,
                       learning_rate = .1,
