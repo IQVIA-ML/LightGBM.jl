@@ -69,7 +69,7 @@ end
 # Parse the LightGBM `output` for test metrics and early stopping. Store test metrics in `results`.
 # Shrink the `results` to the best iteration round when early stopping is detected.
 function cli_processoutput!(results, output::String, estimator::LightGBMEstimator)
-    if contains(output, "[LightGBM] [Info] Iteration:")
+    if contains(output, "[LightGBM] [Info] Iteration: ")
         iter, test, metric, score = cli_parseresults(output)
         storeresults!(results, estimator, iter, test, metric, score)
     elseif contains(output, "Early stopping at iteration ")
@@ -83,17 +83,16 @@ end
 # Parse the LightGBM test metrics `output` and return the iteration round, test set, metric name,
 # and metric value.
 function cli_parseresults(output)
-    iter_start_idx = searchindex(output, ':') + 1
+    iter_start_idx = last(search(output, "[LightGBM] [Info] Iteration: ")) + 1
     iter_end_idx = searchindex(output, ',', iter_start_idx) - 1
     iter = parse(Int, output[iter_start_idx:iter_end_idx])
 
     test_start_idx = iter_end_idx + 3
-    test_end_idx = search(output, ' ', test_start_idx) - 3
-    long_test = output[test_start_idx:test_end_idx]
-    test_start_idx = last(search(long_test, "/$(tempdir)/")) + 1
-    test = long_test[test_start_idx:(end - 4)]
+    test_start_idx = last(search(output, "/$(tempdir)/", test_start_idx)) + 1
+    test_end_idx = first(search(output, ".csv's ", test_start_idx)) - 1
+    test = output[test_start_idx:test_end_idx]
 
-    metric_start_idx = test_end_idx + 4
+    metric_start_idx = test_end_idx + 8
     metric_end_idx = search(output, ':', metric_start_idx) - 1
     metric = output[metric_start_idx:metric_end_idx]
 
@@ -164,8 +163,8 @@ end
 # Add prediction entries to `conf` and write `estimator.model` to disk.
 function cli_prep_predict(estimator::LightGBMEstimator, conf)
     write(conf, "task = prediction\n")
-    write(conf, "input_model = $(tempdir)/model.txt\n")
-    write(conf, "output_result = $(tempdir)/results.txt\n")
+    write(conf, "input_model = $(pwd())/$(tempdir)/model.txt\n")
+    write(conf, "output_result = $(pwd())/$(tempdir)/results.txt\n")
 
     for field in fieldnames(estimator)
         if in(field, (:is_sigmoid,))
@@ -183,7 +182,7 @@ end
 # Add training entries to `conf`.
 function cli_prep_fit(estimator::LightGBMEstimator, conf)
     write(conf, "task = train\n")
-    write(conf, "output_model = $(tempdir)/model.txt\n")
+    write(conf, "output_model = $(pwd())/$(tempdir)/model.txt\n")
 
     for field in fieldnames(estimator)
         if in(field, (:machine_list_file, :init_score)) # Escape tempdir for user-specified filenames
