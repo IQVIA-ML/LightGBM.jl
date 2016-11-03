@@ -16,8 +16,8 @@ array that holds the validation metric's value at each iteration.
     the same types as `X` and `y` that should be used as validation sets.
 """
 function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
-                                test::Tuple{Array{TX,2},Array{Ty,1}}...)
-    return cli_fit(estimator, X, y, test...)
+                                test::Tuple{Array{TX,2},Array{Ty,1}}...; verbosity::Integer = 1)
+    return cli_fit(estimator, X, y, test..., verbosity = verbosity)
 end
 
 """
@@ -29,8 +29,8 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `X::Array{T<:Real,2}`: the features data.
 """
-function predict{T<:Real}(estimator::LGBMEstimator, X::Array{T,2})
-    return cli_predict(estimator, X)
+function predict{T<:Real}(estimator::LGBMEstimator, X::Array{T,2}; verbosity::Integer = 1)
+    return cli_predict(estimator, X, verbosity = verbosity)
 end
 
 function storeresults!(results, estimator::LGBMEstimator, iter::Integer, test::String,
