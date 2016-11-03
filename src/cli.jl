@@ -1,8 +1,8 @@
 const tempdir = "lightgbm_temp"
 
 # Fit the `estimator` using the CLI of LightGBM.
-function cli_fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2},
-                                    y::Array{Ty,1}, test::Tuple{Array{TX,2},Array{Ty,1}}...)
+function cli_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
+                                    test::Tuple{Array{TX,2},Array{Ty,1}}...)
     rm_tempdir = false # Don't remove an existing directory, just in case
     if !isdir(tempdir)
         mkdir(tempdir)
@@ -35,7 +35,7 @@ function cli_fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2}
 end
 
 # Predict using the CLI of LightGBM.
-function cli_predict{TX<:Real}(estimator::LightGBMEstimator, X::Array{TX,2})
+function cli_predict{TX<:Real}(estimator::LGBMEstimator, X::Array{TX,2})
     @assert(length(estimator.model) > 0, "Estimator does not contain a fitted model.")
 
     rm_tempdir = false # Don't remove an existing directory, just in case
@@ -68,7 +68,7 @@ end
 
 # Parse the LightGBM `output` for test metrics and early stopping. Store test metrics in `results`.
 # Shrink the `results` to the best iteration round when early stopping is detected.
-function cli_processoutput!(results, output::String, estimator::LightGBMEstimator)
+function cli_processoutput!(results, output::String, estimator::LGBMEstimator)
     if contains(output, "[LightGBM] [Info] Iteration: ")
         iter, test, metric, score = cli_parseresults(output)
         storeresults!(results, estimator, iter, test, metric, score)
@@ -161,7 +161,7 @@ function cli_prep_test(conf, test)
 end
 
 # Add prediction entries to `conf` and write `estimator.model` to disk.
-function cli_prep_predict(estimator::LightGBMEstimator, conf)
+function cli_prep_predict(estimator::LGBMEstimator, conf)
     write(conf, "task = prediction\n")
     write(conf, "input_model = $(pwd())/$(tempdir)/model.txt\n")
     write(conf, "output_result = $(pwd())/$(tempdir)/results.txt\n")
@@ -180,7 +180,7 @@ function cli_prep_predict(estimator::LightGBMEstimator, conf)
 end
 
 # Add training entries to `conf`.
-function cli_prep_fit(estimator::LightGBMEstimator, conf)
+function cli_prep_fit(estimator::LGBMEstimator, conf)
     write(conf, "task = train\n")
     write(conf, "output_model = $(pwd())/$(tempdir)/model.txt\n")
 
