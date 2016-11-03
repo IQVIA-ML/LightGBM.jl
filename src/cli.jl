@@ -1,8 +1,9 @@
 const tempdir = "lightgbm_temp"
 
 # Fit the `estimator` using the CLI of LightGBM.
-function cli_fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2},
-                                    y::Array{Ty,1}, test::Tuple{Array{TX,2},Array{Ty,1}}...)
+function cli_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
+                                    test::Tuple{Array{TX,2},Array{Ty,1}}...;
+                                    verbosity::Integer = 1)
     rm_tempdir = false # Don't remove an existing directory, just in case
     if !isdir(tempdir)
         mkdir(tempdir)
@@ -19,7 +20,7 @@ function cli_fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2}
     open(`$(ENV["LIGHTGBM"]) config=$(pwd())/$(tempdir)/lightgbm.conf`, "r") do pipe
         while isopen(pipe)
             output = readline(pipe)
-            print(output)
+            printoutput(output, verbosity)
             cli_processoutput!(results, output, estimator)
         end
     end
@@ -35,7 +36,7 @@ function cli_fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2}
 end
 
 # Predict using the CLI of LightGBM.
-function cli_predict{TX<:Real}(estimator::LightGBMEstimator, X::Array{TX,2})
+function cli_predict{TX<:Real}(estimator::LGBMEstimator, X::Array{TX,2}; verbosity::Integer = 1)
     @assert(length(estimator.model) > 0, "Estimator does not contain a fitted model.")
 
     rm_tempdir = false # Don't remove an existing directory, just in case
@@ -52,7 +53,7 @@ function cli_predict{TX<:Real}(estimator::LightGBMEstimator, X::Array{TX,2})
     open(`$(ENV["LIGHTGBM"]) config=$(pwd())/$(tempdir)/lightgbm.conf`, "r") do pipe
         while isopen(pipe)
             output = readline(pipe)
-            print(output)
+            printoutput(output, verbosity)
         end
     end
     results = vec(readcsv("$(tempdir)/results.txt"))
@@ -66,10 +67,28 @@ function cli_predict{TX<:Real}(estimator::LightGBMEstimator, X::Array{TX,2})
     return results
 end
 
+# Prints or ignores the output based on the `verbosity` setting.
+function printoutput(output::String, verbosity::Integer)
+    if startswith(output, "[LightGBM] [Info]")
+        level = 1
+    elseif startswith(output, "[LightGBM] [Warning]")
+        level = 0
+    elseif startswith(output, "[LightGBM] [Fatal]")
+        level = -1
+    elseif startswith(output, "[LightGBM] [Debug]")
+        level = 2
+    else
+        level = -1
+    end
+    level <= verbosity && print(output)
+
+    return nothing
+end
+
 # Parse the LightGBM `output` for test metrics and early stopping. Store test metrics in `results`.
 # Shrink the `results` to the best iteration round when early stopping is detected.
-function cli_processoutput!(results, output::String, estimator::LightGBMEstimator)
-    if contains(output, "[LightGBM] [Info] Iteration: ")
+function cli_processoutput!(results, output::String, estimator::LGBMEstimator)
+    if startswith(output, "[LightGBM] [Info] Iteration: ")
         iter, test, metric, score = cli_parseresults(output)
         storeresults!(results, estimator, iter, test, metric, score)
     elseif contains(output, "Early stopping at iteration ")
@@ -83,7 +102,7 @@ end
 # Parse the LightGBM test metrics `output` and return the iteration round, test set, metric name,
 # and metric value.
 function cli_parseresults(output)
-    iter_start_idx = last(search(output, "[LightGBM] [Info] Iteration: ")) + 1
+    iter_start_idx = 30 # [LightGBM] [Info] Iteration: _
     iter_end_idx = searchindex(output, ',', iter_start_idx) - 1
     iter = parse(Int, output[iter_start_idx:iter_end_idx])
 
@@ -161,7 +180,7 @@ function cli_prep_test(conf, test)
 end
 
 # Add prediction entries to `conf` and write `estimator.model` to disk.
-function cli_prep_predict(estimator::LightGBMEstimator, conf)
+function cli_prep_predict(estimator::LGBMEstimator, conf)
     write(conf, "task = prediction\n")
     write(conf, "input_model = $(pwd())/$(tempdir)/model.txt\n")
     write(conf, "output_result = $(pwd())/$(tempdir)/results.txt\n")
@@ -180,7 +199,7 @@ function cli_prep_predict(estimator::LightGBMEstimator, conf)
 end
 
 # Add training entries to `conf`.
-function cli_prep_fit(estimator::LightGBMEstimator, conf)
+function cli_prep_fit(estimator::LGBMEstimator, conf)
     write(conf, "task = train\n")
     write(conf, "output_model = $(pwd())/$(tempdir)/model.txt\n")
 
