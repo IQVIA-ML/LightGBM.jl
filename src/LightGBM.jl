@@ -14,6 +14,6 @@ include("estimators.jl")
 include("base.jl")
 include("cli.jl")
 
-export fit, predict, LightGBMRegression, LightGBMBinary, LightGBMLambdaRank
+export fit, predict, LGBMRegression, LGBMBinary, LGBMLambdaRank, LGBMMulticlass
 
 end # module LightGBM

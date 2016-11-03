@@ -31,7 +31,7 @@ dictionary with an entry for each validation metric in the `estimator`. Each of 
 array that holds the validation metric's value at each iteration.
 
 ##### Arguments
-* `estimator::LightGBMEstimator`: the estimator to be fit.
+* `estimator::LGBMEstimator`: the estimator to be fit.
 * `X::Array{TX<:Real,2}`: the features data.
 * `y::Array{Ty<:Real,1}`: the labels.
 * `test::Tuple{Array{TX,2},Array{Ty,1}}...`: optionally contains one or more tuples of X-y pairs of
@@ -41,56 +41,20 @@ array that holds the validation metric's value at each iteration.
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
 ##### Arguments
-* `estimator::LightGBMEstimator`: the estimator to use in the prediction.
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `X::Array{T<:Real,2}`: the features data.
 
 ### Estimators
 
-#### `LightGBMRegression`
+#### `LGBMRegression`
 ```julia
-LightGBMRegression(; [num_iterations = 10,
-                      learning_rate = .1,
-                      num_leaves = 127,
-                      tree_learner = "serial",
-                      num_threads = Sys.CPU_CORES,
-                      min_data_in_leaf = 100,
-                      min_sum_hessian_in_leaf = 10.,
-                      feature_fraction = 1.,
-                      feature_fraction_seed = 2,
-                      bagging_fraction = 1.,
-                      bagging_freq = 0,
-                      bagging_seed = 3,
-                      early_stopping_round = 0,
-                      max_bin = 255,
-                      data_random_seed = 1,
-                      is_sigmoid = true,
-                      init_score = "",
-                      is_pre_partition = false,
-                      is_sparse = true,
-                      two_round = false,
-                      save_binary = false,
-                      sigmoid = 1.,
-                      is_unbalance = false,
-                      max_position = 20,
-                      label_gain = Float64[],
-                      metric = ["l2"],
-                      metric_freq = 1,
-                      is_training_metric = false,
-                      ndcg_at = Int[],
-                      num_machines = 1,
-                      local_listen_port = 12400,
-                      time_out = 120,
-                      machine_list_file = ""])
-```
-Return a LightGBMRegression estimator.
-
-#### `LightGBMBinary`
-```julia
-LightGBMBinary(; [num_iterations = 10,
+LGBMRegression(; [num_iterations = 10,
                   learning_rate = .1,
                   num_leaves = 127,
+                  max_depth = -1,
                   tree_learner = "serial",
                   num_threads = Sys.CPU_CORES,
+                  histogram_pool_size = -1.,
                   min_data_in_leaf = 100,
                   min_sum_hessian_in_leaf = 10.,
                   feature_fraction = 1.,
@@ -111,7 +75,7 @@ LightGBMBinary(; [num_iterations = 10,
                   is_unbalance = false,
                   max_position = 20,
                   label_gain = Float64[],
-                  metric = ["binary_logloss"],
+                  metric = ["l2"],
                   metric_freq = 1,
                   is_training_metric = false,
                   ndcg_at = Int[],
@@ -120,42 +84,125 @@ LightGBMBinary(; [num_iterations = 10,
                   time_out = 120,
                   machine_list_file = ""])
 ```
-Return a LightGBMBinary estimator.
+Return a LGBMRegression estimator.
 
-#### `LightGBMLambdaRank`
+#### `LGBMBinary`
 ```julia
-LightGBMLambdaRank(; [num_iterations = 10,
-                      learning_rate = .1,
-                      num_leaves = 127,
-                      tree_learner = "serial",
-                      num_threads = Sys.CPU_CORES,
-                      min_data_in_leaf = 100,
-                      min_sum_hessian_in_leaf = 10.,
-                      feature_fraction = 1.,
-                      feature_fraction_seed = 2,
-                      bagging_fraction = 1.,
-                      bagging_freq = 0,
-                      bagging_seed = 3,
-                      early_stopping_round = 0,
-                      max_bin = 255,
-                      data_random_seed = 1,
-                      is_sigmoid = true,
-                      init_score = "",
-                      is_pre_partition = false,
-                      is_sparse = true,
-                      two_round = false,
-                      save_binary = false,
-                      sigmoid = 1.,
-                      is_unbalance = false,
-                      max_position = 20,
-                      label_gain = Float64[],
-                      metric = ["ndcg"],
-                      metric_freq = 1,
-                      is_training_metric = false,
-                      ndcg_at = Int[],
-                      num_machines = 1,
-                      local_listen_port = 12400,
-                      time_out = 120,
-                      machine_list_file = ""])
+LGBMBinary(; [num_iterations = 10,
+              learning_rate = .1,
+              num_leaves = 127,
+              max_depth = -1,
+              tree_learner = "serial",
+              num_threads = Sys.CPU_CORES,
+              histogram_pool_size = -1.,
+              min_data_in_leaf = 100,
+              min_sum_hessian_in_leaf = 10.,
+              feature_fraction = 1.,
+              feature_fraction_seed = 2,
+              bagging_fraction = 1.,
+              bagging_freq = 0,
+              bagging_seed = 3,
+              early_stopping_round = 0,
+              max_bin = 255,
+              data_random_seed = 1,
+              is_sigmoid = true,
+              init_score = "",
+              is_pre_partition = false,
+              is_sparse = true,
+              two_round = false,
+              save_binary = false,
+              sigmoid = 1.,
+              is_unbalance = false,
+              max_position = 20,
+              label_gain = Float64[],
+              metric = ["binary_logloss"],
+              metric_freq = 1,
+              is_training_metric = false,
+              ndcg_at = Int[],
+              num_machines = 1,
+              local_listen_port = 12400,
+              time_out = 120,
+              machine_list_file = ""])
 ```
-Return a LightGBMBinary estimator.
+Return a LGBMBinary estimator.
+
+#### `LGBMLambdaRank`
+```julia
+LGBMLambdaRank(; [num_iterations = 10,
+                  learning_rate = .1,
+                  num_leaves = 127,
+                  max_depth = -1,
+                  tree_learner = "serial",
+                  num_threads = Sys.CPU_CORES,
+                  histogram_pool_size = -1.,
+                  min_data_in_leaf = 100,
+                  min_sum_hessian_in_leaf = 10.,
+                  feature_fraction = 1.,
+                  feature_fraction_seed = 2,
+                  bagging_fraction = 1.,
+                  bagging_freq = 0,
+                  bagging_seed = 3,
+                  early_stopping_round = 0,
+                  max_bin = 255,
+                  data_random_seed = 1,
+                  is_sigmoid = true,
+                  init_score = "",
+                  is_pre_partition = false,
+                  is_sparse = true,
+                  two_round = false,
+                  save_binary = false,
+                  sigmoid = 1.,
+                  is_unbalance = false,
+                  max_position = 20,
+                  label_gain = Float64[],
+                  metric = ["ndcg"],
+                  metric_freq = 1,
+                  is_training_metric = false,
+                  ndcg_at = Int[],
+                  num_machines = 1,
+                  local_listen_port = 12400,
+                  time_out = 120,
+                  machine_list_file = ""])
+```
+Return a LGBMLambdaRank estimator.
+
+#### `LGBMMulticlass`
+```julia
+LGBMMulticlass(; [num_iterations = 10,
+                  learning_rate = .1,
+                  num_leaves = 127,
+                  max_depth = -1,
+                  tree_learner = "serial",
+                  num_threads = Sys.CPU_CORES,
+                  histogram_pool_size = -1.,
+                  min_data_in_leaf = 100,
+                  min_sum_hessian_in_leaf = 10.,
+                  feature_fraction = 1.,
+                  feature_fraction_seed = 2,
+                  bagging_fraction = 1.,
+                  bagging_freq = 0,
+                  bagging_seed = 3,
+                  early_stopping_round = 0,
+                  max_bin = 255,
+                  data_random_seed = 1,
+                  is_sigmoid = true,
+                  init_score = "",
+                  is_pre_partition = false,
+                  is_sparse = true,
+                  two_round = false,
+                  save_binary = false,
+                  sigmoid = 1.,
+                  is_unbalance = false,
+                  max_position = 20,
+                  label_gain = Float64[],
+                  metric = ["multi_logloss"],
+                  metric_freq = 1,
+                  is_training_metric = false,
+                  ndcg_at = Int[],
+                  num_machines = 1,
+                  local_listen_port = 12400,
+                  time_out = 120,
+                  machine_list_file = "",
+                  num_class = 1])
+```
+Return a LGBMMulticlass estimator.

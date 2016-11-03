@@ -9,13 +9,13 @@ dictionary with an entry for each validation metric in the `estimator`. Each of 
 array that holds the validation metric's value at each iteration.
 
 # Arguments
-* `estimator::LightGBMEstimator`: the estimator to be fit.
+* `estimator::LGBMEstimator`: the estimator to be fit.
 * `X::Array{TX<:Real,2}`: the features data.
 * `y::Array{Ty<:Real,1}`: the labels.
 * `test::Tuple{Array{TX,2},Array{Ty,1}}...`: optionally contains one or more tuples of X-y pairs of
     the same types as `X` and `y` that should be used as validation sets.
 """
-function fit{TX<:Real,Ty<:Real}(estimator::LightGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
+function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
                                 test::Tuple{Array{TX,2},Array{Ty,1}}...)
     return cli_fit(estimator, X, y, test...)
 end
@@ -26,14 +26,14 @@ end
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
 # Arguments
-* `estimator::LightGBMEstimator`: the estimator to use in the prediction.
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `X::Array{T<:Real,2}`: the features data.
 """
-function predict{T<:Real}(estimator::LightGBMEstimator, X::Array{T,2})
+function predict{T<:Real}(estimator::LGBMEstimator, X::Array{T,2})
     return cli_predict(estimator, X)
 end
 
-function storeresults!(results, estimator::LightGBMEstimator, iter::Integer, test::String,
+function storeresults!(results, estimator::LGBMEstimator, iter::Integer, test::String,
                        metric::String, score::Float64)
     if !haskey(results, test)
         results[test] = Dict{String,Array{Float64,1}}()
