@@ -46,11 +46,11 @@ function storeresults!(results, estimator::LGBMEstimator, iter::Integer, test::S
     return nothing
 end
 
-function shrinkresults!(results, best_iter::Integer)
+function shrinkresults!(results, last_retained_iter::Integer)
     for test_key in keys(results)
         test = results[test_key]
         for metric_key in keys(test)
-            test[metric_key] = test[metric_key][1:best_iter]
+            test[metric_key] = test[metric_key][1:last_retained_iter]
         end
     end
 
