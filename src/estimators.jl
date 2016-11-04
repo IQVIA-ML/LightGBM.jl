@@ -16,6 +16,7 @@ type LGBMRegression <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    reg_lambda::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -58,6 +59,7 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      reg_lambda = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -96,6 +98,7 @@ function LGBMRegression(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        reg_lambda = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -131,7 +134,7 @@ function LGBMRegression(; num_iterations = 10,
 
     return LGBMRegression(String[], "regression", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
+                          min_data_in_leaf, min_sum_hessian_in_leaf, reg_lambda, feature_fraction,
                           feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
                           early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
                           is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
@@ -154,6 +157,7 @@ type LGBMBinary <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    reg_lambda::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -196,6 +200,7 @@ end
                   histogram_pool_size = -1.,
                   min_data_in_leaf = 100,
                   min_sum_hessian_in_leaf = 10.,
+                  reg_lambda = 0.,
                   feature_fraction = 1.,
                   feature_fraction_seed = 2,
                   bagging_fraction = 1.,
@@ -234,6 +239,7 @@ function LGBMBinary(; num_iterations = 10,
                     histogram_pool_size = -1.,
                     min_data_in_leaf = 100,
                     min_sum_hessian_in_leaf = 10.,
+                    reg_lambda = 0.,
                     feature_fraction = 1.,
                     feature_fraction_seed = 2,
                     bagging_fraction = 1.,
@@ -269,7 +275,7 @@ function LGBMBinary(; num_iterations = 10,
 
     return LGBMBinary(String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
                       tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
-                      min_sum_hessian_in_leaf, feature_fraction, feature_fraction_seed,
+                      min_sum_hessian_in_leaf, reg_lambda, feature_fraction, feature_fraction_seed,
                       bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, max_bin,
                       data_random_seed, is_sigmoid, init_score, is_pre_partition, is_sparse,
                       two_round, save_binary, sigmoid, is_unbalance, max_position, label_gain,
@@ -291,6 +297,7 @@ type LGBMLambdaRank <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    reg_lambda::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -333,6 +340,7 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      reg_lambda = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -371,6 +379,7 @@ function LGBMLambdaRank(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        reg_lambda = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -406,7 +415,7 @@ function LGBMLambdaRank(; num_iterations = 10,
 
     return LGBMLambdaRank(String[], "lambdarank", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
+                          min_data_in_leaf, min_sum_hessian_in_leaf, reg_lambda, feature_fraction,
                           feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
                           early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
                           is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
@@ -429,6 +438,7 @@ type LGBMMulticlass <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    reg_lambda::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -473,6 +483,7 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      reg_lambda = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -512,6 +523,7 @@ function LGBMMulticlass(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        reg_lambda = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -548,7 +560,7 @@ function LGBMMulticlass(; num_iterations = 10,
 
     return LGBMMulticlass(String[], "multiclass", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
+                          min_data_in_leaf, min_sum_hessian_in_leaf, reg_lambda, feature_fraction,
                           feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
                           early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
                           is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
