@@ -16,6 +16,9 @@ type LGBMRegression <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    lambda_l1::Float64
+    lambda_l2::Float64
+    min_gain_to_split::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -58,6 +61,9 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      lambda_l1 = 0.,
+                      lambda_l2 = 0.,
+                      min_gain_to_split = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -96,6 +102,9 @@ function LGBMRegression(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        lambda_l1 = 0.,
+                        lambda_l2 = 0.,
+                        min_gain_to_split = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -131,13 +140,13 @@ function LGBMRegression(; num_iterations = 10,
 
     return LGBMRegression(String[], "regression", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
-                          feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
-                          early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
-                          is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
-                          is_unbalance, max_position, label_gain, metric, metric_freq,
-                          is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file)
+                          min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
+                          min_gain_to_split, feature_fraction, feature_fraction_seed,
+                          bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
+                          max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
+                          is_sparse, two_round, save_binary, sigmoid, is_unbalance, max_position,
+                          label_gain, metric, metric_freq, is_training_metric, ndcg_at,
+                          num_machines, local_listen_port, time_out, machine_list_file)
 end
 
 type LGBMBinary <: LGBMEstimator
@@ -154,6 +163,9 @@ type LGBMBinary <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    lambda_l1::Float64
+    lambda_l2::Float64
+    min_gain_to_split::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -196,6 +208,9 @@ end
                   histogram_pool_size = -1.,
                   min_data_in_leaf = 100,
                   min_sum_hessian_in_leaf = 10.,
+                  lambda_l1 = 0.,
+                  lambda_l2 = 0.,
+                  min_gain_to_split = 0.,
                   feature_fraction = 1.,
                   feature_fraction_seed = 2,
                   bagging_fraction = 1.,
@@ -234,6 +249,9 @@ function LGBMBinary(; num_iterations = 10,
                     histogram_pool_size = -1.,
                     min_data_in_leaf = 100,
                     min_sum_hessian_in_leaf = 10.,
+                    lambda_l1 = 0.,
+                    lambda_l2 = 0.,
+                    min_gain_to_split = 0.,
                     feature_fraction = 1.,
                     feature_fraction_seed = 2,
                     bagging_fraction = 1.,
@@ -269,12 +287,13 @@ function LGBMBinary(; num_iterations = 10,
 
     return LGBMBinary(String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
                       tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
-                      min_sum_hessian_in_leaf, feature_fraction, feature_fraction_seed,
-                      bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, max_bin,
-                      data_random_seed, is_sigmoid, init_score, is_pre_partition, is_sparse,
-                      two_round, save_binary, sigmoid, is_unbalance, max_position, label_gain,
-                      metric, metric_freq, is_training_metric, ndcg_at, num_machines,
-                      local_listen_port, time_out, machine_list_file)
+                      min_sum_hessian_in_leaf, lambda_l1, lambda_l2, min_gain_to_split,
+                      feature_fraction, feature_fraction_seed, bagging_fraction, bagging_freq,
+                      bagging_seed, early_stopping_round, max_bin, data_random_seed, is_sigmoid,
+                      init_score, is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
+                      is_unbalance, max_position, label_gain, metric, metric_freq,
+                      is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
+                      machine_list_file)
 end
 
 type LGBMLambdaRank <: LGBMEstimator
@@ -291,6 +310,9 @@ type LGBMLambdaRank <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    lambda_l1::Float64
+    lambda_l2::Float64
+    min_gain_to_split::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -333,6 +355,9 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      lambda_l1 = 0.,
+                      lambda_l2 = 0.,
+                      min_gain_to_split = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -371,6 +396,9 @@ function LGBMLambdaRank(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        lambda_l1 = 0.,
+                        lambda_l2 = 0.,
+                        min_gain_to_split = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -406,13 +434,13 @@ function LGBMLambdaRank(; num_iterations = 10,
 
     return LGBMLambdaRank(String[], "lambdarank", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
-                          feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
-                          early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
-                          is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
-                          is_unbalance, max_position, label_gain, metric, metric_freq,
-                          is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file)
+                          min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
+                          min_gain_to_split, feature_fraction, feature_fraction_seed,
+                          bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
+                          max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
+                          is_sparse, two_round, save_binary, sigmoid, is_unbalance, max_position,
+                          label_gain, metric, metric_freq, is_training_metric, ndcg_at,
+                          num_machines, local_listen_port, time_out, machine_list_file)
 end
 
 type LGBMMulticlass <: LGBMEstimator
@@ -429,6 +457,9 @@ type LGBMMulticlass <: LGBMEstimator
 
     min_data_in_leaf::Int
     min_sum_hessian_in_leaf::Float64
+    lambda_l1::Float64
+    lambda_l2::Float64
+    min_gain_to_split::Float64
     feature_fraction::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
@@ -473,6 +504,9 @@ end
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
+                      lambda_l1 = 0.,
+                      lambda_l2 = 0.,
+                      min_gain_to_split = 0.,
                       feature_fraction = 1.,
                       feature_fraction_seed = 2,
                       bagging_fraction = 1.,
@@ -512,6 +546,9 @@ function LGBMMulticlass(; num_iterations = 10,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
+                        lambda_l1 = 0.,
+                        lambda_l2 = 0.,
+                        min_gain_to_split = 0.,
                         feature_fraction = 1.,
                         feature_fraction_seed = 2,
                         bagging_fraction = 1.,
@@ -548,11 +585,11 @@ function LGBMMulticlass(; num_iterations = 10,
 
     return LGBMMulticlass(String[], "multiclass", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
-                          min_data_in_leaf, min_sum_hessian_in_leaf, feature_fraction,
-                          feature_fraction_seed, bagging_fraction, bagging_freq, bagging_seed,
-                          early_stopping_round, max_bin, data_random_seed, is_sigmoid, init_score,
-                          is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
-                          is_unbalance, max_position, label_gain, metric, metric_freq,
-                          is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file, num_class)
+                          min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
+                          min_gain_to_split, feature_fraction, feature_fraction_seed,
+                          bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
+                          max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
+                          is_sparse, two_round, save_binary, sigmoid, is_unbalance, max_position,
+                          label_gain, metric, metric_freq, is_training_metric, ndcg_at,
+                          num_machines, local_listen_port, time_out, machine_list_file, num_class)
 end

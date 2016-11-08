@@ -18,10 +18,11 @@ function cli_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y:
 
     results = Dict{String,Dict{String,Array{Float64,1}}}()
     open(`$(ENV["LIGHTGBM"]) config=$(pwd())/$(tempdir)/lightgbm.conf`, "r") do pipe
+        stopped = false
         while isopen(pipe)
             output = readline(pipe)
             printoutput(output, verbosity)
-            cli_processoutput!(results, output, estimator)
+            stopped = cli_processoutput!(results, output, estimator, stopped)
         end
     end
     estimator.model = readlines("$(tempdir)/model.txt")
@@ -87,21 +88,26 @@ end
 
 # Parse the LightGBM `output` for test metrics and early stopping. Store test metrics in `results`.
 # Shrink the `results` to the best iteration round when early stopping is detected.
-function cli_processoutput!(results, output::String, estimator::LGBMEstimator)
+function cli_processoutput!(results, output::String, estimator::LGBMEstimator, stopped::Bool)
     if startswith(output, "[LightGBM] [Info] Iteration: ")
-        iter, test, metric, score = cli_parseresults(output)
+        iter, test, metric, score = cli_parse_metrics(output)
         storeresults!(results, estimator, iter, test, metric, score)
-    elseif contains(output, "Early stopping at iteration ")
-        best_iter = cli_parsestop(output)
+    elseif startswith(output, "[LightGBM] [Info] Early stopping")
+        best_iter = cli_parse_earlystop(output)
         shrinkresults!(results, best_iter)
+    elseif startswith(output, "[LightGBM] [Info] Stopped training")
+        stopped = true
+    elseif stopped && contains(output, " seconds elapsed, finished iteration ")
+        last_iter = cli_parse_stop(output)
+        shrinkresults!(results, last_iter)
     end
 
-    return nothing
+    return stopped
 end
 
 # Parse the LightGBM test metrics `output` and return the iteration round, test set, metric name,
 # and metric value.
-function cli_parseresults(output)
+function cli_parse_metrics(output)
     iter_start_idx = 30 # [LightGBM] [Info] Iteration: _
     iter_end_idx = searchindex(output, ',', iter_start_idx) - 1
     iter = parse(Int, output[iter_start_idx:iter_end_idx])
@@ -122,11 +128,19 @@ function cli_parseresults(output)
 end
 
 # Parse the LightGBM early stopping `output` and return the best iteration round.
-function cli_parsestop(output)
+function cli_parse_earlystop(output)
     best_start_idx = last(search(output, "the best iteration round is ")) + 1
     best_iter = parse(Int, output[best_start_idx:end])
 
     return best_iter
+end
+
+# Parse the LightGBM stopping `output` and return the last completed iteration round.
+function cli_parse_stop(output)
+    last_start_idx = last(search(output, " seconds elapsed, finished iteration ")) + 1
+    last_iter = parse(Int, output[last_start_idx:end])
+
+    return last_iter - 1
 end
 
 # Write the `data` to `filename` as an Array{Float32,2}.
