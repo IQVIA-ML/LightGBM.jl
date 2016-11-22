@@ -241,3 +241,16 @@ function cli_prep_fit(estimator::LGBMEstimator, conf)
 
     return nothing
 end
+
+function storeresults!(results, estimator::LGBMEstimator, iter::Integer, test::String,
+                       metric::String, score::Float64)
+    if !haskey(results, test)
+        results[test] = Dict{String,Array{Float64,1}}()
+        results[test][metric] = Array(Float64, estimator.num_iterations)
+    elseif !haskey(results[test], metric)
+        results[test][metric] = Array(Float64, estimator.num_iterations)
+    end
+    results[test][metric][iter] = score
+
+    return nothing
+end

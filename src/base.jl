@@ -17,7 +17,8 @@ array that holds the validation metric's value at each iteration.
 """
 function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
                                 test::Tuple{Array{TX,2},Array{Ty,1}}...; verbosity::Integer = 1)
-    return cli_fit(estimator, X, y, test..., verbosity = verbosity)
+    #return cli_fit(estimator, X, y, test..., verbosity = verbosity)
+    return api_fit(estimator, X, y, test..., verbosity = verbosity)
 end
 
 """
@@ -31,19 +32,6 @@ Return an array with the labels that the `estimator` predicts for features data 
 """
 function predict{T<:Real}(estimator::LGBMEstimator, X::Array{T,2}; verbosity::Integer = 1)
     return cli_predict(estimator, X, verbosity = verbosity)
-end
-
-function storeresults!(results, estimator::LGBMEstimator, iter::Integer, test::String,
-                       metric::String, score::Float64)
-    if !haskey(results, test)
-        results[test] = Dict{String,Array{Float64,1}}()
-        results[test][metric] = Array(Float64, estimator.num_iterations)
-    elseif !haskey(results[test], metric)
-        results[test][metric] = Array(Float64, estimator.num_iterations)
-    end
-    results[test][metric][iter] = score
-
-    return nothing
 end
 
 function shrinkresults!(results, last_retained_iter::Integer)

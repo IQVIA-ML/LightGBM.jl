@@ -3,6 +3,7 @@ abstract Estimator
 abstract LGBMEstimator <: Estimator
 
 type LGBMRegression <: LGBMEstimator
+    booster::BoosterHandle
     model::Array{String,1}
     application::String
 
@@ -49,6 +50,8 @@ type LGBMRegression <: LGBMEstimator
     local_listen_port::Int
     time_out::Int
     machine_list_file::String
+
+    num_class::Int
 end
 
 """
@@ -138,7 +141,7 @@ function LGBMRegression(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMRegression(String[], "regression", num_iterations, learning_rate, num_leaves,
+    return LGBMRegression(BoosterHandle(C_NULL), String[], "regression", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
@@ -146,10 +149,11 @@ function LGBMRegression(; num_iterations = 10,
                           max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
                           is_sparse, two_round, save_binary, sigmoid, is_unbalance, max_position,
                           label_gain, metric, metric_freq, is_training_metric, ndcg_at,
-                          num_machines, local_listen_port, time_out, machine_list_file)
+                          num_machines, local_listen_port, time_out, machine_list_file, 1)
 end
 
 type LGBMBinary <: LGBMEstimator
+    booster::BoosterHandle
     model::Array{String,1}
     application::String
 
@@ -196,6 +200,8 @@ type LGBMBinary <: LGBMEstimator
     local_listen_port::Int
     time_out::Int
     machine_list_file::String
+
+    num_class::Int
 end
 
 """
@@ -285,7 +291,7 @@ function LGBMBinary(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMBinary(String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
+    return LGBMBinary(BoosterHandle(C_NULL), String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
                       tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
                       min_sum_hessian_in_leaf, lambda_l1, lambda_l2, min_gain_to_split,
                       feature_fraction, feature_fraction_seed, bagging_fraction, bagging_freq,
@@ -293,10 +299,11 @@ function LGBMBinary(; num_iterations = 10,
                       init_score, is_pre_partition, is_sparse, two_round, save_binary, sigmoid,
                       is_unbalance, max_position, label_gain, metric, metric_freq,
                       is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                      machine_list_file)
+                      machine_list_file, 1)
 end
 
 type LGBMLambdaRank <: LGBMEstimator
+    booster::BoosterHandle
     model::Array{String,1}
     application::String
 
@@ -343,6 +350,8 @@ type LGBMLambdaRank <: LGBMEstimator
     local_listen_port::Int
     time_out::Int
     machine_list_file::String
+
+    num_class::Int
 end
 
 """
@@ -432,7 +441,7 @@ function LGBMLambdaRank(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMLambdaRank(String[], "lambdarank", num_iterations, learning_rate, num_leaves,
+    return LGBMLambdaRank(BoosterHandle(C_NULL), String[], "lambdarank", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
@@ -440,10 +449,11 @@ function LGBMLambdaRank(; num_iterations = 10,
                           max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
                           is_sparse, two_round, save_binary, sigmoid, is_unbalance, max_position,
                           label_gain, metric, metric_freq, is_training_metric, ndcg_at,
-                          num_machines, local_listen_port, time_out, machine_list_file)
+                          num_machines, local_listen_port, time_out, machine_list_file, 1)
 end
 
 type LGBMMulticlass <: LGBMEstimator
+    booster::BoosterHandle
     model::Array{String,1}
     application::String
 
@@ -583,7 +593,7 @@ function LGBMMulticlass(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMMulticlass(String[], "multiclass", num_iterations, learning_rate, num_leaves,
+    return LGBMMulticlass(BoosterHandle(C_NULL), String[], "multiclass", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,

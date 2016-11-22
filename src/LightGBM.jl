@@ -8,11 +8,14 @@ function __init__()
             " Set this variable to point to the LightGBM binary",
             " (e.g. `ENV[\"LIGHTGBM\"] = \"../lightgbm\"`).")
     end
+    include("../deps/deps.jl")
 end
 
+include("wrapper.jl")
 include("estimators.jl")
 include("base.jl")
 include("cli.jl")
+include("fit.jl")
 
 export fit, predict, LGBMEstimator, LGBMRegression, LGBMBinary, LGBMLambdaRank, LGBMMulticlass
 
