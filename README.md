@@ -13,16 +13,21 @@ Then add the package to Julia with:
 Pkg.clone("https://github.com/Allardvm/LightGBM.jl.git")
 ```
 
-To use the package, set the environment variable LIGHTGBM to point to the LightGBM binary. This can be done for the duration of a single Julia session with (include the .exe on Windows):
+To use the package, set the environment variable LIGHTGBM_PATH to point to the LightGBM directory prior to loading LightGBM.jl. This can be done for the duration of a single Julia session with:
 ```julia
-ENV["LIGHTGBM"] = "../lightgbm"
+ENV["LIGHTGBM_PATH"] = "../LightGBM"
+```
+
+To test the package, first set the environment variable LIGHTGBM_PATH and then call:
+```julia
+Pkg.test("LightGBM")
 ```
 
 ## Exports
 
 ### Functions
 
-#### `fit(estimator, X, y[, test...])`
+#### `fit(estimator, X, y[, test...]; [verbosity = 1])`
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
 
@@ -32,17 +37,24 @@ array that holds the validation metric's value at each iteration.
 
 ##### Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Array{TX<:Real,2}`: the features data.
-* `y::Array{Ty<:Real,1}`: the labels.
-* `test::Tuple{Array{TX,2},Array{Ty,1}}...`: optionally contains one or more tuples of X-y pairs of
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
     the same types as `X` and `y` that should be used as validation sets.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
-#### `predict(estimator, X)`
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
 ##### Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `X::Array{T<:Real,2}`: the features data.
+* `X::Matrix{T<:Real}`: the features data.
+* `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
+    scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
+* `n_trees::Integer`: keyword argument that sets the controls the number of trees used in the
+    prediction.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
 ### Estimators
 
