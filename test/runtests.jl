@@ -1,60 +1,33 @@
-ENV["LIGHTGBM"] = "/Users/Allard/GitHub/LightGBM/lightgbm"
-githubdir = "/Users/Allard/Github"
-include(githubdir * "/LightGBM.jl/src/LightGBM.jl")
 using LightGBM
-
-
-binary_test = readdlm("/Users/Allard/GitHub/LightGBM/examples/binary_classification/binary.test", '\t');
-binary_train = readdlm("/Users/Allard/GitHub/LightGBM/examples/binary_classification/binary.train", '\t');
-x_train = binary_train[:, 2:end];
-y_label = convert(Array{Float32,1}, binary_train[:, 1]);
-x_test = binary_test[:, 2:end];
-y_test = convert(Array{Float32,1}, binary_test[:, 1]);
-
-estimator = LGBMBinary(num_iterations = 10,
-                       learning_rate = .1,
-                       feature_fraction = .8,
-                       bagging_fraction = .8,
-                       bagging_freq = 5,
-                       num_leaves = 63,
-                       metric = ["auc", "binary_logloss"],
-                       metric_freq = 4,
-                       is_training_metric = true,
-                       max_bin = 255,
-                       is_sigmoid = true,
-                       min_sum_hessian_in_leaf = 5.,
-                       min_data_in_leaf = 50);
-
-a = LightGBM.fit(estimator, x_train, y_label, (x_test, y_test), verbosity = 1)
-
-
-
-
-binary_test = readdlm("/Users/Allard/GitHub/LightGBM/examples/binary_classification/binary.test", '\t');
-binary_train = readdlm("/Users/Allard/GitHub/LightGBM/examples/binary_classification/binary.train", '\t');
-x_train = binary_train[:, 2:end];
-y_label = convert(Array{Float32,1}, binary_train[:, 1]);
-x_test = binary_test[:, 2:end];
-y_test = convert(Array{Float32,1}, binary_test[:, 1]);
-
-#using LightGBM
 using Base.Test
 
-train_handle = LGBM_CreateDatasetFromMat(x_train, "objective=binary boosting=gbdt metric=binary_logloss,auc metric_freq=1 is_training_metric=true max_bin=255 num_trees=100 learning_rate=0.1 num_leaves=63 tree_learner=serial feature_fraction=0.8 bagging_freq=5 bagging_fraction=0.8 min_data_in_leaf=50 min_sum_hessian_in_leaf=5.")
+binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t');
+binary_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.train", '\t');
+X_train = binary_train[:, 2:end];
+y_train = convert(Vector{Float32}, binary_train[:, 1]);
+X_test = binary_test[:, 2:end];
+y_test = convert(Vector{Float32}, binary_test[:, 1]);
 
-@test LGBM_DatasetGetNumData(train_handle) == 7000
-@test LGBM_DatasetGetNumFeature(train_handle) == 28
+estimator = LightGBM.LGBMBinary(num_iterations = 20,
+                                learning_rate = .1,
+                                early_stopping_round = 1,
+                                feature_fraction = .8,
+                                bagging_fraction = .9,
+                                bagging_freq = 1,
+                                num_leaves = 1000,
+                                metric = ["auc", "binary_logloss"],
+                                metric_freq = 1,
+                                is_training_metric = true,
+                                max_bin = 255,
+                                is_sigmoid = true,
+                                min_sum_hessian_in_leaf = 0.,
+                                min_data_in_leaf = 1);
 
-LGBM_DatasetSetField(train_handle, "label", y_label);
-@test LGBM_DatasetGetField(train_handle, "label")[1:5] == [1f0, 1f0, 1f0, 0f0, 1f0]
+LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 2);
+LightGBM.predict(estimator, X_train, verbosity = 2);
 
-test_handle = LGBM_CreateDatasetFromMat(x_test, "objective=binary boosting=gbdt metric=binary_logloss,auc metric_freq=1 is_training_metric=true max_bin=255 num_trees=100 learning_rate=0.1 num_leaves=63 tree_learner=serial feature_fraction=0.8 bagging_freq=5 bagging_fraction=0.8 min_data_in_leaf=50 min_sum_hessian_in_leaf=5.")
-
-bst_handle = LGBM_BoosterCreate(train_handle, [test_handle], ["test-1"], "objective=binary boosting=gbdt metric=binary_logloss,auc metric_freq=1 is_training_metric=true max_bin=255 num_trees=100 learning_rate=0.1 num_leaves=63 tree_learner=serial feature_fraction=0.8 bagging_freq=5 bagging_fraction=0.8 min_data_in_leaf=50 min_sum_hessian_in_leaf=5.")
-LGBM_BoosterUpdateOneIter(bst_handle);
-LGBM_BoosterUpdateOneIter(bst_handle);
-LGBM_BoosterUpdateOneIter(bst_handle);
-LGBM_BoosterEval(bst_handle, 0, 2);
-LGBM_BoosterGetScore(bst_handle);
-LGBM_BoosterGetPredict(bst_handle, 0, 7000);
-LGBM_BoosterPredictForMat(bst_handle, x_test, 0, 1);
+train_ds = LightGBM.LGBM_CreateDatasetFromMat(X_train, "objective=binary");
+@test LightGBM.LGBM_DatasetGetNumData(train_ds) == 7000
+@test LightGBM.LGBM_DatasetGetNumFeature(train_ds) == 28
+@test LightGBM.LGBM_DatasetSetField(train_ds, "label", y_train) == nothing
+@test LightGBM.LGBM_DatasetGetField(train_ds, "label") == y_train

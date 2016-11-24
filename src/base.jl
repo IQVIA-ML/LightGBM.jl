@@ -10,14 +10,13 @@ array that holds the validation metric's value at each iteration.
 
 # Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Array{TX<:Real,2}`: the features data.
-* `y::Array{Ty<:Real,1}`: the labels.
-* `test::Tuple{Array{TX,2},Array{Ty,1}}...`: optionally contains one or more tuples of X-y pairs of
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
     the same types as `X` and `y` that should be used as validation sets.
 """
-function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Array{TX,2}, y::Array{Ty,1},
-                                test::Tuple{Array{TX,2},Array{Ty,1}}...; verbosity::Integer = 1)
-    #return cli_fit(estimator, X, y, test..., verbosity = verbosity)
+function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
+                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
     return api_fit(estimator, X, y, test..., verbosity = verbosity)
 end
 
@@ -28,19 +27,10 @@ Return an array with the labels that the `estimator` predicts for features data 
 
 # Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `X::Array{T<:Real,2}`: the features data.
+* `X::Matrix{T<:Real}`: the features data.
 """
-function predict{T<:Real}(estimator::LGBMEstimator, X::Array{T,2}; verbosity::Integer = 1)
-    return cli_predict(estimator, X, verbosity = verbosity)
-end
-
-function shrinkresults!(results, last_retained_iter::Integer)
-    for test_key in keys(results)
-        test = results[test_key]
-        for metric_key in keys(test)
-            test[metric_key] = test[metric_key][1:last_retained_iter]
-        end
-    end
-
-    return nothing
+function predict{T<:Real}(estimator::LGBMEstimator, X::Matrix{T}; predict_type::Integer = 0,
+                          n_trees::Integer = -1, verbosity::Integer = 1)
+    return api_predict(estimator, X, predict_type = predict_type, n_trees = n_trees,
+                       verbosity = verbosity)
 end
