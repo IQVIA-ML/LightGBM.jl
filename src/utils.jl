@@ -1,16 +1,16 @@
-function log_fatal(verbosity, msg...)
+function log_fatal(verbosity::Integer, msg...)
     verbosity >= -1 && warn(msg...)
 end
 
-function log_warning(verbosity, msg...)
+function log_warning(verbosity::Integer, msg...)
     verbosity >= 0 && warn(msg...)
 end
 
-function log_info(verbosity, msg...)
+function log_info(verbosity::Integer, msg...)
     verbosity >= 1 && print(msg...)
 end
 
-function log_debug(verbosity, msg...)
+function log_debug(verbosity::Integer, msg...)
     verbosity >= 2 && print(msg...)
 end
 

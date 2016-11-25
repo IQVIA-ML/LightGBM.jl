@@ -104,6 +104,10 @@ function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     return Dataset(out[])
 end
 
+function LGBM_CreateDatasetFromMat{T<:Real}(data::Matrix{T}, parameters::String)
+    return LGBM_CreateDatasetFromMat(convert(Matrix{Float64}, data), parameters)
+end
+
 function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
                                                               reference::Dataset)
     lgbm_data_type = typetoid64(T)
@@ -120,6 +124,11 @@ function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
               reference.handle => Ref{DatasetHandle},
               out => Ref{DatasetHandle})
     return Dataset(out[])
+end
+
+function LGBM_CreateDatasetFromMat{T<:Real}(data::Matrix{T}, parameters::String,
+                                            reference::Dataset)
+    return LGBM_CreateDatasetFromMat(convert(Matrix{Float64}, data), parameters, reference)
 end
 
 function LGBM_DatasetFree(ds::Dataset)
@@ -146,6 +155,14 @@ function LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::
               num_element => Int64,
               data_type => Cint)
     return nothing
+end
+
+function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_data::Vector{T})
+    return LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
+end
+
+function LGBM_DatasetSetField{T<:Integer}(ds::Dataset, field_name::String, field_data::Vector{T})
+    return LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
 end
 
 function LGBM_DatasetGetField(ds::Dataset, field_name::String)
@@ -273,6 +290,12 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
               n_used_trees => Int64,
               out_result => Ref{Cdouble})
     return out_result
+end
+
+function LGBM_BoosterPredictForMat{T<:Real}(bst::Booster, data::Matrix{T}, predict_type::Integer,
+                                            n_used_trees::Integer)
+    return LGBM_BoosterPredictForMat(bst, convert(Matrix{Float64}, data), predict_type,
+                                     n_used_trees)
 end
 
 function LGBM_BoosterSaveModel(bst::Booster, num_used_model::Integer, filename::String)
