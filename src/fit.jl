@@ -15,9 +15,8 @@ const boosterparams = [:application, :learning_rate, :num_leaves, :max_depth, :t
 const maximize_metrics = ["auc", "ndcg"]
 
 # Fit the `estimator` using the CLI of LightGBM.
-# TODO: Open up to non-Float X matrices. Handle conversion of Float64 to Float32 y's.
-function api_fit{TX<:Union{Float32,Float64},Ty<:Union{Float32,Int32}}(estimator::LGBMEstimator,
-    X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
+function api_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
+                                    test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")

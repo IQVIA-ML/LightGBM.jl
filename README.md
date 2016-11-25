@@ -3,7 +3,7 @@ LightGBM.jl
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 
-**LightGBM.jl** provides a Julia interface for Microsoft's [LightGBM](https://github.com/Microsoft/LightGBM).
+**LightGBM.jl** provides a Julia interface for Microsoft's [LightGBM](https://github.com/Microsoft/LightGBM). The package uses LightGBM's new C API to realize the best performance and allow fitting of large databases. The package supports all major operating systems (Windows, Linux, and Mac OS X).
 
 ## Installation
 Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide).
@@ -33,7 +33,7 @@ validation sets.
 
 Return a dictionary with an entry for each validation set. Each entry of the dictionary is another
 dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
-array that holds the validation metric's value at each iteration.
+array that holds the validation metric's value at each evaluation of the metric.
 
 ##### Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
