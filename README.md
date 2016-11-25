@@ -3,9 +3,9 @@ LightGBM.jl
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 
-**LightGBM.jl** provides a Julia interface for Microsoft's [LightGBM](https://github.com/Microsoft/LightGBM). The package uses LightGBM's new C API to realize the best performance and allow fitting of large databases. The package supports all major operating systems (Windows, Linux, and Mac OS X).
+**LightGBM.jl** provides a Julia interface for Microsoft's [LightGBM](https://github.com/Microsoft/LightGBM). The package uses LightGBM's new C API to realize the best performance and allow fitting of large databases. All major operating systems (Windows, Linux, and Mac OS X) are supported.
 
-## Installation
+# Installation
 Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide).
 
 Then add the package to Julia with:
@@ -23,11 +23,43 @@ To test the package, first set the environment variable LIGHTGBM_PATH and then c
 Pkg.test("LightGBM")
 ```
 
-## Exports
+# Getting started
+```julia
+ENV["LIGHTGBM_PATH"] = "../LightGBM"
 
-### Functions
+using LightGBM
 
-#### `fit(estimator, X, y[, test...]; [verbosity = 1])`
+binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t')
+binary_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.train", '\t')
+X_train = binary_train[:, 2:end]
+y_train = binary_train[:, 1]
+X_test = binary_test[:, 2:end]
+y_test = binary_test[:, 1]
+
+estimator = LightGBM.LGBMBinary(num_iterations = 100,
+                                learning_rate = .1,
+                                early_stopping_round = 5,
+                                feature_fraction = .8,
+                                bagging_fraction = .9,
+                                bagging_freq = 1,
+                                num_leaves = 1000,
+                                metric = ["auc", "binary_logloss"],
+                                metric_freq = 1,
+                                is_training_metric = false,
+                                max_bin = 255,
+                                is_sigmoid = true,
+                                min_sum_hessian_in_leaf = 0.,
+                                min_data_in_leaf = 1)
+
+fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 1)
+predict(estimator, X_train, verbosity = 1)
+```
+
+# Exports
+
+## Functions
+
+### `fit(estimator, X, y[, test...]; [verbosity = 1])`
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
 
@@ -35,7 +67,7 @@ Return a dictionary with an entry for each validation set. Each entry of the dic
 dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
 array that holds the validation metric's value at each evaluation of the metric.
 
-##### Arguments
+#### Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
 * `X::Matrix{TX<:Real}`: the features data.
 * `y::Vector{Ty<:Real}`: the labels.
@@ -44,10 +76,10 @@ array that holds the validation metric's value at each evaluation of the metric.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
-#### `predict(estimator, X; [predict_type = 0, n_trees = -1, verbosity = 1])`
+### `predict(estimator, X; [predict_type = 0, n_trees = -1, verbosity = 1])`
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
-##### Arguments
+#### Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `X::Matrix{T<:Real}`: the features data.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
@@ -57,9 +89,28 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
-### Estimators
+### `cv(estimator, X, y, cv; [verbosity = 1])` (Experimental—interface may change)
+Cross-validate the `estimator` with features data `X` and label `y`. The iterator `cv` provides
+vectors of indices for the training dataset. The remaining indices are used to create the
+validation dataset.
 
-#### `LGBMRegression`
+Return a dictionary with an entry for the validation dataset and an entry for the training dataset,
+if the parameter `is_training_metric` is set in the `estimator`. Each entry of the dictionary is
+another dictionary with an entry for each validation metric in the `estimator`. Each of these
+entries is an array that holds the validation metric's value for each dataset, at the last valid
+iteration.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to be fit.
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `cv`: the iterator providing arrays of indices for the training dataset.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+
+## Estimators
+
+### `LGBMRegression <: LGBMEstimator`
 ```julia
 LGBMRegression(; [num_iterations = 10,
                   learning_rate = .1,
@@ -99,7 +150,7 @@ LGBMRegression(; [num_iterations = 10,
 ```
 Return a LGBMRegression estimator.
 
-#### `LGBMBinary`
+### `LGBMBinary <: LGBMEstimator`
 ```julia
 LGBMBinary(; [num_iterations = 10,
               learning_rate = .1,
@@ -139,7 +190,7 @@ LGBMBinary(; [num_iterations = 10,
 ```
 Return a LGBMBinary estimator.
 
-#### `LGBMLambdaRank`
+### `LGBMLambdaRank <: LGBMEstimator`
 ```julia
 LGBMLambdaRank(; [num_iterations = 10,
                   learning_rate = .1,
@@ -179,7 +230,7 @@ LGBMLambdaRank(; [num_iterations = 10,
 ```
 Return a LGBMLambdaRank estimator.
 
-#### `LGBMMulticlass`
+### `LGBMMulticlass <: LGBMEstimator`
 ```julia
 LGBMMulticlass(; [num_iterations = 10,
                   learning_rate = .1,

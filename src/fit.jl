@@ -41,15 +41,14 @@ function api_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::
     estimator.booster = LGBM_BoosterCreate(train_ds, tests_ds, tests_names, bst_parameters)
 
     log_debug(verbosity, "Started training...\n")
-    results = train(estimator, tests_names, verbosity, start_time)
+    results = fit_train(estimator, tests_names, verbosity, start_time)
     # estimator.model = readlines("$(tempdir)/model.txt")
 
     return results
 end
 
-
-
-function train(estimator, tests_names, verbosity, start_time)
+function fit_train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
+                   start_time::DateTime)
     results = Dict{String,Dict{String,Vector{Float64}}}()
     n_tests = length(tests_names)
     n_metrics = length(estimator.metric)
