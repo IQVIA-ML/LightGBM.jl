@@ -1,5 +1,5 @@
 function log_fatal(verbosity::Integer, msg...)
-    verbosity >= -1 && warn(msg...)
+    warn(msg...)
 end
 
 function log_warning(verbosity::Integer, msg...)
