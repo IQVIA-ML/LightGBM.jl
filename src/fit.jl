@@ -25,9 +25,9 @@ function api_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::
     LGBM_DatasetSetField(train_ds, "label", y)
 
     n_tests = length(test)
+    tests_ds = Array(Dataset, n_tests)
     if n_tests > 0
         log_debug(verbosity, "Started creating LGBM test datasets\n")
-        tests_ds = Array(Dataset, n_tests)
         tests_names = ["test_$(test_idx)" for test_idx in 1:n_tests]
         @inbounds for (test_idx, test_entry) in enumerate(test)
             test_ds = LGBM_CreateDatasetFromMat(test_entry[1], ds_parameters, train_ds)
@@ -41,13 +41,13 @@ function api_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::
     estimator.booster = LGBM_BoosterCreate(train_ds, tests_ds, tests_names, bst_parameters)
 
     log_debug(verbosity, "Started training...\n")
-    results = fit_train(estimator, tests_names, verbosity, start_time)
+    results = train(estimator, tests_names, verbosity, start_time)
     # estimator.model = readlines("$(tempdir)/model.txt")
 
     return results
 end
 
-function fit_train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
+function train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
                    start_time::DateTime)
     results = Dict{String,Dict{String,Vector{Float64}}}()
     n_tests = length(tests_names)
@@ -61,7 +61,7 @@ function fit_train(estimator::LGBMEstimator, tests_names::Vector{String}, verbos
         log_debug(verbosity, Base.Dates.CompoundPeriod(now() - start_time),
                   " elapsed, finished iteration ", iter, "\n")
         if is_finished == 0
-            is_finished = eval_metrics!(results, estimator, tests_names, iter, n_tests, n_metrics,
+            is_finished = eval_metrics!(results, estimator, tests_names, iter, n_metrics,
                                         verbosity, bigger_is_better, best_score, best_iter)
         else
             log_info(verbosity, "Stopped training because there are no more leaves that meet the ",
@@ -74,13 +74,13 @@ end
 
 function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, tests_names::Vector{String}, iter::Integer,
-                       n_tests::Integer, n_metrics::Integer, verbosity::Integer,
+                       n_metrics::Integer, verbosity::Integer,
                        bigger_is_better::Vector{Float64}, best_score::Matrix{Float64},
                        best_iter::Matrix{Int})
     if (iter - 1) % estimator.metric_freq == 0
         if estimator.is_training_metric
             scores = LGBM_BoosterEval(estimator.booster, 0, n_metrics)
-            store_scores!(results, estimator, iter, "training", n_metrics, scores)
+            store_scores!(results, estimator, iter, "training", scores)
             print_scores(estimator, iter, "training", n_metrics, scores, verbosity)
         end
     end
@@ -91,7 +91,7 @@ function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
 
             # Check if progress should be stored and/or printed
             if (iter - 1) % estimator.metric_freq == 0
-                store_scores!(results, estimator, iter, test_name, n_metrics, scores)
+                store_scores!(results, estimator, iter, test_name, scores)
                 print_scores(estimator, iter, test_name, n_metrics, scores, verbosity)
             end
 
@@ -116,7 +116,7 @@ end
 
 function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, iter::Integer, evalname::String,
-                       n_metrics::Integer, scores::Vector{Cfloat})
+                       scores::Vector{Cfloat})
     for (metric_idx, metric_name) in enumerate(estimator.metric)
         if !haskey(results, evalname)
             num_evals = cld(estimator.num_iterations, estimator.metric_freq)

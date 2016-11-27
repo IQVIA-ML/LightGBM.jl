@@ -22,9 +22,10 @@ include("wrapper.jl")
 include("estimators.jl")
 include("base.jl")
 include("utils.jl")
+include("cv.jl")
 include("fit.jl")
 include("predict.jl")
 
-export fit, predict, LGBMEstimator, LGBMRegression, LGBMBinary, LGBMLambdaRank, LGBMMulticlass
+export fit, predict, cv, LGBMEstimator, LGBMRegression, LGBMBinary, LGBMLambdaRank, LGBMMulticlass
 
 end # module LightGBM

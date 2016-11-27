@@ -1,5 +1,6 @@
 function api_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, cv;
                                    verbosity::Integer = 1)
+    start_time = now()
     n_data = size(X)[1]
     ds_parameters = getparamstring(estimator, datasetparams)
     bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"

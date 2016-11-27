@@ -144,7 +144,7 @@ function LGBM_DatasetSaveBinary(ds::Dataset, filename::String)
     return nothing
 end
 
-function LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
+function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
                                                        field_data::Vector{T})
     data_type = typetoid32(T)
     num_element = length(field_data)
@@ -157,12 +157,31 @@ function LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::
     return nothing
 end
 
-function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_data::Vector{T})
-    return LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
+function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Float32})
+    if field_name == "label" || field_name == "weight"
+        _LGBM_DatasetSetField(ds, field_name, field_data)
+    else
+        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
+    end
+    return nothing
 end
 
-function LGBM_DatasetSetField{T<:Integer}(ds::Dataset, field_name::String, field_data::Vector{T})
-    return LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
+function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Int32})
+    if field_name == "group" || field_name == "group_id"
+        _LGBM_DatasetSetField(ds, field_name, field_data)
+    else
+        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
+    end
+    return nothing
+end
+
+function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_data::Vector{T})
+    if field_name == "label" || field_name == "weight"
+        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
+    elseif field_name == "group" || field_name == "group_id"
+        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
+    end
+    return nothing
 end
 
 function LGBM_DatasetGetField(ds::Dataset, field_name::String)
