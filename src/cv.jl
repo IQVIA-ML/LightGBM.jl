@@ -1,5 +1,26 @@
-function api_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, cv;
-                                   verbosity::Integer = 1)
+"""
+    cv(estimator, X, y, cv; [verbosity = 1])
+
+Cross-validate the `estimator` with features data `X` and label `y`. The iterator `cv` provides
+vectors of indices for the training dataset. The remaining indices are used to create the
+validation dataset.
+
+Return a dictionary with an entry for the validation dataset and an entry for the training dataset,
+if the parameter `is_training_metric` is set in the `estimator`. Each entry of the dictionary is
+another dictionary with an entry for each validation metric in the `estimator`. Each of these
+entries is an array that holds the validation metric's value for each dataset, at the last valid
+iteration.
+
+# Arguments
+* `estimator::LGBMEstimator`: the estimator to be fit.
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `cv`: the iterator providing arrays of indices for the training dataset.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+"""
+function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, cv;
+                               verbosity::Integer = 1)
     start_time = now()
     n_data = size(X)[1]
     ds_parameters = getparamstring(estimator, datasetparams)

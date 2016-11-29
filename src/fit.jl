@@ -1,22 +1,24 @@
-# Currently unsupported DS parameters:
-# label, ignore_column, weight_column, group_column, has_header, bin_construct_sample_cnt
-const datasetparams = [:is_pre_partition, :num_class, :two_round, :is_sparse, :max_bin,
-                       :data_random_seed]
+"""
+    fit(estimator, X, y[, test...]; [verbosity = 1])
 
-const boosterparams = [:application, :learning_rate, :num_leaves, :max_depth, :tree_learner,
-                       :num_threads, :histogram_pool_size, :min_data_in_leaf,
-                       :min_sum_hessian_in_leaf, :lambda_l1, :lambda_l2, :min_gain_to_split,
-                       :feature_fraction, :feature_fraction_seed, :bagging_fraction,
-                       :bagging_freq, :bagging_seed, :early_stopping_round, :is_sigmoid,
-                       :sigmoid, :is_unbalance, :max_position, :metric,
-                       :is_training_metric, :ndcg_at, :num_machines, :local_listen_port,
-                       :time_out, :machine_list_file]
+Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
+validation sets.
 
-const maximize_metrics = ["auc", "ndcg"]
+Return a dictionary with an entry for each validation set. Each entry of the dictionary is another
+dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
+array that holds the validation metric's value at each iteration.
 
-# Fit the `estimator` using the CLI of LightGBM.
-function api_fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                    test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
+# Arguments
+* `estimator::LGBMEstimator`: the estimator to be fit.
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
+    the same types as `X` and `y` that should be used as validation sets.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+"""
+function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
+                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")

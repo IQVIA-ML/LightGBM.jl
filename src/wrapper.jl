@@ -1,4 +1,3 @@
-# TODO: Add option to specify library location.
 typealias DatasetHandle Ptr{Void}
 type Dataset
     handle::DatasetHandle
@@ -145,7 +144,7 @@ function LGBM_DatasetSaveBinary(ds::Dataset, filename::String)
 end
 
 function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
-                                                       field_data::Vector{T})
+                                                        field_data::Vector{T})
     data_type = typetoid32(T)
     num_element = length(field_data)
     @lightgbm(:LGBM_DatasetSetField,
