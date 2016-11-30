@@ -36,23 +36,26 @@ y_train = binary_train[:, 1]
 X_test = binary_test[:, 2:end]
 y_test = binary_test[:, 1]
 
-estimator = LightGBM.LGBMBinary(num_iterations = 100,
-                                learning_rate = .1,
-                                early_stopping_round = 5,
-                                feature_fraction = .8,
-                                bagging_fraction = .9,
-                                bagging_freq = 1,
-                                num_leaves = 1000,
-                                metric = ["auc", "binary_logloss"],
-                                metric_freq = 1,
-                                is_training_metric = false,
-                                max_bin = 255,
-                                is_sigmoid = true,
-                                min_sum_hessian_in_leaf = 0.,
-                                min_data_in_leaf = 1)
+estimator = LGBMBinary(num_iterations = 100,
+                       learning_rate = .1,
+                       early_stopping_round = 5,
+                       feature_fraction = .8,
+                       bagging_fraction = .9,
+                       bagging_freq = 1,
+                       num_leaves = 1000,
+                       metric = ["auc", "binary_logloss"])
 
-fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 1)
-predict(estimator, X_train, verbosity = 1)
+fit(estimator, X_train, y_train, (X_test, y_test))
+predict(estimator, X_train)
+
+splits = (collect(1:3500), collect(3501:7000))
+cv(estimator, X_train, y_train, splits)
+
+params = [Dict(:learning_rate => learning_rate,
+               :bagging_fraction => bagging_fraction) for
+          learning_rate in (.1, .2),
+          bagging_fraction in (.8, .9)]
+search_cv(estimator, X_train, y_train, splits, params)
 ```
 
 # Exports
@@ -89,13 +92,34 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
-### `cv(estimator, X, y, cv; [verbosity = 1])` (Experimental—interface may change)
-Cross-validate the `estimator` with features data `X` and label `y`. The iterator `cv` provides
+### `cv(estimator, X, y, splits; [verbosity = 1])` (Experimental—interface may change)
+Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
 vectors of indices for the training dataset. The remaining indices are used to create the
 validation dataset.
 
-Return a dictionary with an entry for the validation dataset and an entry for the training dataset,
-if the parameter `is_training_metric` is set in the `estimator`. Each entry of the dictionary is
+Return a dictionary with an entry for the validation dataset and, if the parameter
+`is_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
+the dictionary is another dictionary with an entry for each validation metric in the `estimator`.
+Each of these entries is an array that holds the validation metric's value for each dataset, at the
+last valid iteration.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to be fit.
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `splits`: the iterable providing arrays of indices for the training dataset.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+
+### `search_cv(estimator, X, y, splits, params; [verbosity = 1])` (Experimental—interface may change)
+Exhaustive search over the specified sets of parameter values for the `estimator` with features
+data `X` and label `y`. The iterable `splits` provides vectors of indices for the training dataset.
+The remaining indices are used to create the validation dataset.
+
+Return an array with a tuple for each set of parameters value, where the first entry is a set of
+parameter values and the second entry the cross-validation outcome of those values. This outcome is
+a dictionary with an entry for the validation dataset and, if the parameter `is_training_metric` is
+set in the `estimator`, an entry for the training dataset. Each entry of the dictionary is
 another dictionary with an entry for each validation metric in the `estimator`. Each of these
 entries is an array that holds the validation metric's value for each dataset, at the last valid
 iteration.
@@ -104,7 +128,9 @@ iteration.
 * `estimator::LGBMEstimator`: the estimator to be fit.
 * `X::Matrix{TX<:Real}`: the features data.
 * `y::Vector{Ty<:Real}`: the labels.
-* `cv`: the iterator providing arrays of indices for the training dataset.
+* `splits`: the iterable providing arrays of indices for the training dataset.
+* `params`: the iterable providing dictionaries of pairs of parameters (Symbols) and values to
+    configure the `estimator` with.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 

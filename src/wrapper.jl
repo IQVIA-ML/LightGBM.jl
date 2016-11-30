@@ -1,4 +1,12 @@
 typealias DatasetHandle Ptr{Void}
+typealias BoosterHandle Ptr{Void}
+
+# TODO: Use these as soon as the C API update is released.
+const C_API_DTYPE_FLOAT32 = 0
+const C_API_DTYPE_FLOAT64 = 1
+const C_API_DTYPE_INT32 = 2
+const C_API_DTYPE_INT64 = 3
+
 type Dataset
     handle::DatasetHandle
 
@@ -16,7 +24,6 @@ type Dataset
     end
 end
 
-typealias BoosterHandle Ptr{Void}
 type Booster
     handle::BoosterHandle
 
