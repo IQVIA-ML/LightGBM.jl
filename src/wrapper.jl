@@ -1,5 +1,12 @@
-# TODO: Add option to specify library location.
 typealias DatasetHandle Ptr{Void}
+typealias BoosterHandle Ptr{Void}
+
+# TODO: Use these as soon as the C API update is released.
+const C_API_DTYPE_FLOAT32 = 0
+const C_API_DTYPE_FLOAT64 = 1
+const C_API_DTYPE_INT32 = 2
+const C_API_DTYPE_INT64 = 3
+
 type Dataset
     handle::DatasetHandle
 
@@ -17,7 +24,6 @@ type Dataset
     end
 end
 
-typealias BoosterHandle Ptr{Void}
 type Booster
     handle::BoosterHandle
 
@@ -145,7 +151,7 @@ function LGBM_DatasetSaveBinary(ds::Dataset, filename::String)
 end
 
 function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
-                                                       field_data::Vector{T})
+                                                        field_data::Vector{T})
     data_type = typetoid32(T)
     num_element = length(field_data)
     @lightgbm(:LGBM_DatasetSetField,

@@ -1,13 +1,34 @@
-function api_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, cv;
-                                   verbosity::Integer = 1)
+"""
+    cv(estimator, X, y, splits; [verbosity = 1])
+
+Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
+vectors of indices for the training dataset. The remaining indices are used to create the
+validation dataset.
+
+Return a dictionary with an entry for the validation dataset and, if the parameter
+`is_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
+the dictionary is another dictionary with an entry for each validation metric in the `estimator`.
+Each of these entries is an array that holds the validation metric's value for each dataset, at the
+last valid iteration.
+
+# Arguments
+* `estimator::LGBMEstimator`: the estimator to be fit.
+* `X::Matrix{TX<:Real}`: the features data.
+* `y::Vector{Ty<:Real}`: the labels.
+* `splits`: the iterable providing arrays of indices for the training dataset.
+* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
+    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+"""
+function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
+                               verbosity::Integer = 1)
     start_time = now()
     n_data = size(X)[1]
     ds_parameters = getparamstring(estimator, datasetparams)
     bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"
 
     split_scores = Dict{String,Dict{String,Vector{Float64}}}()
-    for (split_idx, train_inds) in enumerate(cv)
-        log_info(verbosity, "\nCross-validation: ", split_idx, ", starting\n")
+    for (split_idx, train_inds) in enumerate(splits)
+        log_info(verbosity, "\nCross-validation: ", split_idx, "\n")
 
         log_debug(verbosity, "Started creating LGBM training dataset ", split_idx, "\n")
         train_X = X[train_inds, :]

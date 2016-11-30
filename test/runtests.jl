@@ -23,8 +23,17 @@ estimator = LightGBM.LGBMBinary(num_iterations = 20,
                                 min_sum_hessian_in_leaf = 0.,
                                 min_data_in_leaf = 1);
 
-LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 2);
-LightGBM.predict(estimator, X_train, verbosity = 2);
+LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0);
+LightGBM.predict(estimator, X_train, verbosity = 0);
+
+splits = (collect(1:3500), collect(3501:7000));
+LightGBM.cv(estimator, X_train, y_train, splits; verbosity = 0);
+
+params = [Dict(:learning_rate => learning_rate,
+               :bagging_fraction => bagging_fraction) for
+          learning_rate in (.1, .2),
+          bagging_fraction in (.8, .9)];
+LightGBM.search_cv(estimator, X_train, y_train, splits, params; verbosity = 0);
 
 train_ds = LightGBM.LGBM_CreateDatasetFromMat(X_train, "objective=binary");
 @test LightGBM.LGBM_DatasetGetNumData(train_ds) == 7000
