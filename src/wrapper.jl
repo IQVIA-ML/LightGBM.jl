@@ -129,9 +129,12 @@ function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String,
     return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, reference)
 end
 
-# TODO: TEST!
+# Automatically converts to C's zero-based indices.
 function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int32}, parameters::String)
     num_used_row_indices = length(used_row_indices)
+    for idx in 1:num_used_row_indices
+        @inbounds used_row_indices[idx] -= 1
+    end
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetGetSubset,
               ds.handle => Ref{DatasetHandle},
@@ -139,6 +142,9 @@ function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int32}, par
               num_used_row_indices => Int32,
               parameters => Cstring,
               out => Ref{DatasetHandle})
+    for idx in 1:num_used_row_indices
+        @inbounds used_row_indices[idx] += 1
+    end
     return Dataset(out[])
 end
 
@@ -321,11 +327,10 @@ function LGBM_BoosterGetEvalCounts(bst::Booster)
     return out_len[]
 end
 
-# TODO: Can the allocation somehow be more efficient?
 function LGBM_BoosterGetEvalNames(bst::Booster)
     out_len = Ref{Int64}()
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_strs = [Vector{UInt8}(255) for i in 1:n_metrics]
+    out_strs = [Vector{UInt8}(256) for i in 1:n_metrics]
     @lightgbm(:LGBM_BoosterGetEvalNames,
               bst.handle => BoosterHandle,
               out_len => Ref{Int64},
@@ -334,7 +339,6 @@ function LGBM_BoosterGetEvalNames(bst::Booster)
     return jl_out_strs
 end
 
-# TODO: Consider version that avoids allocation
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
     out_results = Array(Cfloat, n_metrics)

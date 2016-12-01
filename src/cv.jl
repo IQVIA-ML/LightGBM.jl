@@ -36,15 +36,19 @@ function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vecto
         train_ds = LGBM_DatasetCreateFromMat(train_X, ds_parameters)
         LGBM_DatasetSetField(train_ds, "label", train_y)
 
+
+        log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")
+        estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
+
         log_debug(verbosity, "Started creating LGBM test dataset ", split_idx, "\n")
         test_inds = setdiff(1:n_data, train_inds)
         test_X = X[test_inds, :]
         test_y = y[test_inds]
         test_ds = LGBM_DatasetCreateFromMat(test_X, ds_parameters, train_ds)
         LGBM_DatasetSetField(test_ds, "label", test_y)
+        # Commented out because the LGBM_DatasetGetSubset function doesn't work correctly yet.
+        # test_ds = LGBM_DatasetGetSubset(train_ds, test_inds, ds_parameters)
 
-        log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")
-        estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
         LGBM_BoosterAddValidData(estimator.booster, test_ds)
 
         results = train(estimator, ["validation"], verbosity, start_time)
