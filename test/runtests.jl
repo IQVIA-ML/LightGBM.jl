@@ -35,8 +35,17 @@ params = [Dict(:learning_rate => learning_rate,
           bagging_fraction in (.8, .9)];
 LightGBM.search_cv(estimator, X_train, y_train, splits, params; verbosity = 0);
 
-train_ds = LightGBM.LGBM_CreateDatasetFromMat(X_train, "objective=binary");
+train_ds = LightGBM.LGBM_DatasetCreateFromMat(X_train, "objective=binary");
 @test LightGBM.LGBM_DatasetGetNumData(train_ds) == 7000
 @test LightGBM.LGBM_DatasetGetNumFeature(train_ds) == 28
 @test LightGBM.LGBM_DatasetSetField(train_ds, "label", y_train) == nothing
 @test LightGBM.LGBM_DatasetGetField(train_ds, "label") == y_train
+bst = LightGBM.LGBM_BoosterCreate(train_ds, "lambda_l1=10. metric=auc")
+
+test_ds = LightGBM.LGBM_DatasetCreateFromMat(X_test, "objective=binary", train_ds);
+@test LightGBM.LGBM_DatasetSetField(test_ds, "label", y_test) == nothing
+@test LightGBM.LGBM_BoosterAddValidData(bst, test_ds) == nothing
+@test LightGBM.LGBM_BoosterUpdateOneIter(bst) == 0
+@test LightGBM.LGBM_BoosterGetCurrentIteration(bst) == 1
+@test LightGBM.LGBM_BoosterGetEvalCounts(bst) == 1
+@test LightGBM.LGBM_BoosterGetEvalNames(bst)[1] == "auc"

@@ -1,7 +1,6 @@
 typealias DatasetHandle Ptr{Void}
 typealias BoosterHandle Ptr{Void}
 
-# TODO: Use these as soon as the C API update is released.
 const C_API_DTYPE_FLOAT32 = 0
 const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
@@ -41,37 +40,31 @@ type Booster
     end
 end
 
-function idtotype32(id::Integer)
-    if id == 0
+function jltype_to_lgbmid(datatype::Type)
+    if datatype == Float32
+        return C_API_DTYPE_FLOAT32
+    elseif datatype == Float64
+        return C_API_DTYPE_FLOAT64
+    elseif datatype == Int32
+        return C_API_DTYPE_INT32
+    elseif datatype == Int64
+        return C_API_DTYPE_INT64
+    else
+        error("unsupported datatype, got ", datatype)
+    end
+end
+
+function lgbmid_to_jltype(id::Integer)
+    if id == C_API_DTYPE_FLOAT32
         return Float32
-    elseif id == 1
+    elseif id == C_API_DTYPE_FLOAT64
+        return Float64
+    elseif id == C_API_DTYPE_INT32
         return Int32
+    elseif id == C_API_DTYPE_INT64
+        return Int64
     else
         error("unknown LightGBM return type id, got ", id)
-    end
-end
-
-function typetoid32(datatype::Type)
-    if datatype == Float32
-        return 0
-    elseif datatype == Int32
-        return 1
-    else
-        error("unsupported datatype, got ", datatype)
-    end
-end
-
-function typetoid64(datatype::Type)
-    if datatype == Float32
-        return 0
-    elseif datatype == Float64
-        return 1
-    elseif datatype == Int32
-        return 2
-    elseif datatype == Int64
-        return 3
-    else
-        error("unsupported datatype, got ", datatype)
     end
 end
 
@@ -88,17 +81,16 @@ macro lightgbm(f, params...)
     end
 end
 
-# function LGBM_CreateDatasetFromFile()
-# function LGBM_CreateDatasetFromBinaryFile()
-# function LGBM_CreateDatasetFromCSR()
-# function LGBM_CreateDatasetFromCSC()
+# function LGBM_DatasetCreateFromFile()
+# function LGBM_DatasetCreateFromCSR()
+# function LGBM_DatasetCreateFromCSC()
 
-function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String)
-    lgbm_data_type = typetoid64(T)
+function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String)
+    lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = size(data)
     is_row_major = 0
     out = Ref{DatasetHandle}()
-    @lightgbm(:LGBM_CreateDatasetFromMat,
+    @lightgbm(:LGBM_DatasetCreateFromMat,
               data => Ref{T},
               lgbm_data_type => Cint,
               nrow => Int32,
@@ -110,17 +102,17 @@ function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     return Dataset(out[])
 end
 
-function LGBM_CreateDatasetFromMat{T<:Real}(data::Matrix{T}, parameters::String)
-    return LGBM_CreateDatasetFromMat(convert(Matrix{Float64}, data), parameters)
+function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String)
+    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters)
 end
 
-function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
+function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
                                                               reference::Dataset)
-    lgbm_data_type = typetoid64(T)
+    lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = size(data)
     is_row_major = 0
     out = Ref{DatasetHandle}()
-    @lightgbm(:LGBM_CreateDatasetFromMat,
+    @lightgbm(:LGBM_DatasetCreateFromMat,
               data => Ref{T},
               lgbm_data_type => Cint,
               nrow => Int32,
@@ -132,9 +124,26 @@ function LGBM_CreateDatasetFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     return Dataset(out[])
 end
 
-function LGBM_CreateDatasetFromMat{T<:Real}(data::Matrix{T}, parameters::String,
+function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String,
                                             reference::Dataset)
-    return LGBM_CreateDatasetFromMat(convert(Matrix{Float64}, data), parameters, reference)
+    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, reference)
+end
+
+# TODO: TEST!
+function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int32}, parameters::String)
+    num_used_row_indices = length(used_row_indices)
+    out = Ref{DatasetHandle}()
+    @lightgbm(:LGBM_DatasetGetSubset,
+              ds.handle => Ref{DatasetHandle},
+              used_row_indices => Ref{Int32},
+              num_used_row_indices => Int32,
+              parameters => Cstring,
+              out => Ref{DatasetHandle})
+    return Dataset(out[])
+end
+
+function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int64}, parameters::String)
+    LGBM_DatasetGetSubset(ds, convert(Vector{Int32}, used_row_indices), parameters)
 end
 
 function LGBM_DatasetFree(ds::Dataset)
@@ -152,7 +161,7 @@ end
 
 function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
                                                         field_data::Vector{T})
-    data_type = typetoid32(T)
+    data_type = jltype_to_lgbmid(T)
     num_element = length(field_data)
     @lightgbm(:LGBM_DatasetSetField,
               ds.handle => DatasetHandle,
@@ -200,7 +209,7 @@ function LGBM_DatasetGetField(ds::Dataset, field_name::String)
               out_len => Ref{Int64},
               out_ptr => Ref{Ptr{Void}},
               out_type => Ref{Cint})
-    jl_out_type = idtotype32(out_type[])
+    jl_out_type = lgbmid_to_jltype(out_type[])
     jl_out_ptr = convert(Ptr{jl_out_type}, out_ptr[])
     return copy(unsafe_wrap(Vector{jl_out_type}, jl_out_ptr, out_len[], false))
 end
@@ -221,24 +230,18 @@ function LGBM_DatasetGetNumFeature(ds::Dataset)
     return out[]
 end
 
-function LGBM_BoosterCreate(train_data::Dataset, valid_datas::Vector{Dataset},
-                            valid_names::Vector{String}, parameters::String)
-    n_valid_datas = length(valid_datas)
-    lgbm_valid_datas = [ds.handle for ds in valid_datas]
+function LGBM_BoosterCreate(train_data::Dataset, parameters::String)
     out = Ref{BoosterHandle}()
     @lightgbm(:LGBM_BoosterCreate,
               train_data.handle => DatasetHandle,
-              lgbm_valid_datas => Ref{DatasetHandle},
-              valid_names => Ref{Cstring},
-              n_valid_datas => Cint,
               parameters => Cstring,
               out => Ref{BoosterHandle})
     return Booster(out[])
 end
 
-function LGBM_BoosterLoadFromModelfile(filename::String)
+function LGBM_BoosterCreateFromModelfile(filename::String)
     out = Ref{BoosterHandle}()
-    @lightgbm(:LGBM_BoosterLoadFromModelfile,
+    @lightgbm(:LGBM_BoosterCreateFromModelfile,
               filename => Cstring,
               out => Ref{BoosterHandle})
     return Booster(out[])
@@ -248,6 +251,42 @@ function LGBM_BoosterFree(bst::Booster)
     @lightgbm(:LGBM_BoosterFree,
               bst.handle => BoosterHandle)
     return nothing
+end
+
+function LGBM_BoosterMerge(bst::Booster, other_booster::Booster)
+    @lightgbm(:LGBM_BoosterMerge,
+              bst.handle => BoosterHandle,
+              other_booster.handle => BoosterHandle)
+    return nothing
+end
+
+function LGBM_BoosterAddValidData(bst::Booster, valid_data::Dataset)
+    @lightgbm(:LGBM_BoosterAddValidData,
+              bst.handle => BoosterHandle,
+              valid_data.handle => DatasetHandle)
+    return nothing
+end
+
+function LGBM_BoosterResetTrainingData(bst::Booster, train_data::Dataset)
+    @lightgbm(:LGBM_BoosterResetTrainingData,
+              bst.handle => BoosterHandle,
+              train_data.handle => DatasetHandle)
+    return nothing
+end
+
+function LGBM_BoosterResetParameter(bst::Booster, parameters::String)
+    @lightgbm(:LGBM_BoosterResetParameter,
+              bst.handle => BoosterHandle,
+              parameters => Cstring)
+    return nothing
+end
+
+function LGBM_BoosterGetNumClasses(bst::Booster)
+    out_len = Ref{Int64}()
+    @lightgbm(:LGBM_BoosterGetNumClasses,
+              bst.handle => BoosterHandle,
+              out_len => Ref{Int64})
+    return out_len[]
 end
 
 function LGBM_BoosterUpdateOneIter(bst::Booster)
@@ -260,38 +299,63 @@ end
 
 # function LGBM_BoosterUpdateOneIterCustom()
 
-# Note: returns the reverse output of LGBM, because it currently stores scores in reverse order.
+function LGBM_BoosterRollbackOneIter(bst::Booster)
+    @lightgbm(:LGBM_BoosterRollbackOneIter,
+              bst.handle => BoosterHandle)
+    return nothing
+end
+
+function LGBM_BoosterGetCurrentIteration(bst::Booster)
+    out_iteration = Ref{Int64}()
+    @lightgbm(:LGBM_BoosterGetCurrentIteration,
+              bst.handle => BoosterHandle,
+              out_iteration => Ref{Int64})
+    return out_iteration[]
+end
+
+function LGBM_BoosterGetEvalCounts(bst::Booster)
+    out_len = Ref{Int64}()
+    @lightgbm(:LGBM_BoosterGetEvalCounts,
+              bst.handle => BoosterHandle,
+              out_len => Ref{Int64})
+    return out_len[]
+end
+
+# TODO: Can the allocation somehow be more efficient?
+function LGBM_BoosterGetEvalNames(bst::Booster)
+    out_len = Ref{Int64}()
+    n_metrics = LGBM_BoosterGetEvalCounts(bst)
+    out_strs = [Vector{UInt8}(255) for i in 1:n_metrics]
+    @lightgbm(:LGBM_BoosterGetEvalNames,
+              bst.handle => BoosterHandle,
+              out_len => Ref{Int64},
+              out_strs => Ref{Ptr{UInt8}})
+    jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
+    return jl_out_strs
+end
+
 # TODO: Consider version that avoids allocation
-function LGBM_BoosterEval(bst::Booster, data::Integer, n_metrics::Integer)
+function LGBM_BoosterGetEval(bst::Booster, data::Integer)
+    n_metrics = LGBM_BoosterGetEvalCounts(bst)
     out_results = Array(Cfloat, n_metrics)
     out_len = Ref{Int64}()
-    @lightgbm(:LGBM_BoosterEval,
+    @lightgbm(:LGBM_BoosterGetEval,
               bst.handle => BoosterHandle,
               data => Cint,
               out_len => Ref{Int64},
               out_results => Ref{Cfloat})
-    return reverse!(out_results[1:out_len[]]) # TODO: check whether there's any real use for out_len.
+    return out_results[1:out_len[]]
 end
 
-function LGBM_BoosterGetScore(bst::Booster)
-    out_len = Ref{Int64}()
-    out_results = Ref{Ptr{Cfloat}}()
-    @lightgbm(:LGBM_BoosterGetScore,
-              bst.handle => BoosterHandle,
-              out_len => Ref{Int64},
-              out_results => Ref{Ptr{Cfloat}})
-    return copy(unsafe_wrap(Vector{Cfloat}, out_results[], out_len[]))
-end
-
-function LGBM_BoosterGetPredict(bst::Booster, data::Integer, n_data::Integer)
+function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer, n_data::Integer)
     out_len = Ref{Int64}()
     out_results = Array(Cfloat, n_data)
     @lightgbm(:LGBM_BoosterGetPredict,
               bst.handle => BoosterHandle,
-              data => Cint,
+              data_idx => Cint,
               out_len => Ref{Int64},
               out_results => Ref{Cfloat})
-    return out_results[1:out_len[]] # TODO: check whether there's any real use for out_len.
+    return out_results[1:out_len[]]
 end
 
 # function LGBM_BoosterPredictForFile()
@@ -299,11 +363,12 @@ end
 
 function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
-                                                              n_used_trees::Integer)
-    lgbm_data_type = typetoid64(T)
+                                                              num_iteration::Integer)
+    lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = size(data)
     is_row_major = 0
-    out_result = Array(Cdouble, nrow)
+    out_len = Ref{Int64}()
+    out_result = Array(Cfloat, nrow)
     @lightgbm(:LGBM_BoosterPredictForMat,
               bst.handle => BoosterHandle,
               data => Ref{T},
@@ -312,21 +377,22 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
               ncol => Int32,
               is_row_major => Cint,
               predict_type => Cint,
-              n_used_trees => Int64,
-              out_result => Ref{Cdouble})
-    return out_result
+              num_iteration => Int64,
+              out_len => Ref{Int64},
+              out_result => Ref{Cfloat})
+    return out_result[1:out_len[]]
 end
 
 function LGBM_BoosterPredictForMat{T<:Real}(bst::Booster, data::Matrix{T}, predict_type::Integer,
-                                            n_used_trees::Integer)
+                                            num_iteration::Integer)
     return LGBM_BoosterPredictForMat(bst, convert(Matrix{Float64}, data), predict_type,
-                                     n_used_trees)
+                                     num_iteration)
 end
 
-function LGBM_BoosterSaveModel(bst::Booster, num_used_model::Integer, filename::String)
+function LGBM_BoosterSaveModel(bst::Booster, num_iteration::Integer, filename::String)
     @lightgbm(:LGBM_BoosterSaveModel,
               bst.handle => BoosterHandle,
-              num_used_model => Cint,
+              num_iteration => Cint,
               filename => Cstring)
     return nothing
 end
