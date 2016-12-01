@@ -29,10 +29,10 @@ LightGBM.predict(estimator, X_train, verbosity = 0);
 splits = (collect(1:3500), collect(3501:7000));
 LightGBM.cv(estimator, X_train, y_train, splits; verbosity = 0);
 
-params = [Dict(:learning_rate => learning_rate,
-               :bagging_fraction => bagging_fraction) for
-          learning_rate in (.1, .2),
-          bagging_fraction in (.8, .9)];
+params = [Dict(:num_iterations => num_iterations,
+               :num_leaves => num_leaves) for
+          num_iterations in (1, 2),
+          num_leaves in (5, 10)];
 LightGBM.search_cv(estimator, X_train, y_train, splits, params; verbosity = 0);
 
 train_ds = LightGBM.LGBM_DatasetCreateFromMat(X_train, "objective=binary");

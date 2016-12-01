@@ -26,24 +26,20 @@ function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vect
     train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(train_ds, "label", y)
 
+    log_debug(verbosity, "Started creating LGBM booster\n")
+    bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"
+    estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
+
     n_tests = length(test)
-    tests_ds = Array(Dataset, n_tests)
     if n_tests > 0
         log_debug(verbosity, "Started creating LGBM test datasets\n")
         tests_names = ["test_$(test_idx)" for test_idx in 1:n_tests]
         @inbounds for (test_idx, test_entry) in enumerate(test)
             test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds)
             LGBM_DatasetSetField(test_ds, "label", test_entry[2])
-            tests_ds[test_idx] = test_ds
+            LGBM_BoosterAddValidData(estimator.booster, test_ds)
         end
     end
-
-    log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"
-
-    # TODO: Check how much of this tests_ds stuff is still required
-    estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
-    foreach(ds -> LGBM_BoosterAddValidData(estimator.booster, ds), tests_ds)
 
     log_debug(verbosity, "Started training...\n")
     results = train(estimator, tests_names, verbosity, start_time)
