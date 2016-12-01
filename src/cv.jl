@@ -64,13 +64,17 @@ function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vecto
     end
 
     log_info(verbosity, "\nCross-validation finished\n")
-    for dataset in keys(split_scores)
-        for metric in keys(split_scores[dataset])
-            log_info(verbosity, "- ", dataset, "'s ", metric,
-                     " mean: ", mean(split_scores[dataset][metric]),
-                     ", std: ", std(split_scores[dataset][metric]), "\n")
-        end
-    end
+    cv_logsummary(split_scores, verbosity)
 
     return split_scores
+end
+
+function cv_logsummary(cv_results::Dict{String,Dict{String,Vector{Float64}}}, verbosity::Integer)
+    for dataset in keys(cv_results)
+        for metric in keys(cv_results[dataset])
+            log_info(verbosity, "- ", dataset, "'s ", metric,
+                     " mean: ", mean(cv_results[dataset][metric]),
+                     ", std: ", std(cv_results[dataset][metric]), "\n")
+        end
+    end
 end

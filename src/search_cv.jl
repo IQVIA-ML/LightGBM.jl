@@ -26,26 +26,19 @@ iteration.
 function search_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
                                       splits, params; verbosity::Integer = 1)
     n_params = length(params)
-    search_results = Array(Tuple{Dict{Symbol,ANY},Dict{String,Dict{String,Vector{Float64}}}}, n_params)
-    for (param_idx, param) in enumerate(params)
-        log_info(verbosity, "\nSearch: ", param_idx, "\n", param, "\n")
+    results = Array(Tuple{Dict{Symbol,Any},Dict{String,Dict{String,Vector{Float64}}}}, n_params)
+    for (search_idx, search_params) in enumerate(params)
+        log_info(verbosity, "\nSearch: ", search_idx, "\n", search_params, "\n")
+
         search_estimator = deepcopy(estimator)
-        foreach(param -> setfield!(search_estimator, param[1], param[2]), param)
-        search_results[param_idx] = (param, cv(search_estimator, X, y, deepcopy(splits),
-                                                    verbosity = verbosity))
-    end
+        foreach(param -> setfield!(search_estimator, param[1], param[2]), search_params)
+        search_results = cv(search_estimator, X, y, deepcopy(splits),
+                            verbosity = ifelse(verbosity == 1, 0, verbosity))
 
+        results[search_idx] = (search_params, search_results)
+        cv_logsummary(search_results, verbosity)
+    end
     log_info(verbosity, "\nSearch finished\n")
-    for (param, results) in search_results
-        log_info(verbosity, param, "\n")
-        for dataset in keys(results)
-            for metric in keys(results[dataset])
-                log_info(verbosity, "- ", dataset, "'s ", metric,
-                         " mean: ", mean(results[dataset][metric]),
-                         ", std: ", std(results[dataset][metric]), "\n")
-            end
-        end
-    end
 
-    return search_results
+    return results
 end
