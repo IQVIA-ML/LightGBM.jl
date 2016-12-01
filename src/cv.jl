@@ -33,18 +33,19 @@ function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vecto
         log_debug(verbosity, "Started creating LGBM training dataset ", split_idx, "\n")
         train_X = X[train_inds, :]
         train_y = y[train_inds]
-        train_ds = LGBM_CreateDatasetFromMat(train_X, ds_parameters)
+        train_ds = LGBM_DatasetCreateFromMat(train_X, ds_parameters)
         LGBM_DatasetSetField(train_ds, "label", train_y)
 
         log_debug(verbosity, "Started creating LGBM test dataset ", split_idx, "\n")
         test_inds = setdiff(1:n_data, train_inds)
         test_X = X[test_inds, :]
         test_y = y[test_inds]
-        test_ds = LGBM_CreateDatasetFromMat(test_X, ds_parameters, train_ds)
+        test_ds = LGBM_DatasetCreateFromMat(test_X, ds_parameters, train_ds)
         LGBM_DatasetSetField(test_ds, "label", test_y)
 
         log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")
-        estimator.booster = LGBM_BoosterCreate(train_ds, [test_ds], ["validation"], bst_parameters)
+        estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
+        LGBM_BoosterAddValidData(estimator.booster, test_ds)
 
         results = train(estimator, ["validation"], verbosity, start_time)
 
