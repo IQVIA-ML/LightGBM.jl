@@ -66,6 +66,7 @@ function train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity:
             is_finished = eval_metrics!(results, estimator, tests_names, iter, n_metrics,
                                         verbosity, bigger_is_better, best_score, best_iter, metrics)
         else
+            shrinkresults!(results, iter - 1)
             log_info(verbosity, "Stopped training because there are no more leaves that meet the ",
                      "split requirements.")
         end
