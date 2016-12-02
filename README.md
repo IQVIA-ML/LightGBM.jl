@@ -3,7 +3,10 @@ LightGBM.jl
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 
-**LightGBM.jl** provides a Julia interface for Microsoft's [LightGBM](https://github.com/Microsoft/LightGBM). The package uses LightGBM's new C API to realize the best performance and allow fitting of large databases. All major operating systems (Windows, Linux, and Mac OS X) are supported.
+**LightGBM.jl** provides a high-performance Julia interface for Microsoft's
+[LightGBM](https://github.com/Microsoft/LightGBM). The packages adds several convenience features,
+including automated cross-validation and exhaustive search procedures. All major operating systems
+(Windows, Linux, and Mac OS X) are supported.
 
 # Installation
 Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide).
@@ -13,7 +16,8 @@ Then add the package to Julia with:
 Pkg.clone("https://github.com/Allardvm/LightGBM.jl.git")
 ```
 
-To use the package, set the environment variable LIGHTGBM_PATH to point to the LightGBM directory prior to loading LightGBM.jl. This can be done for the duration of a single Julia session with:
+To use the package, set the environment variable LIGHTGBM_PATH to point to the LightGBM directory
+prior to loading LightGBM.jl. This can be done for the duration of a single Julia session with:
 ```julia
 ENV["LIGHTGBM_PATH"] = "../LightGBM"
 ```
@@ -26,9 +30,9 @@ Pkg.test("LightGBM")
 # Getting started
 ```julia
 ENV["LIGHTGBM_PATH"] = "../LightGBM"
-
 using LightGBM
 
+# Load LightGBM's binary classification example.
 binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t')
 binary_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.train", '\t')
 X_train = binary_train[:, 2:end]
@@ -36,6 +40,7 @@ y_train = binary_train[:, 1]
 X_test = binary_test[:, 2:end]
 y_test = binary_test[:, 1]
 
+# Create an estimator with the desired parameters—leave other parameters at the default values.
 estimator = LGBMBinary(num_iterations = 100,
                        learning_rate = .1,
                        early_stopping_round = 5,
@@ -45,12 +50,18 @@ estimator = LGBMBinary(num_iterations = 100,
                        num_leaves = 1000,
                        metric = ["auc", "binary_logloss"])
 
+# Fit the estimator on the training data and return its scores for the test data.
 fit(estimator, X_train, y_train, (X_test, y_test))
+
+# Predict arbitrary data with the estimator.
 predict(estimator, X_train)
 
-splits = (collect(1:3500), collect(3501:7000))
+# Cross-validate using a two-fold cross-validation iterable providing training indices.
+splits = (1:3500, 3501:7000)
 cv(estimator, X_train, y_train, splits)
 
+# Exhaustive search on an iterable containing all combinations of learning_rate ∈ {.1, .2} and
+# bagging_fraction ∈ {.8, .9}
 params = [Dict(:learning_rate => learning_rate,
                :bagging_fraction => bagging_fraction) for
           learning_rate in (.1, .2),
@@ -87,7 +98,7 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `X::Matrix{T<:Real}`: the features data.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
     scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
-* `n_trees::Integer`: keyword argument that sets the controls the number of trees used in the
+* `num_iterations::Integer`: keyword argument that sets the controls the number of trees used in the
     prediction. `< 0` for all available trees.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
