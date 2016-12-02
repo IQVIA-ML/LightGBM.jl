@@ -16,17 +16,15 @@ estimator = LightGBM.LGBMBinary(num_iterations = 20,
                                 bagging_freq = 1,
                                 num_leaves = 1000,
                                 metric = ["auc", "binary_logloss"],
-                                metric_freq = 1,
                                 is_training_metric = true,
                                 max_bin = 255,
-                                is_sigmoid = true,
                                 min_sum_hessian_in_leaf = 0.,
                                 min_data_in_leaf = 1);
 
 LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0);
 LightGBM.predict(estimator, X_train, verbosity = 0);
 
-splits = (collect(1:3500), collect(3501:7000));
+splits = (1:3500, 3501:7000);
 LightGBM.cv(estimator, X_train, y_train, splits; verbosity = 0);
 
 params = [Dict(:num_iterations => num_iterations,
