@@ -152,6 +152,15 @@ function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int64}, par
     LGBM_DatasetGetSubset(ds, convert(Vector{Int32}, used_row_indices), parameters)
 end
 
+# TODO: implement test
+function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
+    num_feature_names = length(feature_names)
+    @lightgbm(:LGBM_DatasetSetFeatureNames,
+              ds.handle => DatasetHandle,
+              feature_names => Ref{Cstring},
+              num_feature_names => Int64)
+end
+
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
               ds.handle => DatasetHandle)
@@ -351,6 +360,8 @@ function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     return out_results[1:out_len[]]
 end
 
+# TODO: should allocate according to num_class * num_data
+# Should store num_data for each train and test ds in the booster.
 function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer, n_data::Integer)
     out_len = Ref{Int64}()
     out_results = Array(Cfloat, n_data)
@@ -365,6 +376,8 @@ end
 # function LGBM_BoosterPredictForFile()
 # function LGBM_BoosterPredictForCSR()
 
+# TODO: should allocate according to num_class * num_data for raw and normal, but num_class *
+# num_data * num_iteration for leaf index.
 function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
                                                               num_iteration::Integer)
@@ -387,6 +400,8 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     return out_result[1:out_len[]]
 end
 
+# TODO: should allocate according to num_class * num_data for raw and normal, but num_class *
+# num_data * num_iteration for leaf index.
 function LGBM_BoosterPredictForMat{T<:Real}(bst::Booster, data::Matrix{T}, predict_type::Integer,
                                             num_iteration::Integer)
     return LGBM_BoosterPredictForMat(bst, convert(Matrix{Float64}, data), predict_type,
