@@ -9,8 +9,8 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `X::Matrix{T<:Real}`: the features data.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
     scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
-* `num_iterations::Integer`: keyword argument that sets the controls the number of trees used in the
-    prediction. `< 0` for all available trees.
+* `num_iterations::Integer`: keyword argument that sets the number of iterations of the model to
+    use in the prediction. `< 0` for all iterations.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
