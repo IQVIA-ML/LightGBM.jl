@@ -31,10 +31,11 @@ function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vect
     estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
 
     n_tests = length(test)
+    tests_names = Array(String, n_tests)
     if n_tests > 0
         log_debug(verbosity, "Started creating LGBM test datasets\n")
-        tests_names = ["test_$(test_idx)" for test_idx in 1:n_tests]
         @inbounds for (test_idx, test_entry) in enumerate(test)
+            tests_names[test_idx] = "test_$(test_idx)"
             test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds)
             LGBM_DatasetSetField(test_ds, "label", test_entry[2])
             LGBM_BoosterAddValidData(estimator.booster, test_ds)
