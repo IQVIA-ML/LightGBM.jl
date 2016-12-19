@@ -141,7 +141,7 @@ function LGBMRegression(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMRegression(Booster(C_NULL), String[], "regression", num_iterations, learning_rate, num_leaves,
+    return LGBMRegression(Booster(), String[], "regression", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
@@ -291,7 +291,7 @@ function LGBMBinary(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMBinary(Booster(C_NULL), String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
+    return LGBMBinary(Booster(), String[], "binary", num_iterations, learning_rate, num_leaves, max_depth,
                       tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
                       min_sum_hessian_in_leaf, lambda_l1, lambda_l2, min_gain_to_split,
                       feature_fraction, feature_fraction_seed, bagging_fraction, bagging_freq,
@@ -441,7 +441,7 @@ function LGBMLambdaRank(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMLambdaRank(Booster(C_NULL), String[], "lambdarank", num_iterations, learning_rate, num_leaves,
+    return LGBMLambdaRank(Booster(), String[], "lambdarank", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
@@ -593,7 +593,7 @@ function LGBMMulticlass(; num_iterations = 10,
                                 "multi_logloss", "multi_error")),
                          "Unknown metric, got $m"), metric)
 
-    return LGBMMulticlass(Booster(C_NULL), String[], "multiclass", num_iterations, learning_rate, num_leaves,
+    return LGBMMulticlass(Booster(), String[], "multiclass", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
