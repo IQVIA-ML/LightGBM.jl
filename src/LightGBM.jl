@@ -26,7 +26,7 @@ include("predict.jl")
 include("cv.jl")
 include("search_cv.jl")
 
-export fit, predict, cv, search_cv
+export fit, predict, cv, search_cv, savemodel, loadmodel
 export LGBMEstimator, LGBMRegression, LGBMBinary, LGBMLambdaRank, LGBMMulticlass
 
 end # module LightGBM

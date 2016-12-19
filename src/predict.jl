@@ -1,6 +1,6 @@
 # TODO: Change verbosity on LightGBM's side after a booster is created.
 """
-    predict(estimator, X; [predict_type = 0, n_trees = -1, verbosity = 1])
+    predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1])
 
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
