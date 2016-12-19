@@ -6,6 +6,10 @@ const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
 const C_API_DTYPE_INT64 = 3
 
+const C_API_PREDICT_NORMAL = 0
+const C_API_PREDICT_RAW_SCORE = 1
+const C_API_PREDICT_LEAF_INDEX = 2
+
 type Dataset
     handle::DatasetHandle
 
@@ -25,9 +29,10 @@ end
 
 type Booster
     handle::BoosterHandle
+    datasets::Vector{Dataset}
 
-    function Booster(handle::BoosterHandle)
-        bst = new(handle)
+    function Booster(handle::BoosterHandle, datasets::Vector{Dataset})
+        bst = new(handle, datasets)
         finalizer(bst, Booster_finalizer)
         return bst
     end
@@ -39,6 +44,15 @@ type Booster
         end
     end
 end
+
+function Booster()
+    return Booster(C_NULL, Dataset[])
+end
+
+function Booster(handle::BoosterHandle)
+    return Booster(handle, Dataset[])
+end
+
 
 function jltype_to_lgbmid(datatype::Type)
     if datatype == Float32
@@ -152,6 +166,15 @@ function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int64}, par
     LGBM_DatasetGetSubset(ds, convert(Vector{Int32}, used_row_indices), parameters)
 end
 
+# TODO: implement test
+function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
+    num_feature_names = length(feature_names)
+    @lightgbm(:LGBM_DatasetSetFeatureNames,
+              ds.handle => DatasetHandle,
+              feature_names => Ref{Cstring},
+              num_feature_names => Int64)
+end
+
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
               ds.handle => DatasetHandle)
@@ -242,13 +265,15 @@ function LGBM_BoosterCreate(train_data::Dataset, parameters::String)
               train_data.handle => DatasetHandle,
               parameters => Cstring,
               out => Ref{BoosterHandle})
-    return Booster(out[])
+    return Booster(out[], [train_data])
 end
 
 function LGBM_BoosterCreateFromModelfile(filename::String)
+    out_num_iterations = Ref{Int64}()
     out = Ref{BoosterHandle}()
     @lightgbm(:LGBM_BoosterCreateFromModelfile,
               filename => Cstring,
+              out_num_iterations => Ref{Int64},
               out => Ref{BoosterHandle})
     return Booster(out[])
 end
@@ -270,6 +295,7 @@ function LGBM_BoosterAddValidData(bst::Booster, valid_data::Dataset)
     @lightgbm(:LGBM_BoosterAddValidData,
               bst.handle => BoosterHandle,
               valid_data.handle => DatasetHandle)
+    push!(bst.datasets, valid_data)
     return nothing
 end
 
@@ -277,6 +303,11 @@ function LGBM_BoosterResetTrainingData(bst::Booster, train_data::Dataset)
     @lightgbm(:LGBM_BoosterResetTrainingData,
               bst.handle => BoosterHandle,
               train_data.handle => DatasetHandle)
+    if length(bst.datasets) > 0
+        @inbounds bst.datasets[1] = train_data
+    else
+        bst.datasets = [train_data]
+    end
     return nothing
 end
 
@@ -351,9 +382,10 @@ function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     return out_results[1:out_len[]]
 end
 
-function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer, n_data::Integer)
+function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer, num_data::Integer)
+    num_class = LGBM_BoosterGetNumClasses(bst)
     out_len = Ref{Int64}()
-    out_results = Array(Cfloat, n_data)
+    out_results = Array(Cfloat, num_class * num_data)
     @lightgbm(:LGBM_BoosterGetPredict,
               bst.handle => BoosterHandle,
               data_idx => Cint,
@@ -368,11 +400,15 @@ end
 function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
                                                               num_iteration::Integer)
+    num_class = LGBM_BoosterGetNumClasses(bst)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = size(data)
     is_row_major = 0
     out_len = Ref{Int64}()
-    out_result = Array(Cfloat, nrow)
+    alloc_len = ifelse(predict_type == C_API_PREDICT_LEAF_INDEX,
+                       num_class * nrow * num_iteration,
+                       num_class * nrow)
+    out_result = Array(Cfloat, alloc_len)
     @lightgbm(:LGBM_BoosterPredictForMat,
               bst.handle => BoosterHandle,
               data => Ref{T},

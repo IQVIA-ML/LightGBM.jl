@@ -14,6 +14,38 @@ const boosterparams = [:application, :learning_rate, :num_leaves, :max_depth, :t
 
 const maximize_metrics = ["auc", "ndcg"]
 
+"""
+    savemodel(estimator, filename; [num_iteration = -1])
+
+Save the fitted model in `estimator` as `filename`.
+
+# Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `filename::String`: the name of the file to save the model in.
+* `num_iteration::Integer`: keyword argument that sets the number of iterations of the model that
+    should be saved. `< 0` for all iterations.
+"""
+function savemodel(estimator::LGBMEstimator, filename::String; num_iteration::Integer = -1)
+    @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
+    LGBM_BoosterSaveModel(estimator.booster, num_iteration, filename)
+    return nothing
+end
+
+"""
+    loadmodel(estimator, filename)
+
+Load the fitted model `filename` into `estimator`. Note that this only loads the fitted model—not
+the parameters or data of the estimator whose model was saved as `filename`.
+
+# Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `filename::String`: the name of the file that contains the model.
+"""
+function loadmodel(estimator::LGBMEstimator, filename::String)
+    estimator.booster = LGBM_BoosterCreateFromModelfile(filename)
+    return nothing
+end
+
 function log_fatal(verbosity::Integer, msg...)
     warn(msg...)
 end

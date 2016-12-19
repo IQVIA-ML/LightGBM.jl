@@ -22,7 +22,7 @@ last valid iteration.
 function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
                                verbosity::Integer = 1)
     start_time = now()
-    n_data = size(X)[1]
+    num_data = size(X)[1]
     ds_parameters = getparamstring(estimator, datasetparams)
     bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"
 
@@ -37,7 +37,7 @@ function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vecto
         train_ds = LGBM_DatasetGetSubset(full_ds, train_inds, ds_parameters)
 
         log_debug(verbosity, "Started creating LGBM test dataset ", split_idx, "\n")
-        test_inds = setdiff(1:n_data, train_inds)
+        test_inds = setdiff(1:num_data, train_inds)
         test_ds = LGBM_DatasetGetSubset(full_ds, test_inds, ds_parameters)
 
         log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")

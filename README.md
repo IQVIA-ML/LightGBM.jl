@@ -57,7 +57,7 @@ fit(estimator, X_train, y_train, (X_test, y_test))
 predict(estimator, X_train)
 
 # Cross-validate using a two-fold cross-validation iterable providing training indices.
-splits = (1:3500, 3501:7000)
+splits = (collect(1:3500), collect(3501:7000))
 cv(estimator, X_train, y_train, splits)
 
 # Exhaustive search on an iterable containing all combinations of learning_rate ∈ {.1, .2} and
@@ -67,6 +67,11 @@ params = [Dict(:learning_rate => learning_rate,
           learning_rate in (.1, .2),
           bagging_fraction in (.8, .9)]
 search_cv(estimator, X_train, y_train, splits, params)
+
+# Save and load the fitted model.
+filename = pwd() * "/finished.model"
+savemodel(estimator, filename)
+loadmodel(estimator, filename)
 ```
 
 # Exports
@@ -90,7 +95,7 @@ array that holds the validation metric's value at each evaluation of the metric.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
-### `predict(estimator, X; [predict_type = 0, n_trees = -1, verbosity = 1])`
+### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1])`
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
 #### Arguments
@@ -98,8 +103,8 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `X::Matrix{T<:Real}`: the features data.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
     scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
-* `num_iterations::Integer`: keyword argument that sets the controls the number of trees used in the
-    prediction. `< 0` for all available trees.
+* `num_iterations::Integer`: keyword argument that sets the number of iterations of the model to
+    use in the prediction. `< 0` for all iterations.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 
@@ -144,6 +149,23 @@ iteration.
     configure the `estimator` with.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+
+### `savemodel(estimator, filename; [num_iteration = -1])`
+Save the fitted model in `estimator` as `filename`.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `filename::String`: the name of the file to save the model in.
+* `num_iteration::Integer`: keyword argument that sets the number of iterations of the model that
+    should be saved. `< 0` for all iterations.
+
+### `loadmodel(estimator, filename)`
+Load the fitted model `filename` into `estimator`. Note that this only loads the fitted model—not
+the parameters or data of the estimator whose model was saved as `filename`.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `filename::String`: the name of the file that contains the model.
 
 ## Estimators
 
