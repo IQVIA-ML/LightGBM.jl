@@ -23,8 +23,8 @@ function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vecto
                                verbosity::Integer = 1)
     start_time = now()
     num_data = size(X)[1]
-    ds_parameters = stringifyparams(estimator, datasetparams)
-    bst_parameters = stringifyparams(estimator, boosterparams) * " verbosity=$verbosity"
+    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
 
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)

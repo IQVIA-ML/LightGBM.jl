@@ -24,12 +24,12 @@ function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vect
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
-    ds_parameters = stringifyparams(estimator, datasetparams)
+    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
     train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(train_ds, "label", y)
 
     log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = stringifyparams(estimator, boosterparams) * " verbosity=$verbosity"
+    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
     estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
 
     n_tests = length(test)
@@ -57,7 +57,7 @@ function train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity:
     n_tests = length(tests_names)
     metrics = LGBM_BoosterGetEvalNames(estimator.booster)
     n_metrics = length(metrics)
-    bigger_is_better = [ifelse(in(metric, maximize_metrics), 1., -1.) for metric in metrics]
+    bigger_is_better = [ifelse(in(metric, MAXIMIZE_METRICS), 1., -1.) for metric in metrics]
     best_score = fill(-Inf, (n_metrics, n_tests))
     best_iter = fill(1, (n_metrics, n_tests))
 
