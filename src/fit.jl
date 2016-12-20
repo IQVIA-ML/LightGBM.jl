@@ -1,3 +1,5 @@
+const INDEXPARAMS = [:categorical_feature]
+
 """
     fit(estimator, X, y[, test...]; [verbosity = 1])
 
@@ -22,12 +24,12 @@ function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vect
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
-    ds_parameters = getparamstring(estimator, datasetparams)
+    ds_parameters = stringifyparams(estimator, datasetparams)
     train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(train_ds, "label", y)
 
     log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = getparamstring(estimator, boosterparams) * " verbosity=$verbosity"
+    bst_parameters = stringifyparams(estimator, boosterparams) * " verbosity=$verbosity"
     estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
 
     n_tests = length(test)
@@ -147,11 +149,17 @@ function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_m
     log_info(verbosity, "\n")
 end
 
-function getparamstring(estimator::LGBMEstimator, params::Vector{Symbol})
+function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
     paramstring = ""
     n_params = length(params)
     for (param_idx, param_name) in enumerate(params)
         param_value = getfield(estimator, param_name)
+
+        # Convert parameters that contain indices to C's zero-based indices.
+        if in(param_name, INDEXPARAMS)
+            param_value -= 1
+        end
+
         if typeof(param_value) <: Array
             n_entries = length(param_value)
             if n_entries >= 1
