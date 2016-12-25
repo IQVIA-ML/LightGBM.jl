@@ -5,8 +5,10 @@ LightGBM.jl
 
 **LightGBM.jl** provides a high-performance Julia interface for Microsoft's
 [LightGBM](https://github.com/Microsoft/LightGBM). The packages adds several convenience features,
-including automated cross-validation and exhaustive search procedures. All major operating systems
-(Windows, Linux, and Mac OS X) are supported.
+including automated cross-validation and exhaustive search procedures, and automatically converts
+all LightGBM parameters that refer to indices (e.g. categorical_feature) from Julia's one-based
+indices to C's zero-based indices. All major operating systems (Windows, Linux, and Mac OS X) are
+supported.
 
 # Installation
 Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide).
