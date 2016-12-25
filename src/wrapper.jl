@@ -133,7 +133,7 @@ function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
               ncol => Int32,
               is_row_major => Cint,
               parameters => Cstring,
-              reference.handle => Ref{DatasetHandle},
+              reference.handle => DatasetHandle,
               out => Ref{DatasetHandle})
     return Dataset(out[])
 end
@@ -151,7 +151,7 @@ function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int32}, par
     end
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetGetSubset,
-              ds.handle => Ref{DatasetHandle},
+              ds.handle => DatasetHandle,
               used_row_indices => Ref{Int32},
               num_used_row_indices => Int32,
               parameters => Cstring,
@@ -436,3 +436,7 @@ function LGBM_BoosterSaveModel(bst::Booster, num_iteration::Integer, filename::S
               filename => Cstring)
     return nothing
 end
+
+# function LGBM_BoosterDumpModel()
+# function LGBM_BoosterGetLeafValue()
+# function LGBM_BoosterSetLeafValue()
