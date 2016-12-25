@@ -101,7 +101,7 @@ Return a LGBMRegression estimator.
 function LGBMRegression(; num_iterations = 10,
                         learning_rate = .1,
                         num_leaves = 127,
-                        max_depth = 1,
+                        max_depth = -1,
                         tree_learner = "serial",
                         num_threads = Sys.CPU_CORES,
                         histogram_pool_size = -1.,
