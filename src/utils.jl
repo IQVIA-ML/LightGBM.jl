@@ -1,6 +1,6 @@
 # Currently unsupported DS parameters:
 # label, ignore_column, weight_column, group_column, has_header, bin_construct_sample_cnt
-const DATASETPARAMS = [:is_pre_partition, :num_class, :two_round, :is_sparse, :max_bin,
+const DATASETPARAMS = [:is_pre_partition, :two_round, :is_sparse, :max_bin,
                        :data_random_seed]
 
 const BOOSTERPARAMS = [:application, :learning_rate, :num_leaves, :max_depth, :tree_learner,
@@ -10,7 +10,7 @@ const BOOSTERPARAMS = [:application, :learning_rate, :num_leaves, :max_depth, :t
                        :bagging_freq, :bagging_seed, :early_stopping_round, :is_sigmoid,
                        :sigmoid, :is_unbalance, :max_position, :metric,
                        :is_training_metric, :ndcg_at, :num_machines, :local_listen_port,
-                       :time_out, :machine_list_file]
+                       :time_out, :machine_list_file, :num_class]
 
 const MAXIMIZE_METRICS = ["auc", "ndcg"]
 
