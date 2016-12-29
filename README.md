@@ -251,46 +251,6 @@ LGBMBinary(; [num_iterations = 10,
 ```
 Return a LGBMBinary estimator.
 
-### `LGBMLambdaRank <: LGBMEstimator`
-```julia
-LGBMLambdaRank(; [num_iterations = 10,
-                  learning_rate = .1,
-                  num_leaves = 127,
-                  max_depth = -1,
-                  tree_learner = "serial",
-                  num_threads = Sys.CPU_CORES,
-                  histogram_pool_size = -1.,
-                  min_data_in_leaf = 100,
-                  min_sum_hessian_in_leaf = 10.,
-                  feature_fraction = 1.,
-                  feature_fraction_seed = 2,
-                  bagging_fraction = 1.,
-                  bagging_freq = 0,
-                  bagging_seed = 3,
-                  early_stopping_round = 0,
-                  max_bin = 255,
-                  data_random_seed = 1,
-                  is_sigmoid = true,
-                  init_score = "",
-                  is_pre_partition = false,
-                  is_sparse = true,
-                  two_round = false,
-                  save_binary = false,
-                  sigmoid = 1.,
-                  is_unbalance = false,
-                  max_position = 20,
-                  label_gain = Float64[],
-                  metric = ["ndcg"],
-                  metric_freq = 1,
-                  is_training_metric = false,
-                  ndcg_at = Int[],
-                  num_machines = 1,
-                  local_listen_port = 12400,
-                  time_out = 120,
-                  machine_list_file = ""])
-```
-Return a LGBMLambdaRank estimator.
-
 ### `LGBMMulticlass <: LGBMEstimator`
 ```julia
 LGBMMulticlass(; [num_iterations = 10,
