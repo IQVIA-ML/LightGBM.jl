@@ -29,18 +29,12 @@ type LGBMRegression <: LGBMEstimator
 
     max_bin::Int
     data_random_seed::Int
-    is_sigmoid::Bool
     init_score::String
-    is_pre_partition::Bool
     is_sparse::Bool
-    two_round::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
 
-    sigmoid::Float64
     is_unbalance::Bool
-    max_position::Int
-    label_gain::Vector{Float64}
 
     metric::Vector{String}
     metric_freq::Int
@@ -76,17 +70,11 @@ end
                       early_stopping_round = 0,
                       max_bin = 255,
                       data_random_seed = 1,
-                      is_sigmoid = true,
                       init_score = \"\",
-                      is_pre_partition = false,
                       is_sparse = true,
-                      two_round = false,
                       save_binary = false,
                       categorical_feature = Int[],
-                      sigmoid = 1.,
                       is_unbalance = false,
-                      max_position = 20,
-                      label_gain = Float64[],
                       metric = [\"l2\"],
                       metric_freq = 1,
                       is_training_metric = false,
@@ -118,17 +106,11 @@ function LGBMRegression(; num_iterations = 10,
                         early_stopping_round = 0,
                         max_bin = 255,
                         data_random_seed = 1,
-                        is_sigmoid = true,
                         init_score = "",
-                        is_pre_partition = false,
                         is_sparse = true,
-                        two_round = false,
                         save_binary = false,
                         categorical_feature = Int[],
-                        sigmoid = 1.,
                         is_unbalance = false,
-                        max_position = 20,
-                        label_gain = Float64[],
                         metric = ["l2"],
                         metric_freq = 1,
                         is_training_metric = false,
@@ -149,9 +131,9 @@ function LGBMRegression(; num_iterations = 10,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
                           bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-                          max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
-                          is_sparse, two_round, save_binary, categorical_feature, sigmoid,
-                          is_unbalance, max_position, label_gain, metric, metric_freq,
+                          max_bin, data_random_seed, init_score,
+                          is_sparse, save_binary, categorical_feature,
+                          is_unbalance, metric, metric_freq,
                           is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
                           machine_list_file, 1)
 end
@@ -183,18 +165,13 @@ type LGBMBinary <: LGBMEstimator
 
     max_bin::Int
     data_random_seed::Int
-    is_sigmoid::Bool
     init_score::String
-    is_pre_partition::Bool
     is_sparse::Bool
-    two_round::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
 
     sigmoid::Float64
     is_unbalance::Bool
-    max_position::Int
-    label_gain::Vector{Float64}
 
     metric::Vector{String}
     metric_freq::Int
@@ -230,17 +207,12 @@ end
                   early_stopping_round = 0,
                   max_bin = 255,
                   data_random_seed = 1,
-                  is_sigmoid = true,
                   init_score = \"\",
-                  is_pre_partition = false,
                   is_sparse = true,
-                  two_round = false,
                   save_binary = false,
                   categorical_feature = Int[],
                   sigmoid = 1.,
                   is_unbalance = false,
-                  max_position = 20,
-                  label_gain = Float64[],
                   metric = [\"binary_logloss\"],
                   metric_freq = 1,
                   is_training_metric = false,
@@ -272,17 +244,12 @@ function LGBMBinary(; num_iterations = 10,
                     early_stopping_round = 0,
                     max_bin = 255,
                     data_random_seed = 1,
-                    is_sigmoid = true,
                     init_score = "",
-                    is_pre_partition = false,
                     is_sparse = true,
-                    two_round = false,
                     save_binary = false,
                     categorical_feature = Int[],
                     sigmoid = 1.,
                     is_unbalance = false,
-                    max_position = 20,
-                    label_gain = Float64[],
                     metric = ["binary_logloss"],
                     metric_freq = 1,
                     is_training_metric = false,
@@ -302,9 +269,9 @@ function LGBMBinary(; num_iterations = 10,
                       max_depth, tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
                       min_sum_hessian_in_leaf, lambda_l1, lambda_l2, min_gain_to_split,
                       feature_fraction, feature_fraction_seed, bagging_fraction, bagging_freq,
-                      bagging_seed, early_stopping_round, max_bin, data_random_seed, is_sigmoid,
-                      init_score, is_pre_partition, is_sparse, two_round, save_binary,
-                      categorical_feature, sigmoid, is_unbalance, max_position, label_gain, metric,
+                      bagging_seed, early_stopping_round, max_bin, data_random_seed,
+                      init_score, is_sparse, save_binary,
+                      categorical_feature, sigmoid, is_unbalance, metric,
                       metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port,
                       time_out, machine_list_file, 1)
 end
@@ -336,18 +303,12 @@ type LGBMMulticlass <: LGBMEstimator
 
     max_bin::Int
     data_random_seed::Int
-    is_sigmoid::Bool
     init_score::String
-    is_pre_partition::Bool
     is_sparse::Bool
-    two_round::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
 
-    sigmoid::Float64
     is_unbalance::Bool
-    max_position::Int
-    label_gain::Vector{Float64}
 
     metric::Vector{String}
     metric_freq::Int
@@ -383,17 +344,11 @@ end
                       early_stopping_round = 0,
                       max_bin = 255,
                       data_random_seed = 1,
-                      is_sigmoid = true,
                       init_score = \"\",
-                      is_pre_partition = false,
                       is_sparse = true,
-                      two_round = false,
                       save_binary = false,
                       categorical_feature = Int[],
-                      sigmoid = 1.,
                       is_unbalance = false,
-                      max_position = 20,
-                      label_gain = Float64[],
                       metric = [\"multi_logloss\"],
                       metric_freq = 1,
                       is_training_metric = false,
@@ -426,17 +381,11 @@ function LGBMMulticlass(; num_iterations = 10,
                         early_stopping_round = 0,
                         max_bin = 255,
                         data_random_seed = 1,
-                        is_sigmoid = true,
                         init_score = "",
-                        is_pre_partition = false,
                         is_sparse = true,
-                        two_round = false,
                         save_binary = false,
                         categorical_feature = Int[],
-                        sigmoid = 1.,
                         is_unbalance = false,
-                        max_position = 20,
-                        label_gain = Float64[],
                         metric = ["multi_logloss"],
                         metric_freq = 1,
                         is_training_metric = false,
@@ -458,9 +407,9 @@ function LGBMMulticlass(; num_iterations = 10,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
                           min_gain_to_split, feature_fraction, feature_fraction_seed,
                           bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-                          max_bin, data_random_seed, is_sigmoid, init_score, is_pre_partition,
-                          is_sparse, two_round, save_binary, categorical_feature, sigmoid,
-                          is_unbalance, max_position, label_gain, metric, metric_freq,
+                          max_bin, data_random_seed, init_score,
+                          is_sparse, save_binary, categorical_feature,
+                          is_unbalance, metric, metric_freq,
                           is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
                           machine_list_file, num_class)
 end
