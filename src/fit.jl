@@ -120,7 +120,7 @@ end
 
 function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, iter::Integer, evalname::String,
-                       scores::Vector{Cfloat}, metrics::Vector{String})
+                       scores::Vector{Cdouble}, metrics::Vector{String})
     for (metric_idx, metric_name) in enumerate(metrics)
         if !haskey(results, evalname)
             num_evals = cld(estimator.num_iterations, estimator.metric_freq)
@@ -138,7 +138,7 @@ function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
 end
 
 function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_metrics::Integer,
-                      scores::Vector{Cfloat}, metrics::Vector{String}, verbosity::Integer)
+                      scores::Vector{Cdouble}, metrics::Vector{String}, verbosity::Integer)
     log_info(verbosity, "Iteration: ", iter, ", ", name, "'s ")
     for (metric_idx, metric_name) in enumerate(metrics)
         log_info(verbosity, metric_name, ": ", scores[metric_idx])

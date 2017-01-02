@@ -6,10 +6,6 @@ const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
 const C_API_DTYPE_INT64 = 3
 
-const C_API_PREDICT_NORMAL = 0
-const C_API_PREDICT_RAW_SCORE = 1
-const C_API_PREDICT_LEAF_INDEX = 2
-
 type Dataset
     handle::DatasetHandle
 
@@ -372,30 +368,54 @@ end
 
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_results = Array(Cfloat, n_metrics)
+    out_results = Array(Cdouble, n_metrics)
     out_len = Ref{Int64}()
     @lightgbm(:LGBM_BoosterGetEval,
               bst.handle => BoosterHandle,
               data => Cint,
               out_len => Ref{Int64},
-              out_results => Ref{Cfloat})
+              out_results => Ref{Cdouble})
     return out_results[1:out_len[]]
 end
 
-function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer, num_data::Integer)
-    num_class = LGBM_BoosterGetNumClasses(bst)
+function LGBM_BoosterGetNumPredict(bst::Booster, data_idx::Integer)
     out_len = Ref{Int64}()
-    out_results = Array(Cfloat, num_class * num_data)
+    @lightgbm(:LGBM_BoosterGetNumPredict,
+              bst.handle => BoosterHandle,
+              data_idx => Cint,
+              out_len => Ref{Int64})
+    return out_len[]
+end
+
+function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
+    out_len = Ref{Int64}()
+    num_class = LGBM_BoosterGetNumClasses(bst)
+    num_data = LGBM_BoosterGetNumPredict(bst, data_idx)
+    out_results = Array(Cdouble, num_class * num_data)
     @lightgbm(:LGBM_BoosterGetPredict,
               bst.handle => BoosterHandle,
               data_idx => Cint,
               out_len => Ref{Int64},
-              out_results => Ref{Cfloat})
+              out_results => Ref{Cdouble})
     return out_results[1:out_len[]]
 end
 
 # function LGBM_BoosterPredictForFile()
+
+function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer,
+                                    num_iteration::Int)
+    out_len = Ref{Int64}()
+    @lightgbm(:LGBM_BoosterCalcNumPredict,
+              bst.handle => BoosterHandle,
+              num_row => Int64,
+              predict_type => Cint,
+              num_iteration => Int64,
+              out_len => Ref{Int64})
+    return out_len[]
+end
+
 # function LGBM_BoosterPredictForCSR()
+# function LGBM_BoosterPredictForCSC()
 
 function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
@@ -405,10 +425,8 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     nrow, ncol = size(data)
     is_row_major = 0
     out_len = Ref{Int64}()
-    alloc_len = ifelse(predict_type == C_API_PREDICT_LEAF_INDEX,
-                       num_class * nrow * num_iteration,
-                       num_class * nrow)
-    out_result = Array(Cfloat, alloc_len)
+    alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
+    out_result = Array(Cdouble, alloc_len)
     @lightgbm(:LGBM_BoosterPredictForMat,
               bst.handle => BoosterHandle,
               data => Ref{T},
@@ -419,7 +437,7 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
               predict_type => Cint,
               num_iteration => Int64,
               out_len => Ref{Int64},
-              out_result => Ref{Cfloat})
+              out_result => Ref{Cdouble})
     return out_result[1:out_len[]]
 end
 
