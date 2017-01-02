@@ -11,7 +11,11 @@ indices to C's zero-based indices. All major operating systems (Windows, Linux, 
 supported.
 
 # Installation
-Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide).
+Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide). Note that because LightGBM's C API
+is still under development, Upstream changes can lead to temporary incompatibilities between this
+package and the latest LightGBM master. To avoid this, you can build against
+[Allardvm/LightGBM](https://github.com/Allardvm/LightGBM.git), which contains the latest LightGBM
+version that has been confirmed to work with this package.
 
 Then add the package to Julia with:
 ```julia
