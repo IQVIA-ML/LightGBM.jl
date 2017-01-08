@@ -168,8 +168,10 @@ function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
     @lightgbm(:LGBM_DatasetSetFeatureNames,
               ds.handle => DatasetHandle,
               feature_names => Ref{Cstring},
-              num_feature_names => Int64)
+              num_feature_names => Cint)
 end
+
+# function LGBM_DatasetSetFeatureNames()
 
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
@@ -192,7 +194,7 @@ function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name:
               ds.handle => DatasetHandle,
               field_name => Cstring,
               field_data => Ref{T},
-              num_element => Int64,
+              num_element => Cint,
               data_type => Cint)
     return nothing
 end
@@ -225,13 +227,13 @@ function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_da
 end
 
 function LGBM_DatasetGetField(ds::Dataset, field_name::String)
-    out_len = Ref{Int64}()
+    out_len = Ref{Cint}()
     out_ptr = Ref{Ptr{Void}}()
     out_type = Ref{Cint}()
     @lightgbm(:LGBM_DatasetGetField,
               ds.handle => DatasetHandle,
               field_name => Cstring,
-              out_len => Ref{Int64},
+              out_len => Ref{Cint},
               out_ptr => Ref{Ptr{Void}},
               out_type => Ref{Cint})
     jl_out_type = lgbmid_to_jltype(out_type[])
@@ -240,18 +242,18 @@ function LGBM_DatasetGetField(ds::Dataset, field_name::String)
 end
 
 function LGBM_DatasetGetNumData(ds::Dataset)
-    out = Ref{Int64}()
+    out = Ref{Cint}()
     @lightgbm(:LGBM_DatasetGetNumData,
               ds.handle => DatasetHandle,
-              out => Ref{Int64})
+              out => Ref{Cint})
     return out[]
 end
 
 function LGBM_DatasetGetNumFeature(ds::Dataset)
-    out = Ref{Int64}()
+    out = Ref{Cint}()
     @lightgbm(:LGBM_DatasetGetNumFeature,
               ds.handle => DatasetHandle,
-              out => Ref{Int64})
+              out => Ref{Cint})
     return out[]
 end
 
@@ -265,11 +267,11 @@ function LGBM_BoosterCreate(train_data::Dataset, parameters::String)
 end
 
 function LGBM_BoosterCreateFromModelfile(filename::String)
-    out_num_iterations = Ref{Int64}()
+    out_num_iterations = Ref{Cint}()
     out = Ref{BoosterHandle}()
     @lightgbm(:LGBM_BoosterCreateFromModelfile,
               filename => Cstring,
-              out_num_iterations => Ref{Int64},
+              out_num_iterations => Ref{Cint},
               out => Ref{BoosterHandle})
     return Booster(out[])
 end
@@ -315,10 +317,10 @@ function LGBM_BoosterResetParameter(bst::Booster, parameters::String)
 end
 
 function LGBM_BoosterGetNumClasses(bst::Booster)
-    out_len = Ref{Int64}()
+    out_len = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetNumClasses,
               bst.handle => BoosterHandle,
-              out_len => Ref{Int64})
+              out_len => Ref{Cint})
     return out_len[]
 end
 
@@ -339,28 +341,28 @@ function LGBM_BoosterRollbackOneIter(bst::Booster)
 end
 
 function LGBM_BoosterGetCurrentIteration(bst::Booster)
-    out_iteration = Ref{Int64}()
+    out_iteration = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetCurrentIteration,
               bst.handle => BoosterHandle,
-              out_iteration => Ref{Int64})
+              out_iteration => Ref{Cint})
     return out_iteration[]
 end
 
 function LGBM_BoosterGetEvalCounts(bst::Booster)
-    out_len = Ref{Int64}()
+    out_len = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetEvalCounts,
               bst.handle => BoosterHandle,
-              out_len => Ref{Int64})
+              out_len => Ref{Cint})
     return out_len[]
 end
 
 function LGBM_BoosterGetEvalNames(bst::Booster)
-    out_len = Ref{Int64}()
+    out_len = Ref{Cint}()
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
     out_strs = [Vector{UInt8}(256) for i in 1:n_metrics]
     @lightgbm(:LGBM_BoosterGetEvalNames,
               bst.handle => BoosterHandle,
-              out_len => Ref{Int64},
+              out_len => Ref{Cint},
               out_strs => Ref{Ptr{UInt8}})
     jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
     return jl_out_strs
@@ -369,11 +371,11 @@ end
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
     out_results = Array(Cdouble, n_metrics)
-    out_len = Ref{Int64}()
+    out_len = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetEval,
               bst.handle => BoosterHandle,
               data => Cint,
-              out_len => Ref{Int64},
+              out_len => Ref{Cint},
               out_results => Ref{Cdouble})
     return out_results[1:out_len[]]
 end
@@ -407,9 +409,9 @@ function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type
     out_len = Ref{Int64}()
     @lightgbm(:LGBM_BoosterCalcNumPredict,
               bst.handle => BoosterHandle,
-              num_row => Int64,
+              num_row => Cint,
               predict_type => Cint,
-              num_iteration => Int64,
+              num_iteration => Cint,
               out_len => Ref{Int64})
     return out_len[]
 end
@@ -435,7 +437,7 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
               ncol => Int32,
               is_row_major => Cint,
               predict_type => Cint,
-              num_iteration => Int64,
+              num_iteration => Cint,
               out_len => Ref{Int64},
               out_result => Ref{Cdouble})
     return out_result[1:out_len[]]
