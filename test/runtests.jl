@@ -120,3 +120,27 @@ estimator = LightGBM.LGBMMulticlass(num_iterations = 100,
 
 scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0);
 @test scores["test_1"]["multi_logloss"][end] < 1.4
+
+# Test row major multiclass
+X_train = multiclass_train[:, 2:end]'
+y_train = multiclass_train[:, 1]
+X_test = multiclass_test[:, 2:end]'
+y_test = multiclass_test[:, 1]
+
+estimator = LightGBM.LGBMMulticlass(num_iterations = 100,
+                                    learning_rate = .05,
+                                    feature_fraction = .9,
+                                    bagging_fraction = .8,
+                                    bagging_freq = 5,
+                                    num_leaves = 31,
+                                    metric = ["multi_logloss"],
+                                    metric_freq = 1,
+                                    is_training_metric = true,
+                                    max_bin = 255,
+                                    min_sum_hessian_in_leaf = 5.,
+                                    min_data_in_leaf = 100,
+                                    num_class = 5,
+                                    early_stopping_round = 10);
+
+scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0, is_row_major = true);
+@test scores["test_1"]["multi_logloss"][end] < 1.4

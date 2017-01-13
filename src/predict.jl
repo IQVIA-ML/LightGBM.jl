@@ -15,10 +15,11 @@ Return an array with the labels that the `estimator` predicts for features data 
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
 function predict{TX<:Real}(estimator::LGBMEstimator, X::Matrix{TX}; predict_type::Integer = 0,
-                           num_iterations::Integer = -1, verbosity::Integer = 1)
+                           num_iterations::Integer = -1, verbosity::Integer = 1, is_row_major = false)
     @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
     log_debug(verbosity, "Started predicting\n")
-    prediction = LGBM_BoosterPredictForMat(estimator.booster, X, predict_type, num_iterations)
+
+    prediction = LGBM_BoosterPredictForMat(estimator.booster, X, predict_type, num_iterations, is_row_major)
 
     return prediction
 end
