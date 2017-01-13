@@ -18,12 +18,12 @@ array that holds the validation metric's value at each iteration.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
 function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1)
+                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1, is_row_major = false)
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
-    train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
+    train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
 
     log_debug(verbosity, "Started creating LGBM booster\n")
@@ -36,7 +36,7 @@ function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vect
         log_debug(verbosity, "Started creating LGBM test datasets\n")
         @inbounds for (test_idx, test_entry) in enumerate(test)
             tests_names[test_idx] = "test_$(test_idx)"
-            test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds)
+            test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
             LGBM_DatasetSetField(test_ds, "label", test_entry[2])
             LGBM_BoosterAddValidData(estimator.booster, test_ds)
         end
