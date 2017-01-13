@@ -1,5 +1,5 @@
 """
-    fit(estimator, X, y[, test...]; [verbosity = 1])
+    fit(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
 
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
@@ -16,9 +16,12 @@ array that holds the validation metric's value at each iteration.
     the same types as `X` and `y` that should be used as validation sets.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
+    indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 """
 function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1, is_row_major = false)
+                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
+                                is_row_major = false)
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")

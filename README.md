@@ -84,7 +84,7 @@ loadmodel(estimator, filename)
 
 ## Functions
 
-### `fit(estimator, X, y[, test...]; [verbosity = 1])`
+### `fit(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])`
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
 
@@ -100,8 +100,10 @@ array that holds the validation metric's value at each evaluation of the metric.
     the same types as `X` and `y` that should be used as validation sets.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
+    indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 
-### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1])`
+### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
 Return an array with the labels that the `estimator` predicts for features data `X`.
 
 #### Arguments
@@ -113,6 +115,8 @@ Return an array with the labels that the `estimator` predicts for features data 
     use in the prediction. `< 0` for all iterations.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
+    indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 
 ### `cv(estimator, X, y, splits; [verbosity = 1])` (Experimental—interface may change)
 Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
@@ -207,7 +211,7 @@ LGBMRegression(; [num_iterations = 10,
                   time_out = 120,
                   machine_list_file = ""])
 ```
-Return a LGBMRegression estimator.
+Return an LGBMRegression estimator.
 
 ### `LGBMBinary <: LGBMEstimator`
 ```julia
@@ -242,7 +246,7 @@ LGBMBinary(; [num_iterations = 10,
               time_out = 120,
               machine_list_file = ""])
 ```
-Return a LGBMBinary estimator.
+Return an LGBMBinary estimator.
 
 ### `LGBMMulticlass <: LGBMEstimator`
 ```julia
@@ -277,4 +281,4 @@ LGBMMulticlass(; [num_iterations = 10,
                   machine_list_file = "",
                   num_class = 1])
 ```
-Return a LGBMMulticlass estimator.
+Return an LGBMMulticlass estimator.
