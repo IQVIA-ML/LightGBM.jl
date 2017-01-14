@@ -43,14 +43,16 @@ estimator = LightGBM.LGBMBinary(num_iterations = 20,
 LightGBM.fit(estimator, X_train, y_train, verbosity = 0);
 LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0);
 
-# Test setting feature names, prediction, and loading and saving models.
-feature_names = ["testname_$i" for i in 1:28]
-LightGBM.LGBM_DatasetSetFeatureNames(estimator.booster.datasets[1], feature_names)
+# Test setting feature names
+jl_feature_names = ["testname_$i" for i in 1:28]
+LightGBM.LGBM_DatasetSetFeatureNames(estimator.booster.datasets[1], jl_feature_names)
+lgbm_feature_names = LightGBM.LGBM_DatasetGetFeatureNames(estimator.booster.datasets[1])
+@test jl_feature_names == lgbm_feature_names
+
+# Test prediction, and loading and saving models.
 test_filename = tempname()
     LightGBM.savemodel(estimator, test_filename);
 try
-    saved_feature_names_2_to_28 = split(readstring(test_filename))[8:34];
-    @test saved_feature_names_2_to_28 == feature_names[2:28]
     pre = LightGBM.predict(estimator, X_train, verbosity = 0);
     LightGBM.loadmodel(estimator, test_filename);
     post = LightGBM.predict(estimator, X_train, verbosity = 0);

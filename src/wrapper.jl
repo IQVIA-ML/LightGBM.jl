@@ -172,7 +172,6 @@ function LGBM_DatasetGetSubset(ds::Dataset, used_row_indices::Vector{Int64}, par
     LGBM_DatasetGetSubset(ds, convert(Vector{Int32}, used_row_indices), parameters)
 end
 
-# TODO: implement test
 function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
     num_feature_names = length(feature_names)
     @lightgbm(:LGBM_DatasetSetFeatureNames,
@@ -181,7 +180,17 @@ function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
               num_feature_names => Cint)
 end
 
-# function LGBM_DatasetSetFeatureNames()
+function LGBM_DatasetGetFeatureNames(ds::Dataset)
+    n_features = LGBM_DatasetGetNumFeature(ds)
+    feature_names = [Vector{UInt8}(256) for i in 1:n_features]
+    num_feature_names = Ref{Cint}()
+    @lightgbm(:LGBM_DatasetGetFeatureNames,
+              ds.handle => DatasetHandle,
+              feature_names => Ref{Ptr{UInt8}},
+              num_feature_names => Ref{Cint})
+
+    return [unsafe_string(pointer(feature_name)) for feature_name in feature_names[1:num_feature_names[]]]
+end
 
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
