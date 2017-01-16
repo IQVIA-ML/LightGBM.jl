@@ -97,13 +97,7 @@ end
 
 function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String, is_row_major::Bool = false)
     lgbm_data_type = jltype_to_lgbmid(T)
-
-    if is_row_major
-        ncol, nrow = size(data)
-    else
-        nrow, ncol = size(data)
-    end
-
+    nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
               data => Ref{T},
@@ -124,13 +118,7 @@ end
 function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
                                                               reference::Dataset, is_row_major::Bool = false)
     lgbm_data_type = jltype_to_lgbmid(T)
-
-    if is_row_major
-        ncol, nrow = size(data)
-    else
-        nrow, ncol = size(data)
-    end
-
+    nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
               data => Ref{T},
@@ -444,13 +432,7 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
                                                               is_row_major::Bool = false)
     num_class = LGBM_BoosterGetNumClasses(bst)
     lgbm_data_type = jltype_to_lgbmid(T)
-
-    if is_row_major
-        ncol, nrow = size(data)
-    else
-        nrow, ncol = size(data)
-    end
-
+    nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
     out_result = Array(Cdouble, alloc_len)
