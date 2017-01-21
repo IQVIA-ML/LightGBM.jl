@@ -283,6 +283,16 @@ function LGBM_BoosterCreateFromModelfile(filename::String)
     return Booster(out[])
 end
 
+function LGBM_BoosterLoadModelFromString(model_str::String)
+    out_num_iterations = Ref{Cint}()
+    out = Ref{BoosterHandle}()
+    @lightgbm(:LGBM_BoosterLoadModelFromString,
+              model_str => Cstring,
+              out_num_iterations => Ref{Cint},
+              out => Ref{BoosterHandle})
+    return Booster(out[])
+end
+
 function LGBM_BoosterFree(bst::Booster)
     @lightgbm(:LGBM_BoosterFree,
               bst.handle => BoosterHandle)
@@ -464,6 +474,7 @@ function LGBM_BoosterSaveModel(bst::Booster, num_iteration::Integer, filename::S
     return nothing
 end
 
+# function LGBM_BoosterSaveModelToString()
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()
