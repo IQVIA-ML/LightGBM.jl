@@ -79,14 +79,13 @@ function lgbmid_to_jltype(id::Integer)
 end
 
 macro lightgbm(f, params...)
-    args = [param.args[1] for param in params]
-    types = [param.args[2] for param in params]
-
     return quote
-        err = ccall(($f, LGBM_library), Cint, ($(types...),), $(args...))
+        err = ccall(($f, LGBM_library), Cint,
+                    ($((esc(i.args[2]) for i in params)...),),
+                    $((esc(i.args[1]) for i in params)...))
         if err != 0
-            msg = unsafe_string(ccall((:LGBM_GetLastError, LGBM_library), Cstring,()))
-            error("call to LightGBM's ", string($f), " failed: ", msg)
+            msg = unsafe_string(ccall((:LGBM_GetLastError, LGBM_library), Cstring, ()))
+            error("call to LightGBM's ", string($(esc(f))), " failed: ", msg)
         end
     end
 end
