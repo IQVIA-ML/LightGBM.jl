@@ -384,6 +384,26 @@ function LGBM_BoosterGetEvalNames(bst::Booster)
     return jl_out_strs
 end
 
+function LGBM_BoosterGetFeatureNames(bst::Booster)
+    out_len = Ref{Cint}()
+    n_features = LGBM_BoosterGetNumFeature(bst)
+    out_strs = [Vector{UInt8}(256) for i in 1:n_features]
+    @lightgbm(:LGBM_BoosterGetFeatureNames,
+              bst.handle => BoosterHandle,
+              out_len => Ref{Cint},
+              out_strs => Ref{Ptr{UInt8}})
+    jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
+    return jl_out_strs
+end
+
+function LGBM_BoosterGetNumFeature(bst::Booster)
+    out_len = Ref{Cint}()
+    @lightgbm(:LGBM_BoosterGetNumFeature,
+              bst.handle => BoosterHandle,
+              out_len => Ref{Cint})
+    return out_len[]
+end
+
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
     out_results = Array(Cdouble, n_metrics)
