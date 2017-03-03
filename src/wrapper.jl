@@ -94,7 +94,8 @@ end
 # function LGBM_DatasetCreateFromCSR()
 # function LGBM_DatasetCreateFromCSC()
 
-function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String, is_row_major::Bool = false)
+function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
+                                                              is_row_major::Bool = false)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
@@ -115,7 +116,8 @@ function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String)
 end
 
 function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
-                                                              reference::Dataset, is_row_major::Bool = false)
+                                                              reference::Dataset,
+                                                              is_row_major::Bool = false)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
@@ -133,7 +135,8 @@ end
 
 function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String,
                                             reference::Dataset, is_row_major::Bool = false)
-    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, reference, is_row_major)
+    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, reference,
+                                     is_row_major)
 end
 
 # Automatically converts to C's zero-based indices.
