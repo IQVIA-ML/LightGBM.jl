@@ -26,7 +26,7 @@ iteration.
 function search_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
                                       splits, params; verbosity::Integer = 1)
     n_params = length(params)
-    results = Array(Tuple{Dict{Symbol,Any},Dict{String,Dict{String,Vector{Float64}}}}, n_params)
+    results = Array{Tuple{Dict{Symbol,Any},Dict{String,Dict{String,Vector{Float64}}}}}(n_params)
     for (search_idx, search_params) in enumerate(params)
         log_info(verbosity, "\nSearch: ", search_idx, "\n", search_params, "\n")
 

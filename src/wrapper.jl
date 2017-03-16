@@ -1,5 +1,5 @@
-typealias DatasetHandle Ptr{Void}
-typealias BoosterHandle Ptr{Void}
+const DatasetHandle = Ptr{Void}
+const BoosterHandle = Ptr{Void}
 
 const C_API_DTYPE_FLOAT32 = 0
 const C_API_DTYPE_FLOAT64 = 1
@@ -81,8 +81,8 @@ end
 macro lightgbm(f, params...)
     return quote
         err = ccall(($f, LGBM_library), Cint,
-                    ($((esc(i.args[2]) for i in params)...),),
-                    $((esc(i.args[1]) for i in params)...))
+                    ($((esc(i.args[end]) for i in params)...),),
+                    $((esc(i.args[end - 1]) for i in params)...))
         if err != 0
             msg = unsafe_string(ccall((:LGBM_GetLastError, LGBM_library), Cstring, ()))
             error("call to LightGBM's ", string($(esc(f))), " failed: ", msg)
@@ -100,7 +100,7 @@ function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ref{T},
+              data => Ptr{Void},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,
@@ -122,7 +122,7 @@ function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ref{T},
+              data => Ptr{Void},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,
@@ -202,7 +202,7 @@ function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name:
     @lightgbm(:LGBM_DatasetSetField,
               ds.handle => DatasetHandle,
               field_name => Cstring,
-              field_data => Ref{T},
+              field_data => Ptr{Void},
               num_element => Cint,
               data_type => Cint)
     return nothing
@@ -409,7 +409,7 @@ end
 
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_results = Array(Cdouble, n_metrics)
+    out_results = Array{Cdouble}(n_metrics)
     out_len = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetEval,
               bst.handle => BoosterHandle,
@@ -432,7 +432,7 @@ function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
     out_len = Ref{Int64}()
     num_class = LGBM_BoosterGetNumClasses(bst)
     num_data = LGBM_BoosterGetNumPredict(bst, data_idx)
-    out_results = Array(Cdouble, num_class * num_data)
+    out_results = Array{Cdouble}(num_class * num_data)
     @lightgbm(:LGBM_BoosterGetPredict,
               bst.handle => BoosterHandle,
               data_idx => Cint,
@@ -467,10 +467,10 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
-    out_result = Array(Cdouble, alloc_len)
+    out_result = Array{Cdouble}(alloc_len)
     @lightgbm(:LGBM_BoosterPredictForMat,
               bst.handle => BoosterHandle,
-              data => Ref{T},
+              data => Ptr{Void},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,

@@ -1,6 +1,6 @@
-abstract Estimator
+@compat abstract type Estimator end
 
-abstract LGBMEstimator <: Estimator
+@compat abstract type LGBMEstimator <: Estimator end
 
 type LGBMRegression <: LGBMEstimator
     booster::Booster

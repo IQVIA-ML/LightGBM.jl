@@ -18,6 +18,8 @@ function __init__()
     end
 end
 
+using Compat
+
 include("wrapper.jl")
 include("estimators.jl")
 include("utils.jl")
