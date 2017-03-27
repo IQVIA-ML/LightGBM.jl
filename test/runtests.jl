@@ -21,7 +21,6 @@ test_ds = LightGBM.LGBM_DatasetCreateFromMat(X_test, "objective=binary", train_d
 @test LightGBM.LGBM_DatasetSetField(test_ds, "label", y_test) == nothing
 @test LightGBM.LGBM_BoosterAddValidData(bst, test_ds) == nothing
 @test LightGBM.LGBM_BoosterUpdateOneIter(bst) == 0
-@test LightGBM.LGBM_BoosterGetCurrentIteration(bst) == 1
 @test LightGBM.LGBM_BoosterGetEvalCounts(bst) == 1
 @test LightGBM.LGBM_BoosterGetEvalNames(bst)[1] == "auc"
 
