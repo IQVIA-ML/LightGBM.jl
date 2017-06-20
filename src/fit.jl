@@ -157,25 +157,26 @@ function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
     for (param_idx, param_name) in enumerate(params)
         if in(param_name, valid_names)
             param_value = getfield(estimator, param_name)
-
-            # Convert parameters that contain indices to C's zero-based indices.
-            if in(param_name, INDEXPARAMS)
-                param_value -= 1
-            end
-
-            if typeof(param_value) <: Array
-                n_entries = length(param_value)
-                if n_entries >= 1
-                    paramstring = string(paramstring, param_name, "=", param_value[1])
-                    for entry_idx in 2:n_entries
-                        paramstring = string(paramstring, ",", param_value[entry_idx])
-                    end
-                    paramstring = string(paramstring, " ")
+            if !isempty(param_value)
+                # Convert parameters that contain indices to C's zero-based indices.
+                if in(param_name, INDEXPARAMS)
+                    param_value -= 1
                 end
-            else
-                paramstring = string(paramstring, param_name, "=", param_value, " ")
+
+                if typeof(param_value) <: Array
+                    n_entries = length(param_value)
+                    if n_entries >= 1
+                        paramstring = string(paramstring, param_name, "=", param_value[1])
+                        for entry_idx in 2:n_entries
+                            paramstring = string(paramstring, ",", param_value[entry_idx])
+                        end
+                        paramstring = string(paramstring, " ")
+                    end
+                else
+                    paramstring = string(paramstring, param_name, "=", param_value, " ")
+                end
             end
         end
     end
-    return paramstring[1:end-1]
+    return paramstring[1:end - 1]
 end
