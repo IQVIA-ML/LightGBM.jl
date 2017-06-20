@@ -467,7 +467,7 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
-    out_result = zeros(Cdouble, alloc_len)
+    out_result = Array{Cdouble}(alloc_len)
 
     parameter = ""  # full prediction, no early stopping
     @lightgbm(:LGBM_BoosterPredictForMat,
