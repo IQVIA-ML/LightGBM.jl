@@ -18,16 +18,20 @@ array that holds the validation metric's value at each iteration.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
+* `weights::Vector{Tw<:Real}`: training weights.
 """
-function fit{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
+function fit{TX<:Real,Ty<:Real,Tw<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
                                 test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
-                                is_row_major = false)
+                                is_row_major = false, weights::Vector{Tw} = Vector{Float32}())
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
     train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
+    if length(weights) > 0
+        LGBM_DatasetSetField(train_ds, "weight", weights)
+    end
 
     log_debug(verbosity, "Started creating LGBM booster\n")
     bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
