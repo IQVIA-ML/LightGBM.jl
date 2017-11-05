@@ -22,7 +22,8 @@ array that holds the validation metric's value at each iteration.
 """
 function fit{TX<:Real,Ty<:Real,Tw<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
                                 test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
-                                is_row_major = false, weights::Vector{Tw} = Vector{Float32}())
+                                is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
+                                init_score::Vector{Float64} = Vector{Float64}())
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
@@ -31,6 +32,9 @@ function fit{TX<:Real,Ty<:Real,Tw<:Real}(estimator::LGBMEstimator, X::Matrix{TX}
     LGBM_DatasetSetField(train_ds, "label", y)
     if length(weights) > 0
         LGBM_DatasetSetField(train_ds, "weight", weights)
+    end
+    if length(init_score) > 0
+        LGBM_DatasetSetField(train_ds, "init_score", init_score)
     end
 
     log_debug(verbosity, "Started creating LGBM booster\n")
