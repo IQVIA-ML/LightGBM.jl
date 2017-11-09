@@ -20,10 +20,11 @@ array that holds the validation metric's value at each iteration.
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 * `weights::Vector{Tw<:Real}`: training weights.
 """
-function fit{TX<:Real,Ty<:Real,Tw<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
-                                is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
-                                init_score::Vector{Float64} = Vector{Float64}())
+function fit{TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}(estimator::LGBMEstimator, X::Matrix{TX},
+    y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
+    is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
+    init_score::Vector{Ti} = Vector{Float64}())
+
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
