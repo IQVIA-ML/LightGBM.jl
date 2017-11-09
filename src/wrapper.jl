@@ -195,7 +195,7 @@ function LGBM_DatasetSaveBinary(ds::Dataset, filename::String)
     return nothing
 end
 
-function _LGBM_DatasetSetField{T<:Union{Float32,Int32}}(ds::Dataset, field_name::String,
+function _LGBM_DatasetSetField{T<:Union{Float32,Float64,Int32}}(ds::Dataset, field_name::String,
                                                         field_data::Vector{T})
     data_type = jltype_to_lgbmid(T)
     num_element = length(field_data)
@@ -229,6 +229,8 @@ end
 function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_data::Vector{T})
     if field_name == "label" || field_name == "weight"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
+    elseif field_name == "init_score"
+        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float64}, field_data))
     elseif field_name == "group" || field_name == "group_id"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
     end
