@@ -18,7 +18,8 @@ array that holds the validation metric's value at each iteration.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
-* `weights::Vector{Tw<:Real}`: training weights.
+* `weights::Vector{Tw<:Real}`: the training weights.
+* `init_score::Vector{Ti<:Real}`: the init scores.
 """
 function fit{TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}(estimator::LGBMEstimator, X::Matrix{TX},
     y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,

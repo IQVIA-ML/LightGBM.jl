@@ -102,6 +102,8 @@ array that holds the validation metric's value at each evaluation of the metric.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
+* `weights::Vector{Tw<:Real}`: the training weights.
+* `init_score::Vector{Ti<:Real}`: the init scores.
 
 ### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
 Return an array with the labels that the `estimator` predicts for features data `X`.
