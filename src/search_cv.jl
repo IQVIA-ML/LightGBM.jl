@@ -23,8 +23,8 @@ iteration.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
-function search_cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                      splits, params; verbosity::Integer = 1)
+function search_cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
+                                      splits, params; verbosity::Integer = 1) where {TX<:Real,Ty<:Real}
     n_params = length(params)
     results = Array{Tuple{Dict{Symbol,Any},Dict{String,Dict{String,Vector{Float64}}}}}(n_params)
     for (search_idx, search_params) in enumerate(params)

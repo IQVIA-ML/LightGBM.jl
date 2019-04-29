@@ -6,7 +6,7 @@ const BOOSTERPARAMS = [:application, :learning_rate, :num_leaves, :max_depth, :t
                        :feature_fraction, :feature_fraction_seed, :bagging_fraction,
                        :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
                        :is_unbalance, :metric, :is_training_metric, :ndcg_at, :num_machines,
-                       :local_listen_port, :time_out, :machine_list_file, :num_class]
+                       :local_listen_port, :time_out, :machine_list_file, :num_class,:device]
 
 const INDEXPARAMS = [:categorical_feature]
 

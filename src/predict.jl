@@ -17,9 +17,9 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 """
-function predict{TX<:Real}(estimator::LGBMEstimator, X::Matrix{TX}; predict_type::Integer = 0,
+function predict(estimator::LGBMEstimator, X::Matrix{TX}; predict_type::Integer = 0,
                            num_iterations::Integer = -1, verbosity::Integer = 1,
-                           is_row_major::Bool = false)
+                           is_row_major::Bool = false) where TX<:Real
     @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
     log_debug(verbosity, "Started predicting\n")
     prediction = LGBM_BoosterPredictForMat(estimator.booster, X, predict_type, num_iterations,

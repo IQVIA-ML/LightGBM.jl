@@ -1,8 +1,10 @@
-@compat abstract type Estimator end
+#@compat abstract type Estimator end
+#@compat abstract type LGBMEstimator <: Estimator end
 
-@compat abstract type LGBMEstimator <: Estimator end
+abstract type Estimator end
+abstract type LGBMEstimator <: Estimator end
 
-type LGBMRegression <: LGBMEstimator
+mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::Vector{String}
     application::String
@@ -55,7 +57,7 @@ end
                       num_leaves = 127,
                       max_depth = -1,
                       tree_learner = \"serial\",
-                      num_threads = Sys.CPU_CORES,
+                      num_threads = Sys.CPU_THREADS,
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
@@ -91,7 +93,7 @@ function LGBMRegression(; num_iterations = 10,
                         num_leaves = 127,
                         max_depth = -1,
                         tree_learner = "serial",
-                        num_threads = Sys.CPU_CORES,
+                        num_threads = Sys.CPU_THREADS,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,
@@ -138,7 +140,7 @@ function LGBMRegression(; num_iterations = 10,
                           machine_list_file, 1)
 end
 
-type LGBMBinary <: LGBMEstimator
+mutable struct LGBMBinary <: LGBMEstimator
     booster::Booster
     model::Vector{String}
     application::String
@@ -192,7 +194,7 @@ end
                   num_leaves = 127,
                   max_depth = -1,
                   tree_learner = \"serial\",
-                  num_threads = Sys.CPU_CORES,
+                  num_threads = Sys.CPU_THREADS,
                   histogram_pool_size = -1.,
                   min_data_in_leaf = 100,
                   min_sum_hessian_in_leaf = 10.,
@@ -229,7 +231,7 @@ function LGBMBinary(; num_iterations = 10,
                     num_leaves = 127,
                     max_depth = -1,
                     tree_learner = "serial",
-                    num_threads = Sys.CPU_CORES,
+                    num_threads = Sys.CPU_THREADS,
                     histogram_pool_size = -1.,
                     min_data_in_leaf = 100,
                     min_sum_hessian_in_leaf = 10.,
@@ -276,7 +278,7 @@ function LGBMBinary(; num_iterations = 10,
                       time_out, machine_list_file, 1)
 end
 
-type LGBMMulticlass <: LGBMEstimator
+mutable struct LGBMMulticlass <: LGBMEstimator
     booster::Booster
     model::Vector{String}
     application::String
@@ -329,7 +331,7 @@ end
                       num_leaves = 127,
                       max_depth = -1,
                       tree_learner = \"serial\",
-                      num_threads = Sys.CPU_CORES,
+                      num_threads = Sys.CPU_THREADS,
                       histogram_pool_size = -1.,
                       min_data_in_leaf = 100,
                       min_sum_hessian_in_leaf = 10.,
@@ -366,7 +368,7 @@ function LGBMMulticlass(; num_iterations = 10,
                         num_leaves = 127,
                         max_depth = -1,
                         tree_learner = "serial",
-                        num_threads = Sys.CPU_CORES,
+                        num_threads = Sys.CPU_THREADS,
                         histogram_pool_size = -1.,
                         min_data_in_leaf = 100,
                         min_sum_hessian_in_leaf = 10.,

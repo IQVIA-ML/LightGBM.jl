@@ -1,17 +1,17 @@
-const DatasetHandle = Ptr{Void}
-const BoosterHandle = Ptr{Void}
+const DatasetHandle = Ptr{Nothing}
+const BoosterHandle = Ptr{Nothing}
 
 const C_API_DTYPE_FLOAT32 = 0
 const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
 const C_API_DTYPE_INT64 = 3
 
-type Dataset
+mutable struct Dataset
     handle::DatasetHandle
 
     function Dataset(handle::DatasetHandle)
         ds = new(handle)
-        finalizer(ds, Dataset_finalizer)
+        finalizer(Dataset_finalizer,ds)
         return ds
     end
 
@@ -23,13 +23,13 @@ type Dataset
     end
 end
 
-type Booster
+mutable struct Booster
     handle::BoosterHandle
     datasets::Vector{Dataset}
 
     function Booster(handle::BoosterHandle, datasets::Vector{Dataset})
         bst = new(handle, datasets)
-        finalizer(bst, Booster_finalizer)
+        finalizer(Booster_finalizer,bst)
         return bst
     end
 
@@ -94,35 +94,35 @@ end
 # function LGBM_DatasetCreateFromCSR()
 # function LGBM_DatasetCreateFromCSC()
 
-function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
-                                                              is_row_major::Bool = false)
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
+                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ptr{Void},
+              data => Ptr{Nothing},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,
               is_row_major => Cint,
               parameters => Cstring,
-              C_NULL => Ptr{Void},
+              C_NULL => Ptr{Nothing},
               out => Ref{DatasetHandle})
     return Dataset(out[])
 end
 
-function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String)
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String) where T T<:Real
     return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters)
 end
 
-function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, parameters::String,
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
                                                               reference::Dataset,
-                                                              is_row_major::Bool = false)
+                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64} 
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
     @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ptr{Void},
+              data => Ptr{Nothing},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,
@@ -133,8 +133,8 @@ function LGBM_DatasetCreateFromMat{T<:Union{Float32,Float64}}(data::Matrix{T}, p
     return Dataset(out[])
 end
 
-function LGBM_DatasetCreateFromMat{T<:Real}(data::Matrix{T}, parameters::String,
-                                            reference::Dataset, is_row_major::Bool = false)
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
+                                            reference::Dataset, is_row_major::Bool = false) where T<:Real
     return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, reference,
                                      is_row_major)
 end
@@ -195,14 +195,14 @@ function LGBM_DatasetSaveBinary(ds::Dataset, filename::String)
     return nothing
 end
 
-function _LGBM_DatasetSetField{T<:Union{Float32,Float64,Int32}}(ds::Dataset, field_name::String,
-                                                        field_data::Vector{T})
+function _LGBM_DatasetSetField(ds::Dataset, field_name::String,
+                                                        field_data::Vector{T}) where T <:Union{Float32,Float64,Int32}
     data_type = jltype_to_lgbmid(T)
     num_element = length(field_data)
     @lightgbm(:LGBM_DatasetSetField,
               ds.handle => DatasetHandle,
               field_name => Cstring,
-              field_data => Ptr{Void},
+              field_data => Ptr{Nothing},
               num_element => Cint,
               data_type => Cint)
     return nothing
@@ -226,7 +226,7 @@ function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vecto
     return nothing
 end
 
-function LGBM_DatasetSetField{T<:Real}(ds::Dataset, field_name::String, field_data::Vector{T})
+function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{T}) where T<:Real
     if field_name == "label" || field_name == "weight"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
     elseif field_name == "init_score"
@@ -239,13 +239,13 @@ end
 
 function LGBM_DatasetGetField(ds::Dataset, field_name::String)
     out_len = Ref{Cint}()
-    out_ptr = Ref{Ptr{Void}}()
+    out_ptr = Ref{Ptr{Nothing}}()
     out_type = Ref{Cint}()
     @lightgbm(:LGBM_DatasetGetField,
               ds.handle => DatasetHandle,
               field_name => Cstring,
               out_len => Ref{Cint},
-              out_ptr => Ref{Ptr{Void}},
+              out_ptr => Ref{Ptr{Nothing}},
               out_type => Ref{Cint})
     jl_out_type = lgbmid_to_jltype(out_type[])
     jl_out_ptr = convert(Ptr{jl_out_type}, out_ptr[])
@@ -460,10 +460,10 @@ end
 # function LGBM_BoosterPredictForCSR()
 # function LGBM_BoosterPredictForCSC()
 
-function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data::Matrix{T},
+function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
                                                               num_iteration::Integer,
-                                                              is_row_major::Bool = false)
+                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
     num_class = LGBM_BoosterGetNumClasses(bst)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
@@ -474,7 +474,7 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     parameter = ""  # full prediction, no early stopping
     @lightgbm(:LGBM_BoosterPredictForMat,
               bst.handle => BoosterHandle,
-              data => Ptr{Void},
+              data => Ptr{Nothing},
               lgbm_data_type => Cint,
               nrow => Int32,
               ncol => Int32,
@@ -487,8 +487,8 @@ function LGBM_BoosterPredictForMat{T<:Union{Float32,Float64}}(bst::Booster, data
     return out_result[1:out_len[]]
 end
 
-function LGBM_BoosterPredictForMat{T<:Real}(bst::Booster, data::Matrix{T}, predict_type::Integer,
-                                            num_iteration::Integer)
+function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::Integer,
+                                            num_iteration::Integer) where T<:Real
     return LGBM_BoosterPredictForMat(bst, convert(Matrix{Float64}, data), predict_type,
                                      num_iteration)
 end

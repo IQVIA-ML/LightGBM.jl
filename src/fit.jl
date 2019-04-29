@@ -21,10 +21,10 @@ array that holds the validation metric's value at each iteration.
 * `weights::Vector{Tw<:Real}`: the training weights.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 """
-function fit{TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}(estimator::LGBMEstimator, X::Matrix{TX},
+function fit(estimator::LGBMEstimator, X::Matrix{TX},
     y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
     is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
-    init_score::Vector{Ti} = Vector{Float64}())
+    init_score::Vector{Ti} = Vector{Float64}()) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
     start_time = now()
 
@@ -163,7 +163,7 @@ end
 function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
     paramstring = ""
     n_params = length(params)
-    valid_names = fieldnames(estimator)
+    valid_names = fieldnames(typeof(estimator))
     for (param_idx, param_name) in enumerate(params)
         if in(param_name, valid_names)
             param_value = getfield(estimator, param_name)

@@ -19,8 +19,8 @@ last valid iteration.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
-function cv{TX<:Real,Ty<:Real}(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
-                               verbosity::Integer = 1)
+function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
+                               verbosity::Integer = 1) where {TX<:Real,Ty<:Real}
     start_time = now()
     num_data = size(X)[1]
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
