@@ -19,6 +19,8 @@ function __init__()
     end
 end
 
+const LGBM_library = find_library(["lib_lightgbm.so", "lib_lightgbm.dll", "lib_lightgbm.dylib"], [ENV["LIGHTGBM_PATH"]])
+
 include("wrapper.jl")
 include("estimators.jl")
 include("utils.jl")
