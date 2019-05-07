@@ -380,7 +380,7 @@ end
 function LGBM_BoosterGetEvalNames(bst::Booster)
     out_len = Ref{Cint}()
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_strs = [Vector{UInt8}(256) for i in 1:n_metrics]
+    out_strs = [Vector{UInt8}(undef, 256) for i in 1:n_metrics]
     @lightgbm(:LGBM_BoosterGetEvalNames,
               bst.handle => BoosterHandle,
               out_len => Ref{Cint},
@@ -392,7 +392,7 @@ end
 function LGBM_BoosterGetFeatureNames(bst::Booster)
     out_len = Ref{Cint}()
     n_features = LGBM_BoosterGetNumFeature(bst)
-    out_strs = [Vector{UInt8}(256) for i in 1:n_features]
+    out_strs = [Vector{UInt8}(undef, 256) for i in 1:n_features]
     @lightgbm(:LGBM_BoosterGetFeatureNames,
               bst.handle => BoosterHandle,
               out_len => Ref{Cint},
@@ -411,7 +411,7 @@ end
 
 function LGBM_BoosterGetEval(bst::Booster, data::Integer)
     n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_results = Array{Cdouble}(n_metrics)
+    out_results = Array{Cdouble}(undef, n_metrics)
     out_len = Ref{Cint}()
     @lightgbm(:LGBM_BoosterGetEval,
               bst.handle => BoosterHandle,
@@ -434,7 +434,7 @@ function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
     out_len = Ref{Int64}()
     num_class = LGBM_BoosterGetNumClasses(bst)
     num_data = LGBM_BoosterGetNumPredict(bst, data_idx)
-    out_results = Array{Cdouble}(num_class * num_data)
+    out_results = Array{Cdouble}(undef, num_class * num_data)
     @lightgbm(:LGBM_BoosterGetPredict,
               bst.handle => BoosterHandle,
               data_idx => Cint,
@@ -469,7 +469,7 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
-    out_result = Array{Cdouble}(alloc_len)
+    out_result = Array{Cdouble}(undef, alloc_len)
 
     parameter = ""  # full prediction, no early stopping
     @lightgbm(:LGBM_BoosterPredictForMat,
