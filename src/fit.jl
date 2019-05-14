@@ -44,7 +44,8 @@ function fit(estimator::LGBMEstimator, X::Matrix{TX},
     estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
 
     n_tests = length(test)
-    tests_names = Array{String}(n_tests)
+    tests_names = Array{String}(undef,n_tests)
+
     if n_tests > 0
         log_debug(verbosity, "Started creating LGBM test datasets\n")
         @inbounds for (test_idx, test_entry) in enumerate(test)
@@ -74,7 +75,7 @@ function train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity:
 
     for iter in 1:estimator.num_iterations
         is_finished = LGBM_BoosterUpdateOneIter(estimator.booster)
-        log_debug(verbosity, Base.Dates.CompoundPeriod(now() - start_time),
+        log_debug(verbosity, Dates.CompoundPeriod(now() - start_time),
                   " elapsed, finished iteration ", iter, "\n")
         if is_finished == 0
             is_finished = eval_metrics!(results, estimator, tests_names, iter, n_metrics,
@@ -138,10 +139,10 @@ function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
         if !haskey(results, evalname)
             num_evals = cld(estimator.num_iterations, estimator.metric_freq)
             results[evalname] = Dict{String,Vector{Float64}}()
-            results[evalname][metric_name] = Array{Float64}(num_evals)
+            results[evalname][metric_name] = Array{Float64}(undef,num_evals)
         elseif !haskey(results[evalname], metric_name)
             num_evals = cld(estimator.num_iterations, estimator.metric_freq)
-            results[evalname][metric_name] = Array{Float64}(num_evals)
+            results[evalname][metric_name] = Array{Float64}(undef,num_evals)
         end
         eval_idx = cld(iter, estimator.metric_freq)
         results[evalname][metric_name][eval_idx] = scores[metric_idx]
