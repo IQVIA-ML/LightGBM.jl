@@ -281,6 +281,7 @@ LGBMMulticlass(; [num_iterations = 10,
                   local_listen_port = 12400,
                   time_out = 120,
                   machine_list_file = "",
-                  num_class = 1])
+                  num_class = 1,
+                  device_type="cpu"])
 ```
 Return an LGBMMulticlass estimator.

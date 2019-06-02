@@ -46,7 +46,6 @@ mutable struct LGBMRegression <: LGBMEstimator
     machine_list_file::String
 
     num_class::Int
-    device_type::String
 end
 
 """
@@ -82,8 +81,7 @@ end
                       num_machines = 1,
                       local_listen_port = 12400,
                       time_out = 120,
-                      machine_list_file = \"\",
-                      device_type=\"cpu\"])
+                      machine_list_file = \"\"])
 
 Return a LGBMRegression estimator.
 """
@@ -119,8 +117,7 @@ function LGBMRegression(; num_iterations = 10,
                         num_machines = 1,
                         local_listen_port = 12400,
                         time_out = 120,
-                        machine_list_file = "",
-                        device_type="cpu")
+                        machine_list_file = "")
 
     @assert(in(tree_learner, ("serial", "feature", "data")),
             "Unknown tree_learner, got $tree_learner")
@@ -137,7 +134,7 @@ function LGBMRegression(; num_iterations = 10,
                           is_sparse, save_binary, categorical_feature,
                           is_unbalance, metric, metric_freq,
                           is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file,device_type ,1)
+                          machine_list_file,1)
 end
 
 mutable struct LGBMBinary <: LGBMEstimator
@@ -186,7 +183,6 @@ mutable struct LGBMBinary <: LGBMEstimator
     machine_list_file::String
 
     num_class::Int
-    device_type::String
 end
 
 """
@@ -223,8 +219,7 @@ end
                   num_machines = 1,
                   local_listen_port = 12400,
                   time_out = 120,
-                  machine_list_file = \"\",
-                      device_type=\"cpu\"])
+                  machine_list_file = \"\"])
 
 Return a LGBMBinary estimator.
 """
@@ -261,8 +256,8 @@ function LGBMBinary(; num_iterations = 10,
                     num_machines = 1,
                     local_listen_port = 12400,
                     time_out = 120,
-                    machine_list_file = "",
-                    device_type="cpu")
+                    machine_list_file = ""
+                    )
 
     @assert(in(tree_learner, ("serial", "feature", "data")),
             "Unknown tree_learner, got $tree_learner")
@@ -278,7 +273,7 @@ function LGBMBinary(; num_iterations = 10,
                       init_score, is_sparse, save_binary,
                       categorical_feature, sigmoid, is_unbalance, metric,
                       metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port,
-                      time_out, machine_list_file,device_type, 1)
+                      time_out, machine_list_file, 1)
 end
 
 mutable struct LGBMMulticlass <: LGBMEstimator

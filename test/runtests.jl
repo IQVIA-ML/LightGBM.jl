@@ -1,5 +1,6 @@
 using LightGBM
-using Base.Test
+using Test
+using DelimitedFiles
 
 # Use binary example for generic tests.
 binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t');

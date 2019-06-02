@@ -249,7 +249,7 @@ function LGBM_DatasetGetField(ds::Dataset, field_name::String)
               out_type => Ref{Cint})
     jl_out_type = lgbmid_to_jltype(out_type[])
     jl_out_ptr = convert(Ptr{jl_out_type}, out_ptr[])
-    return copy(unsafe_wrap(Vector{jl_out_type}, jl_out_ptr, out_len[], false))
+    return copy(unsafe_wrap(Vector{jl_out_type}, jl_out_ptr, out_len[], own=false))
 end
 
 function LGBM_DatasetGetNumData(ds::Dataset)
