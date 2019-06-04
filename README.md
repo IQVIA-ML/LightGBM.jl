@@ -211,7 +211,8 @@ LGBMRegression(; [num_iterations = 10,
                   num_machines = 1,
                   local_listen_port = 12400,
                   time_out = 120,
-                  machine_list_file = ""])
+                  machine_list_file = "",
+                  device_type="cpu"])
 ```
 Return an LGBMRegression estimator.
 
@@ -246,7 +247,8 @@ LGBMBinary(; [num_iterations = 10,
               num_machines = 1,
               local_listen_port = 12400,
               time_out = 120,
-              machine_list_file = ""])
+              machine_list_file = "",
+              device_type="cpu"])
 ```
 Return an LGBMBinary estimator.
 
