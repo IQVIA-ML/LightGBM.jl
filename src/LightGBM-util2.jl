@@ -1,5 +1,7 @@
-function metaformattedclassresult(result::Array,Xtest)
-    rowsize,colsize=size(Xtest)
+function metaformattedclassresult(result::Array,Xtest::Array)
+    rowsize=size(Xtest)[1]
+    colsize=size(result)[1]/rowsize
+    colsize=Int(colsize)
     metaformattedresult=zeros(rowsize,colsize)
 
     for i in 0:rowsize-1
@@ -20,7 +22,7 @@ function metaformattedclassresult(metaformattedresult::Array)
         for j in 1:colsize
             if(metaformattedresult[i,j] >= work)
                 work =metaformattedresult[i,j]
-                metaformattedclassresult[i,1]=j-1
+                metaformattedclassresult[i,1]=j
             end
         end
     end
@@ -28,20 +30,22 @@ function metaformattedclassresult(metaformattedresult::Array)
     return metaformattedclassresult
 end
 
-function formattedclassfit(result,Xtest)
+function formattedclassfit(result::Array,Xtest::Array)
     return metaformattedclassresult(metaformattedclassresult(result,Xtest))
 end
 
-function predict2(estimatorclass, Xtest)
-    result=LightGBM.predict(estimatorclass, Xtest) 
+function predict2(estimator::LGBMEstimator, Xtest::Array)
+    result=LightGBM.predict(estimator, Xtest)
 
-    if(typeof(estimatorclass) == LGBMMulticlass )
-        return formattedclassfit(result,Xtest)
-    elseif(typeof(estimatorclass) == LGBMRegression )
-        return 0 
-    elseif(typeof(estimatorclass) == LGBMBinary )
-        return 0
+    if(typeof(estimator) == LGBMMulticlass )
+        result=formattedclassfit(result,Xtest)
+    elseif(typeof(estimator) == LGBMRegression )
+        result=result
+    elseif(typeof(estimator) == LGBMBinary )
+        result=result
     else
         println("Error")
     end
+
+    return result
 end
