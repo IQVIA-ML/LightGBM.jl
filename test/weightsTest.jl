@@ -1,9 +1,9 @@
 # Tests that the weighting scheme works for multiclass to balance skewed data
 
 # Get margin for each sample in votes, according to its true label in labels
-function margin{T1 <: Real, T2 <: Real}( votes::Array{T1,2}, labels::Vector{T2} )
-    const numClasses = size(votes,1)
-    const numSamples = size(votes,2)
+function margin( votes::Array{T1,2}, labels::Vector{T2} ) where {T1 <: Real, T2 <: Real}
+    numClasses = size(votes,1)
+    numSamples = size(votes,2)
 
     votes = copy(votes)
 
