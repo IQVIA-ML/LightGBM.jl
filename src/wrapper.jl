@@ -172,7 +172,7 @@ end
 
 function LGBM_DatasetGetFeatureNames(ds::Dataset)
     n_features = LGBM_DatasetGetNumFeature(ds)
-    feature_names = [Vector{UInt8}(256) for i in 1:n_features]
+    feature_names = [Vector{UInt8}(undef,256) for i in 1:n_features]
     num_feature_names = Ref{Cint}()
     @lightgbm(:LGBM_DatasetGetFeatureNames,
               ds.handle => DatasetHandle,

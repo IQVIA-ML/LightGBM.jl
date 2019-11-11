@@ -41,7 +41,7 @@ estimator = LightGBM.LGBMBinary(num_iterations = 20,
 
 # Test fitting.
 LightGBM.fit(estimator, X_train, y_train, verbosity = 0);
-LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0);
+LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = 0); #boost_from_average=false
 
 # Test setting feature names
 jl_feature_names = ["testname_$i" for i in 1:28]
@@ -100,10 +100,10 @@ scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity =
 # Test multiclass estimator.
 multiclass_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/multiclass_classification/multiclass.test", '\t');
 multiclass_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/multiclass_classification/multiclass.train", '\t');
-X_train = multiclass_train[:, 2:end]
-y_train = multiclass_train[:, 1]
-X_test = multiclass_test[:, 2:end]
-y_test = multiclass_test[:, 1]
+X_train = Matrix(multiclass_train[:, 2:end])
+y_train = Array(multiclass_train[:, 1])
+X_test = Matrix(multiclass_test[:, 2:end])
+y_test = Array(multiclass_test[:, 1])
 
 estimator = LightGBM.LGBMMulticlass(num_iterations = 100,
                                     learning_rate = .05,
@@ -124,8 +124,8 @@ scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity =
 @test scores["test_1"]["multi_logloss"][end] < 1.4
 
 # Test row major multiclass
-X_train = multiclass_train[:, 2:end]'
-X_test = multiclass_test[:, 2:end]'
+X_train = Matrix(multiclass_train[:, 2:end]')
+X_test = Matrix(multiclass_test[:, 2:end]')
 
 estimator = LightGBM.LGBMMulticlass(num_iterations = 100,
                                     learning_rate = .05,

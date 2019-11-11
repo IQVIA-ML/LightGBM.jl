@@ -3,6 +3,8 @@ __precompile__()
 module LightGBM
 using Libdl
 using Dates
+using StatsBase
+
 function __init__()
     if !haskey(ENV, "LIGHTGBM_PATH")
         error("Environment variable LIGHTGBM_PATH not found. ",

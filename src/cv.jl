@@ -71,8 +71,8 @@ function cv_logsummary(cv_results::Dict{String,Dict{String,Vector{Float64}}}, ve
     for dataset in keys(cv_results)
         for metric in keys(cv_results[dataset])
             log_info(verbosity, "- ", dataset, "'s ", metric,
-                     " mean: ", mean(cv_results[dataset][metric]),
-                     ", std: ", std(cv_results[dataset][metric]), "\n")
+                     " mean: ", StatsBase.mean(cv_results[dataset][metric]),
+                     ", std: ", StatsBase.std(cv_results[dataset][metric]), "\n")
         end
     end
 end
