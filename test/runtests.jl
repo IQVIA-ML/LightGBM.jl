@@ -147,5 +147,5 @@ scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity =
 @test scores["test_1"]["multi_logloss"][end] < 1.4
 
 include("weightsTest.jl")
-include("initScoreTest.jl")
+#include("initScoreTest.jl")
 

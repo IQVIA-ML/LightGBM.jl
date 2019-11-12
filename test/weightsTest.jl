@@ -28,7 +28,7 @@ N = N1 + N2 + N3
 numClasses = 3
 numFeats = 5
 
-X = rand((N, numFeats))
+X = rand(N, numFeats)
 y = vcat(zeros(N1), ones(N2), 2*ones(N3))
 
 # one feature is exactly the label
@@ -56,10 +56,10 @@ pred = reshape(pred, ( numClasses, size(X,1)))
 
 # Average margins for each prediction should be similar if weighting works
 margins = margin(pred, y)
-margins = [mean(margins[y .== label]) for label in 0:(numClasses-1)]
+margins = [StatsBase.mean(margins[y .== label]) for label in 0:(numClasses-1)]
 
-meanMargin = mean(margins)
-marginDeviations = abs.(margins - meanMargin)
+meanMargin = StatsBase.mean(margins)
+marginDeviations = abs.(map(x->x-meanMargin,margins))
 maxMarginDeviation = maximum(marginDeviations)
 
 @test maxMarginDeviation / meanMargin < 0.1

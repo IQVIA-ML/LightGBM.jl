@@ -23,9 +23,9 @@ Save the fitted model in `estimator` as `filename`.
 * `num_iteration::Integer`: keyword argument that sets the number of iterations of the model that
     should be saved. `< 0` for all iterations.
 """
-function savemodel(estimator::LGBMEstimator, filename::String; num_iteration::Integer = -1)
+function savemodel(estimator::LGBMEstimator, filename::String; num_iteration::Integer = -1,start_iteration::Integer=0)
     @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
-    LGBM_BoosterSaveModel(estimator.booster, num_iteration, filename)
+    LGBM_BoosterSaveModel(estimator.booster, start_iteration , num_iteration , filename)
     return nothing
 end
 

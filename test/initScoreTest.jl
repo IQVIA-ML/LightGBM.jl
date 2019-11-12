@@ -9,7 +9,7 @@ N = N1 + N2 + N3
 numClasses = 3
 numFeats = 5
 
-X = rand((N, numFeats))
+X = rand(N, numFeats)
 y = vcat(zeros(N1), ones(N2), 2*ones(N3))
 
 estimator = LightGBM.LGBMMulticlass(num_iterations = 50,
@@ -26,7 +26,7 @@ estimator = LightGBM.LGBMMulticlass(num_iterations = 50,
                                     
 # using the incorrect size of init_score should throw
 try
-    LightGBM.fit(estimator, X, y; init_score = [1.2, 3.4])
+    LightGBM.fit(estimator, X, y, init_score = [1.2, 3.4])
     @test false  # LightGBM.fit did not throw with incorrect init_score size
 catch
 end

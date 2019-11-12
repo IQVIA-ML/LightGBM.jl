@@ -493,9 +493,10 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::
                                      num_iteration)
 end
 
-function LGBM_BoosterSaveModel(bst::Booster, num_iteration::Integer, filename::String)
+function LGBM_BoosterSaveModel(bst::Booster , start_iteration::Integer , num_iteration::Integer , filename::String)
     @lightgbm(:LGBM_BoosterSaveModel,
               bst.handle => BoosterHandle,
+              start_iteration => Cint,
               num_iteration => Cint,
               filename => Cstring)
     return nothing
