@@ -1,6 +1,13 @@
+"""
+metaformattedclassresult(result::Array,Xtest::Array)
+MLBaseのLabelから数値変換処理に合うように予測結果の番号を修正
+# Arguments
+`result::Array`:prediction
+`Xtest::Array`:the features data.
+"""
 function metaformattedclassresult(result::Array,Xtest::Array)
-    rowsize=size(Xtest)[1]
-    colsize=size(result)[1]/rowsize
+    rowsize=size(Xtest,1)
+    colsize=size(result,1)/rowsize
     colsize=Int(colsize)
     metaformattedresult=zeros(rowsize,colsize)
 
@@ -13,6 +20,13 @@ function metaformattedclassresult(result::Array,Xtest::Array)
     return metaformattedresult
 end
 
+
+"""
+metaformattedclassresult(metaformattedresult::Array)
+分類予測結果から、予測精度の一番高い結果だけを出力する
+# Arguments
+`metaformattedresult::Array`:formatted prediction result.
+"""
 function metaformattedclassresult(metaformattedresult::Array)
     rowsize,colsize=size(metaformattedresult)
     metaformattedclassresult=zeros(rowsize,1)
@@ -30,10 +44,24 @@ function metaformattedclassresult(metaformattedresult::Array)
     return metaformattedclassresult
 end
 
+"""
+formattedclassfit(result::Array,Xtest::Array)
+予測結果と検証用データを並べて出力する。
+# Arguments
+`result::Array`:prediction result.
+`Xtest::Array`:the features data.
+"""
 function formattedclassfit(result::Array,Xtest::Array)
     return metaformattedclassresult(metaformattedclassresult(result,Xtest))
 end
 
+"""
+predict2(estimator::LGBMEstimator, Xtest::Array)
+分類予測の場合、予測精度の一番高い結果だけを出力する。その他の予測は結果を出力
+# Arguments
+`estimator::LGBMEstimator`: the estimator to use in the prediction.
+`Xtest::Array`:the features data.
+"""
 function predict2(estimator::LGBMEstimator, Xtest::Array)
     result=LightGBM.predict(estimator, Xtest)
 

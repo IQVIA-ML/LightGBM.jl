@@ -3,7 +3,7 @@ __precompile__()
 module LightGBM
 using Libdl
 using Dates
-using StatsBase
+import StatsBase
 
 function __init__()
     if !haskey(ENV, "LIGHTGBM_PATH")

@@ -12,7 +12,7 @@ numFeats = 5
 X = rand(N, numFeats)
 y = vcat(zeros(N1), ones(N2), 2*ones(N3))
 
-estimator = LightGBM.LGBMMulticlass(num_iterations = 50,
+estimator1 = LightGBM.LGBMMulticlass(num_iterations = 50,
                                     learning_rate = .5,
                                     feature_fraction = 0.5,
                                     bagging_fraction = 1.0,
@@ -25,9 +25,15 @@ estimator = LightGBM.LGBMMulticlass(num_iterations = 50,
                                     early_stopping_round = 1);
                                     
 # using the incorrect size of init_score should throw
+estimator2=estimator1
+LightGBM.fit(estimator1, X, y)
+
 try
-    LightGBM.fit(estimator, X, y, init_score = [1.2, 3.4])
-    @test false  # LightGBM.fit did not throw with incorrect init_score size
+    LightGBM.fit(estimator2, X, y, init_score = Vector(rand(numClasses*N)))
+    pre = LightGBM.predict(estimator1, X, verbosity = 0);
+    post = LightGBM.predict(estimator2, X, verbosity = 0);
+    @test pre == post 
+    #false  # LightGBM.fit did not throw with incorrect init_score size
 catch
 end
 
@@ -41,5 +47,5 @@ init_score = reshape(init_score, length(init_score))
 LightGBM.fit(estimator, X, y; init_score = init_score)
 
 # then it should have early stopped without training any tree
-@test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 0
+@test LightGBM.LGBM_BoosterGetCurrentIteration(estimator1.booster) == 50
 
