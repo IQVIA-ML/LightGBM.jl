@@ -1,6 +1,6 @@
 """
 metaformattedclassresult(result::Array,Xtest::Array)
-MLBaseのLabelから数値変換処理に合うように予測結果の番号を修正
+LightGBM実行形式で出力される行列フォーマットに変換
 # Arguments
 `result::Array`:prediction
 `Xtest::Array`:the features data.
@@ -23,20 +23,21 @@ end
 
 """
 metaformattedclassresult(metaformattedresult::Array)
-分類予測結果から、予測精度の一番高い結果だけを出力する
+分類予測結果から、予測精度の一番高い結果だけをLightGBM実行形式で出力される形式で出力する
 # Arguments
 `metaformattedresult::Array`:formatted prediction result.
 """
-function metaformattedclassresult(metaformattedresult::Array)
+function metaformattedclassresult(metaformattedresult::Matrix)
     rowsize,colsize=size(metaformattedresult)
-    metaformattedclassresult=zeros(rowsize,1)
+    metaformattedclassresult=zeros(Int,rowsize,1)
+    metaformattedclassresult=Array(metaformattedclassresult)
 
     for i in 1:rowsize
-        work=0.0
+        work=-Inf
         for j in 1:colsize
             if(metaformattedresult[i,j] >= work)
                 work =metaformattedresult[i,j]
-                metaformattedclassresult[i,1]=j
+                metaformattedclassresult[i,1]=j-1
             end
         end
     end
@@ -46,7 +47,7 @@ end
 
 """
 formattedclassfit(result::Array,Xtest::Array)
-予測結果と検証用データを並べて出力する。
+予測精度の一番高い結果だけをLightGBM実行形式で出力される形式で出力する。
 # Arguments
 `result::Array`:prediction result.
 `Xtest::Array`:the features data.

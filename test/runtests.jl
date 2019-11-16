@@ -3,7 +3,7 @@ using Test
 using DelimitedFiles
 using StatsBase
 
-@testset "univariate.jl" begin
+@testset "LightGBM.jl" begin
     # Use binary example for generic tests.
     binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t');
     binary_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.train", '\t');
