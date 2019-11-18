@@ -1,5 +1,9 @@
 # Tests that init_score works for multiclass
+# reference URL
+# https://github.com/Microsoft/LightGBM/issues/1778
+# https://stackoverflow.com/questions/57275029/using-the-score-from-first-lightgbm-as-init-score-to-second-lightgbm-gives-diffe
 
+using BenchmarkTools
 # Create a 3-class problem
 N1 = 1000
 N2 = 1000
@@ -10,7 +14,7 @@ numClasses = 3
 numFeats = 5
 
 X = rand(N, numFeats)
-y = vcat(zeros(N1), ones(N2), 2*ones(N3))
+y = vcat(zeros(Int,N1), ones(Int,N2), 2*ones(Int,N3))
 
 estimator1 = LightGBM.LGBMMulticlass(num_iterations = 50,
                                     learning_rate = .5,
@@ -28,11 +32,21 @@ estimator1 = LightGBM.LGBMMulticlass(num_iterations = 50,
 estimator2=estimator1
 LightGBM.fit(estimator1, X, y)
 
+pre = LightGBM.predict(estimator1, X, verbosity = 0);
+a=@benchmark LightGBM.predict(estimator1, X, verbosity = 0)
+
 try
-    LightGBM.fit(estimator2, X, y, init_score = Vector(rand(numClasses*N)))
-    pre = LightGBM.predict(estimator1, X, verbosity = 0);
-    post = LightGBM.predict(estimator2, X, verbosity = 0);
-    @test pre == post 
+#    LightGBM.fit(estimator2, X, y, init_score = Vector(rand(numClasses*N)))
+    LightGBM.fit(estimator2, X, y, init_score = Vector(pre))
+    post = LightGBM.predict(estimator2, X, verbosity = 0) +pre
+    b=@benchmark (LightGBM.predict(estimator2, X, verbosity = 0) +pre )
+    ratio( mean(a), mean(b) )
+    formattedclassfit(pre,X)
+    formattedclassfit(post,X)
+    
+    @test  
+    @test pre == post
+    
     #false  # LightGBM.fit did not throw with incorrect init_score size
 catch
 end
