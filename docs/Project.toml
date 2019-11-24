@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+LightGBM = "7acf609c-83a4-11e9-1ffb-b912bcd3b04a"
