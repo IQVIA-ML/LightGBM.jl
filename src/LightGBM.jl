@@ -5,23 +5,15 @@ using Libdl
 using Dates
 import StatsBase
 
-function __init__()
-    if !haskey(ENV, "LIGHTGBM_PATH")
-        error("Environment variable LIGHTGBM_PATH not found. ",
-            "Set this variable to point to the LightGBM directory prior to loading LightGBM.jl ",
-            "(e.g. `ENV[\"LIGHTGBM_PATH\"] = \"../LightGBM\"`).")
-    else
-        global LGBM_library = Libdl.find_library(["lib_lightgbm.so", "lib_lightgbm.dll",
-            "lib_lightgbm.dylib"], [ENV["LIGHTGBM_PATH"]])
-        if LGBM_library == ""
-            error("Could not open the LightGBM library at $(ENV["LIGHTGBM_PATH"]). ",
-                  "Set this variable to point to the LightGBM directory prior to loading LightGBM.jl ",
-                  "(e.g. `ENV[\"LIGHTGBM_PATH\"] = \"../LightGBM\"`).")
-        end
-    end
-end
+const LGBM_library = abspath(find_library(["lib_lightgbm.$(Libdl.dlext)"], [@__DIR__]))
 
-const LGBM_library = find_library(["lib_lightgbm.so", "lib_lightgbm.dll", "lib_lightgbm.dylib"], [ENV["LIGHTGBM_PATH"]])
+if LGBM_library == nothing
+    # Lets get it to spit out why, by trying to directly dlopen the expected file
+    ptr = dlopen(joinpath(@__DIR__, "lib_lightgbm.$(Libdl.dlext)"))
+    # erk we shouldn't get here, close and throw
+    dlclose(ptr)
+    throw(LoadError("LightGBM.jl", 1, "find_library couldn't find the library but a direct dlopen also didn't throw, so kinda stumped and throwing for safety!"))
+end
 
 include("wrapper.jl")
 include("estimators.jl")
