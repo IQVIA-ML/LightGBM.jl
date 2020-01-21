@@ -21,7 +21,7 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - name: Setup MacOS libomp
-        if: ${{ matrix.os }} == 'macOS-latest'
+        if: ${{ matrix.os }} == "macOS-latest"
         run: |
           ls  /usr/local/opt/libomp/lib/libomp.dylib
           brew install libomp
