@@ -5,8 +5,11 @@ using StatsBase
 
 @testset "LightGBM.jl" begin
     # Use binary example for generic tests.
-    binary_test = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.test", '\t');
-    binary_train = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.train", '\t');
+    LGBM_PATH = ENV["LIGHTGBM_EXAMPLES_PATH"]
+    LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..", LGBM_PATH)) end
+
+    binary_test = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.test"), '\t');
+    binary_train = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.train"), '\t');
     X_train = binary_train[:, 2:end]
     y_train = binary_train[:, 1]
     X_test = binary_test[:, 2:end]
@@ -75,8 +78,8 @@ using StatsBase
     LightGBM.search_cv(estimator, X_train, y_train, splits, params; verbosity = 0);
 
     # Test regression estimator.
-    regression_test = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.test", '\t');
-    regression_train = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.train", '\t');
+    regression_test = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.test"), '\t');
+    regression_train = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.train"), '\t');
     X_train = regression_train[:, 2:end]
     y_train = regression_train[:, 1]
     X_test = regression_test[:, 2:end]
@@ -100,8 +103,8 @@ using StatsBase
     @test scores["test_1"]["l2"][end] < .5
 
     # Test multiclass estimator.
-    multiclass_test = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/multiclass_classification/multiclass.test", '\t');
-    multiclass_train = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/multiclass_classification/multiclass.train", '\t');
+    multiclass_test = readdlm(joinpath(LGBM_PATH, "examples", "multiclass_classification", "multiclass.test"), '\t');
+    multiclass_train = readdlm(joinpath(LGBM_PATH, "examples", "multiclass_classification", "multiclass.train"), '\t');
     X_train = Matrix(multiclass_train[:, 2:end])
     y_train = Array(multiclass_train[:, 1])
     X_test = Matrix(multiclass_test[:, 2:end])
