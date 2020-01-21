@@ -37,6 +37,6 @@ jobs:
         shell: bash
         name: Untar LGBM examples
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
-        continue-on-error: ${{ maxtrix.os == "macOS-latest" }}
+        continue-on-error: false
         env:
           LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
