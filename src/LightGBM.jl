@@ -6,8 +6,7 @@ using Dates
 import StatsBase
 
 # we build it so we can assert it is present...
-const LGBM_library = abspath("lib_lightgbm.$(Libdl.dlext)", [@__DIR__]))
-
+const LGBM_library = abspath(joinpath(@__DIR__, "lib_lightgbm.$(Libdl.dlext)"))
 
 include("wrapper.jl")
 include("estimators.jl")
