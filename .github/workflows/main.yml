@@ -15,7 +15,6 @@ jobs:
         arch:
           - x64
     steps:
-      - continue-on-error: ${{ maxtrix.os == "macOS-latest" }}
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
@@ -38,5 +37,6 @@ jobs:
         shell: bash
         name: Untar LGBM examples
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
+        continue-on-error: ${{ maxtrix.os == "macOS-latest" }}
         env:
           LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
