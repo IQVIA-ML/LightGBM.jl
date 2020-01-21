@@ -23,11 +23,12 @@ jobs:
       - name: Download LGBM examles
         shell: python
         run: |
-          from __future__ import print_function
-          import sys
-          print(sys.version)
-          import urllib.request
-          urllib.request.urlretrieve('https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz', 'lgbm.tar')
+          'from __future__ import print_function'
+          'try:'
+          '    from urllib.request import urlretrieve'
+          'except ImportError:'
+          '    from urllib import urlretrieve'
+           'urllib.request.urlretrieve("https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz", "lgbm.tar")'
       - run: tar -xvf lgbm.tar
         shell: bash
         name: Untar LGBM examples
