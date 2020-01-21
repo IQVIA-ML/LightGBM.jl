@@ -6,6 +6,8 @@ using StatsBase
 @testset "LightGBM.jl" begin
     # Use binary example for generic tests.
     LGBM_PATH = ENV["LIGHTGBM_EXAMPLES_PATH"]
+    LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..", LGBM_PATH)) end
+
     binary_test = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.test"), '\t');
     binary_train = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.train"), '\t');
     X_train = binary_train[:, 2:end]

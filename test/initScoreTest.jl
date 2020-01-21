@@ -5,7 +5,10 @@
 
 @testset "initScoreTest.jl" begin
     try
+
         LGBM_PATH = ENV["LIGHTGBM_EXAMPLES_PATH"]
+        LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..", LGBM_PATH)) end
+
         # Test regression estimator.
         regression_test = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.test"), '\t');
         regression_train = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.train"), '\t');
