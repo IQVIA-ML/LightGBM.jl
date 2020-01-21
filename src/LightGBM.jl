@@ -5,15 +5,9 @@ using Libdl
 using Dates
 import StatsBase
 
-const LGBM_library = abspath(find_library(["lib_lightgbm.$(Libdl.dlext)"], [@__DIR__]))
+# we build it so we can assert it is present...
+const LGBM_library = abspath("lib_lightgbm.$(Libdl.dlext)", [@__DIR__]))
 
-if LGBM_library == nothing
-    # Lets get it to spit out why, by trying to directly dlopen the expected file
-    ptr = dlopen(joinpath(@__DIR__, "lib_lightgbm.$(Libdl.dlext)"))
-    # erk we shouldn't get here, close and throw
-    dlclose(ptr)
-    throw(LoadError("LightGBM.jl", 1, "find_library couldn't find the library but a direct dlopen also didn't throw, so kinda stumped and throwing for safety!"))
-end
 
 include("wrapper.jl")
 include("estimators.jl")
