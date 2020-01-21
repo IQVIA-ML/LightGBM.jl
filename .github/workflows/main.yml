@@ -22,13 +22,7 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: Download LGBM examles
         shell: python
-        run: |
-          'from __future__ import print_function'
-          'try:'
-          '    from urllib.request import urlretrieve'
-          'except ImportError:'
-          '    from urllib import urlretrieve'
-          'urllib.request.urlretrieve("https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz", "lgbm.tar")'
+        run: 'from __future__ import print_function\ntry:\n    from urllib.request import urlretrieve\nexcept ImportError:\n    from urllib import urlretrieve\nurllib.request.urlretrieve("https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz", "lgbm.tar")'
       - run: tar -xvf lgbm.tar
         shell: bash
         name: Untar LGBM examples
