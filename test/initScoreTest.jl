@@ -5,16 +5,17 @@
 
 @testset "initScoreTest.jl" begin
     try
+        LGBM_PATH = ENV["LIGHTGBM_EXAMPLES_PATH"]
         # Test regression estimator.
-        regression_test = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.test", '\t');
-        regression_train = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.train", '\t');
+        regression_test = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.test"), '\t');
+        regression_train = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.train"), '\t');
         X_train = regression_train[:, 2:end]
         y_train = regression_train[:, 1]
         X_test = regression_test[:, 2:end]
         y_test = regression_test[:, 1]
 
-        regression_test_init = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.test.init", '\t')[:,1];
-        regression_train_init = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/regression/regression.train.init", '\t')[:,1];
+        regression_test_init = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.test.init"), '\t')[:,1];
+        regression_train_init = readdlm(joinpath(LGBM_PATH, "examples", "regression", "regression.train.init"), '\t')[:,1];
 
         estimator = LightGBM.LGBMRegression(num_iterations = 100,
                                             learning_rate = .05,
