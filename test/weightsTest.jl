@@ -2,15 +2,16 @@
 
 @testset "weightsTest.jl" begin
     try
-        binary_test = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.test", '\t');
-        binary_train = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.train", '\t');
+        LGBM_PATH = ENV["LIGHTGBM_EXAMPLES_PATH"]
+        binary_test = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.test"), '\t');
+        binary_train = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.train"), '\t');
         X_train = binary_train[:, 2:end]
         y_train = binary_train[:, 1]
         X_test = binary_test[:, 2:end]
         y_test = binary_test[:, 1]
 
-        binary_test_weight = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.test.weight", '\t')[:,1];
-        binary_train_weight = readdlm(ENV["LIGHTGBM_EXAMPLES_PATH"] * "/examples/binary_classification/binary.train.weight", '\t')[:,1];
+        binary_test_weight = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.test.weight"), '\t')[:,1];
+        binary_train_weight = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.train.weight"), '\t')[:,1];
 
         # Test binary estimator.
         estimator = LightGBM.LGBMBinary(num_iterations = 20,
