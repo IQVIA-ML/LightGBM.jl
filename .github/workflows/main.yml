@@ -24,6 +24,8 @@ jobs:
         shell: python
         run: |
           from __future__ import print_function
+          import sys
+          print(sys.version)
           import urllib.request
           urllib.request.urlretrieve('https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz', 'lgbm.tar')
       - run: tar -xvf lgbm.tar
