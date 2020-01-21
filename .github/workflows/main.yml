@@ -10,8 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        version: ['1.0']#, '1.1', '1.2', '1.3']
-        os:  [macOS-latest]#[windows-latest, ubuntu-latest, macOS-latest]
+        version: ['1.0', '1.1', '1.2', '1.3']
+        os:  [windows-latest, ubuntu-latest, macOS-latest]
         arch:
           - x64
     steps:
