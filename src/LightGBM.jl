@@ -15,7 +15,6 @@ include("fit.jl")
 include("predict.jl")
 include("cv.jl")
 include("search_cv.jl")
-include("LightGBM-util2.jl")
 
 export fit, predict, cv, search_cv, savemodel, loadmodel
 export LGBMEstimator, LGBMRegression, LGBMBinary, LGBMMulticlass

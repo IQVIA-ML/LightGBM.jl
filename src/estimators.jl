@@ -122,12 +122,6 @@ function LGBMRegression(; num_iterations = 10,
                         machine_list_file = "",
                         device_type="cpu")
 
-    @assert(in(tree_learner, ("serial", "feature", "data")),
-            "Unknown tree_learner, got $tree_learner")
-    foreach(m -> @assert(in(m, ("l1", "l2", "ndcg", "auc", "binary_logloss", "binary_error",
-                                "multi_logloss", "multi_error")),
-                         "Unknown metric, got $m"), metric)
-
     return LGBMRegression(Booster(), String[], "regression", num_iterations, learning_rate, num_leaves,
                           max_depth, tree_learner, num_threads, histogram_pool_size,
                           min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
@@ -265,12 +259,6 @@ function LGBMBinary(; num_iterations = 10,
                     device_type="cpu"
                     )
 
-    @assert(in(tree_learner, ("serial", "feature", "data")),
-            "Unknown tree_learner, got $tree_learner")
-    foreach(m -> @assert(in(m, ("l1", "l2", "ndcg", "auc", "binary_logloss", "binary_error",
-                                "multi_logloss", "multi_error")),
-                         "Unknown metric, got $m"), metric)
-
     return LGBMBinary(Booster(), String[], "binary", num_iterations, learning_rate, num_leaves,
                       max_depth, tree_learner, num_threads, histogram_pool_size, min_data_in_leaf,
                       min_sum_hessian_in_leaf, lambda_l1, lambda_l2, min_gain_to_split,
@@ -405,12 +393,6 @@ function LGBMMulticlass(; num_iterations = 10,
                         machine_list_file = "",
                         num_class = 1,
                         device_type="cpu")
-
-    @assert(in(tree_learner, ("serial", "feature", "data")),
-            "Unknown tree_learner, got $tree_learner")
-    foreach(m -> @assert(in(m, ("l1", "l2", "ndcg", "auc", "binary_logloss", "binary_error",
-                                "multi_logloss", "multi_error")),
-                         "Unknown metric, got $m"), metric)
 
     return LGBMMulticlass(Booster(), String[], "multiclass", num_iterations, learning_rate,
                           num_leaves, max_depth, tree_learner, num_threads, histogram_pool_size,
