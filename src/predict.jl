@@ -17,13 +17,44 @@ Return an array with the labels that the `estimator` predicts for features data 
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 """
-function predict(estimator::LGBMEstimator, X::Matrix{TX}; predict_type::Integer = 0,
-                           num_iterations::Integer = -1, verbosity::Integer = 1,
-                           is_row_major::Bool = false) where TX<:Real
+function predict(
+    estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
+    num_iterations::Integer = -1, verbosity::Integer = 1,
+    is_row_major::Bool = false,
+) where TX<:Real
+
     @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
+
     log_debug(verbosity, "Started predicting\n")
-    prediction = LGBM_BoosterPredictForMat(estimator.booster, X, predict_type, num_iterations,
-                                           is_row_major)
+
+    prediction = LGBM_BoosterPredictForMat(
+        estimator.booster, X, predict_type, num_iterations, is_row_major
+    )
+
+    num_classes = get_num_classes(estimator)
+    # This works the same one way or another because when n=1, reshaping is basically no-op
+    prediction  = transpose(reshape(prediction, num_classes, :))
 
     return prediction
+
 end
+
+
+function predict_classes(
+    estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
+    num_iterations::Integer = -1, verbosity::Integer = 1,
+    is_row_major::Bool = false,
+) where TX<:Real
+
+    # pass through, get probabilities
+    predicted_probabilities = predict(
+        estimator, X; predict_type=predict_type, num_iterations=num_iterations,
+        verbosity=verbosity, is_row_major=is_row_major,
+    )
+
+    return getindex.(argmax(predicted_probabilities, dims=2), 2) .- 1
+
+end
+
+get_num_classes(estimator::LGBMEstimator) = 1
+get_num_classes(estimator::LGBMMulticlass) = estimator.num_class
