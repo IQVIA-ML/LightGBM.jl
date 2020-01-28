@@ -3,6 +3,12 @@
 # https://github.com/Microsoft/LightGBM/issues/1778
 # https://stackoverflow.com/questions/57275029/using-the-score-from-first-lightgbm-as-init-score-to-second-lightgbm-gives-diffe
 
+module TestInitScore
+
+using Test
+using DelimitedFiles
+using LightGBM
+
 @testset "initScoreTest.jl" begin
     try
 
@@ -41,3 +47,6 @@
         @test false
     end
 end
+
+
+end # module

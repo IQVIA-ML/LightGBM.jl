@@ -1,5 +1,11 @@
 # Tests that the weighting scheme works for binary_classification
 
+module TestWeights
+
+using Test
+using DelimitedFiles
+using LightGBM
+
 @testset "weightsTest.jl" begin
     try
 
@@ -39,3 +45,6 @@
         @test false
     end
 end   
+
+
+end # module
