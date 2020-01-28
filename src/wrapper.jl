@@ -111,8 +111,8 @@ function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
     return Dataset(out[])
 end
 
-function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String) where T T<:Real
-    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters)
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String, is_row_major::Bool = false) where T T<:Real
+    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, is_row_major)
 end
 
 function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
