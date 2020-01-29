@@ -102,9 +102,10 @@ end
 
     mymat = [1. 2.; 3. 4.; 5. 6.]
     created_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    fieldnames = [randstring(22), randstring(50)]
 
-    @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, ["a", "b"]) == nothing
-    @test LightGBM.LGBM_DatasetGetFeatureNames(created_dataset) == ["a", "b"]
+    @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, fieldnames) == nothing
+    @test LightGBM.LGBM_DatasetGetFeatureNames(created_dataset) == fieldnames
 
     # This stuff makes it segfault so leaving it alone...
 #     # test string overlengths
