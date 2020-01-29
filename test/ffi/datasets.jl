@@ -2,11 +2,13 @@ module TestFFIDatasets
 
 using LightGBM
 using Test
+using Random
 
 # we don't want the LightGBM vom
-# redirect_stdout()
+redirect_stderr()
 
 verbosity = "verbose=-1"
+
 
 @testset "LGBM_DatasetCreateFromMat -- floats/column major" begin
 
@@ -22,6 +24,7 @@ verbosity = "verbose=-1"
     @test_throws ErrorException LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, ["a", "b", "c"])
 
 end
+
 
 @testset "LGBM_DatasetCreateFromMat -- floats/row major" begin
 
@@ -39,6 +42,7 @@ end
 
 end
 
+
 @testset "LGBM_DatasetCreateFromMat -- ints/column major" begin
 
     mymat = [1 2; 3 4; 5 6]
@@ -53,6 +57,7 @@ end
     @test_throws ErrorException LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, ["a", "b", "c"])
 
 end
+
 
 @testset "LGBM_DatasetCreateFromMat -- ints/row major" begin
 
@@ -75,12 +80,13 @@ end
     mymat = [1. 2.; 3. 4.; 5. 6.]
     created_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
 
-    get_idx = Int32.([1, 3]) # check julia indices are correctly translated
+    get_idx = [1, 3] # check julia indices are correctly translated
     # gotta create the same so its not a reference, so we can check the mutation is correct (or at least it looks like it hasn't been mutated)
-    get_idx_copy = Int32.([1, 3])
-    faulty_idx = Int32.([1, 5])
+    get_idx_copy = [1, 3]
+    faulty_idx = [1, 5]
     # this isn't a julia matrix -- its another dataset
-    fetched = LightGBM.LGBM_DatasetGetSubset(created_dataset, get_idx, verbosity)
+    fetched = LightGBM.LGBM_DatasetGetSubset(created_dataset, Int32.(get_idx), verbosity)
+    fetched2 = LightGBM.LGBM_DatasetGetSubset(created_dataset, get_idx, verbosity) # check int64s
 
     # check it isn't the same dataset...
     @test fetched.handle != created_dataset.handle
@@ -90,5 +96,41 @@ end
 
 
 end
+
+
+@testset "LGBM_Dataset<Get|Set>FeatureNames" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    created_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+
+    @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, ["a", "b"]) == nothing
+    @test LightGBM.LGBM_DatasetGetFeatureNames(created_dataset) == ["a", "b"]
+
+    # This stuff makes it segfault so leaving it alone...
+#     # test string overlengths
+#     name_1 = randstring(3000)
+#     name_2 = randstring(3000)
+#
+#     @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, [name_1, name_2]) == nothing
+#     retrieved = LightGBM.LGBM_DatasetGetFeatureNames(created_dataset)
+#
+#     @test retrieved[1] == name_1#[1:256]
+#     @test retrieved[2] == name_2#[1:256]
+
+end
+
+
+@testset "LGBM_DatasetFree" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    created_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+
+    # These tests exposed a double-free
+    @test LightGBM.LGBM_DatasetFree(created_dataset) == nothing
+    @test created_dataset.handle == C_NULL
+
+end
+
+
 
 end # module

@@ -18,7 +18,6 @@ mutable struct Dataset
     function Dataset_finalizer(ds::Dataset)
         if ds.handle != C_NULL
             LGBM_DatasetFree(ds)
-            ds.handle = C_NULL
         end
     end
 end
@@ -185,6 +184,7 @@ end
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
               ds.handle => DatasetHandle)
+    ds.handle = C_NULL # avoid a class of double free bugs please
     return nothing
 end
 
