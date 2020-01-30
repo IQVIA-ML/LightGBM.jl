@@ -110,7 +110,7 @@ function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
     return Dataset(out[])
 end
 
-function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String, is_row_major::Bool = false) where T T<:Real
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String, is_row_major::Bool = false) where T<:Real
     return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, is_row_major)
 end
 

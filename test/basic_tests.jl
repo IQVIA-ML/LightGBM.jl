@@ -30,7 +30,7 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     @test LightGBM.LGBM_BoosterAddValidData(bst, test_ds) == nothing
     @test LightGBM.LGBM_BoosterUpdateOneIter(bst) == 0
     @test LightGBM.LGBM_BoosterGetEvalCounts(bst) == 1
-    @test LightGBM.LGBM_BoosterGetEvalNames(bst)[1] == "auc"
+    @test LightGBM.LGBM_BoosterGetEvalNames(bst) |> first == "auc"
 
     # Test binary estimator.
     estimator = LightGBM.LGBMBinary(
@@ -54,31 +54,32 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
 
     # Test setting feature names
     jl_feature_names = ["testname_$i" for i in 1:28]
-    LightGBM.LGBM_DatasetSetFeatureNames(estimator.booster.datasets[1], jl_feature_names)
-    lgbm_feature_names = LightGBM.LGBM_DatasetGetFeatureNames(estimator.booster.datasets[1])
+    LightGBM.LGBM_DatasetSetFeatureNames(estimator.booster.datasets |> first, jl_feature_names)
+    lgbm_feature_names = LightGBM.LGBM_DatasetGetFeatureNames(estimator.booster.datasets |> first)
     @test jl_feature_names == lgbm_feature_names
 
     # Test prediction, and loading and saving models.
-    test_filename = tempname()
-        LightGBM.savemodel(estimator, test_filename);
-    try
-        pre = LightGBM.predict(estimator, X_train, verbosity = -1)
-        LightGBM.loadmodel(estimator, test_filename);
-        post = LightGBM.predict(estimator, X_train, verbosity = -1)
-        @test isapprox(pre, post)
-    finally
-        rm(test_filename)
-    end
+    test_filename, filehandle = mktemp()
+    close(filehandle)
+    LightGBM.savemodel(estimator, test_filename)
+
+    pre = LightGBM.predict(estimator, X_train, verbosity = -1)
+    LightGBM.loadmodel(estimator, test_filename);
+    post = LightGBM.predict(estimator, X_train, verbosity = -1)
+
+    rm(test_filename)
+
+    @test isapprox(pre, post)
 
     # Test cross-validation.
     splits = (collect(1:3500), collect(3501:7000))
     LightGBM.cv(estimator, X_train, y_train, splits; verbosity = -1)
 
     # Test exhaustive search.
-    params = [Dict(:num_iterations => num_iterations,
-                   :num_leaves => num_leaves) for
-                   num_iterations in (1, 2),
-                   num_leaves in (5, 10)]
+    params = [
+        Dict(:num_iterations => num_iterations, :num_leaves => num_leaves)
+        for num_iterations in (1, 2), num_leaves in (5, 10)
+    ]
     LightGBM.search_cv(estimator, X_train, y_train, splits, params; verbosity = -1)
 
 end
@@ -166,8 +167,7 @@ end
         early_stopping_round = 10,
     )
 
-    scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1,
-                          is_row_major = true)
+    scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, is_row_major = true)
     @test scores["test_1"]["multi_logloss"][end] < 1.4
 
 end
