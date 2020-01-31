@@ -218,7 +218,7 @@ function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vecto
 end
 
 function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Int32})
-    if field_name == "group" || field_name == "group_id"
+    if field_name == "group"
         _LGBM_DatasetSetField(ds, field_name, field_data)
     else
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
@@ -231,7 +231,7 @@ function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vecto
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
     elseif field_name == "init_score"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float64}, field_data))
-    elseif field_name == "group" || field_name == "group_id"
+    elseif field_name == "group"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
     end
     return nothing

@@ -133,5 +133,46 @@ end
 end
 
 
+@testset "LGBM_DatasetSetField" begin
+    # The current implementation for LGBM_DatasetSetField has questionable type promotions
+    # but it touches too much code in order to tidy up right now
+    @test_broken false
+
+end
+
+
+@testset "LGBM_DatasetGetField" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    created_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+
+    # pre-emptively use the right types in anticipation of typing for SetField being fixed in the future
+    weights = [0.25f0, 0.5f0, 0.75f0] # Float32
+    labels = [0.2f0, 0.5f0, -1.2f0] # Float32
+    init_scores = [2.2, 0.1, 0.7] # Float64
+    groups = Int32.([2, 1]) # Int32
+
+    LightGBM.LGBM_DatasetSetField(created_dataset, "weight", weights)
+    LightGBM.LGBM_DatasetSetField(created_dataset, "label", labels)
+    LightGBM.LGBM_DatasetSetField(created_dataset, "group", groups)
+    LightGBM.LGBM_DatasetSetField(created_dataset, "init_score", init_scores)
+
+    @test LightGBM.LGBM_DatasetGetField(created_dataset, "weight") == weights
+    @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "weight"), Vector{Float32})
+
+    @test LightGBM.LGBM_DatasetGetField(created_dataset, "label") == labels
+    @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "label"), Vector{Float32})
+
+    @test LightGBM.LGBM_DatasetGetField(created_dataset, "init_score") == init_scores
+    @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "init_score"), Vector{Float64})
+
+    # I dont understand the discrepancy between input and output
+    # It looks like LightGBM returns the cumsum of the group query
+    # counts with 0 prepended but that isn't mentioned in docs
+    @test_broken LightGBM.LGBM_DatasetGetField(created_dataset, "group") == groups
+    @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "group"), Vector{Int32})
+
+end
+
 
 end # module
