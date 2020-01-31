@@ -123,7 +123,7 @@ end
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     v_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat .+ 1., verbosity)
 
-    for n in range(2, 20; step=1)
+    for n in 2:20
 
         booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$(n) $verbosity")
 
