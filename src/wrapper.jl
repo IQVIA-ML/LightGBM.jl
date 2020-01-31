@@ -35,7 +35,6 @@ mutable struct Booster
     function Booster_finalizer(bst::Booster)
         if bst.handle != C_NULL
             LGBM_BoosterFree(bst)
-            bst.handle = C_NULL
         end
     end
 end
@@ -300,6 +299,7 @@ end
 function LGBM_BoosterFree(bst::Booster)
     @lightgbm(:LGBM_BoosterFree,
               bst.handle => BoosterHandle)
+    bst.handle = C_NULL # avoid a class of double free bugs
     return nothing
 end
 

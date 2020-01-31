@@ -8,6 +8,10 @@ using Test
         include(joinpath("ffi", "datasets.jl"))
     end
 
+    @testset "Booster" begin
+        include(joinpath("ffi", "booster.jl"))
+    end
+
 end
 
 
