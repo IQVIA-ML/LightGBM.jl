@@ -18,7 +18,6 @@ mutable struct Dataset
     function Dataset_finalizer(ds::Dataset)
         if ds.handle != C_NULL
             LGBM_DatasetFree(ds)
-            ds.handle = C_NULL
         end
     end
 end
@@ -36,7 +35,6 @@ mutable struct Booster
     function Booster_finalizer(bst::Booster)
         if bst.handle != C_NULL
             LGBM_BoosterFree(bst)
-            bst.handle = C_NULL
         end
     end
 end
@@ -111,8 +109,8 @@ function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
     return Dataset(out[])
 end
 
-function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String) where T T<:Real
-    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters)
+function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String, is_row_major::Bool = false) where T<:Real
+    return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, is_row_major)
 end
 
 function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
@@ -185,6 +183,7 @@ end
 function LGBM_DatasetFree(ds::Dataset)
     @lightgbm(:LGBM_DatasetFree,
               ds.handle => DatasetHandle)
+    ds.handle = C_NULL # avoid a class of double free bugs please
     return nothing
 end
 
@@ -218,7 +217,7 @@ function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vecto
 end
 
 function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Int32})
-    if field_name == "group" || field_name == "group_id"
+    if field_name == "group"
         _LGBM_DatasetSetField(ds, field_name, field_data)
     else
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
@@ -231,7 +230,7 @@ function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vecto
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
     elseif field_name == "init_score"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float64}, field_data))
-    elseif field_name == "group" || field_name == "group_id"
+    elseif field_name == "group"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
     end
     return nothing
@@ -300,6 +299,7 @@ end
 function LGBM_BoosterFree(bst::Booster)
     @lightgbm(:LGBM_BoosterFree,
               bst.handle => BoosterHandle)
+    bst.handle = C_NULL # avoid a class of double free bugs
     return nothing
 end
 
