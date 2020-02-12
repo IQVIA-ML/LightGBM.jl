@@ -15,6 +15,7 @@ include("fit.jl")
 include("predict.jl")
 include("cv.jl")
 include("search_cv.jl")
+include("mlj_interface.jl")
 
 export fit, predict, predict_classes, cv, search_cv, savemodel, loadmodel
 export LGBMEstimator, LGBMRegression, LGBMBinary, LGBMMulticlass
