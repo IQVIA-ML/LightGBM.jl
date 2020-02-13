@@ -1,5 +1,3 @@
-__precompile__()
-
 module LightGBM
 using Libdl
 using Dates
