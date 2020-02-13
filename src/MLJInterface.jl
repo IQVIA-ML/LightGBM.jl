@@ -8,11 +8,11 @@ import LightGBM
 
 
 const LGBM_METRICS = (
-                        "None", "l1", "l2", "rmse", "quantile", "mape", "huber", "fair", "poisson", "gamma", "gamma_deviance",
-                        "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "binary_logloss", "binary",
-                        "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss",
-                        "multiclass", "softmax", "multiclassova", "multiclass_ova", "ova", "ovr", "cross_entropy_lambda",
-                        "xentlambda", "kullback_leibler", "kldiv",
+    "None", "l1", "l2", "rmse", "quantile", "mape", "huber", "fair", "poisson", "gamma", "gamma_deviance",
+    "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "binary_logloss", "binary",
+    "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss",
+    "multiclass", "softmax", "multiclassova", "multiclass_ova", "ova", "ovr", "cross_entropy_lambda",
+    "xentlambda", "kullback_leibler", "kldiv",
 )
 
 
