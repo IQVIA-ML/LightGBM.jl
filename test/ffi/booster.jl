@@ -1,4 +1,4 @@
-module TestFFIDatasets
+module TestFFIBooster
 
 using LightGBM
 using Test
