@@ -1,8 +1,9 @@
-module mlj_interface
+module MLJInterface
 
-using MLJBase
+using MLJModelInterface
 using ScientificTypes
 
+import CategoricalArrays
 import LightGBM
 
 
@@ -15,7 +16,7 @@ const LGBM_METRICS = (
 )
 
 
-@mlj_model mutable struct LGBMRegression <: MLJBase.Deterministic
+@mlj_model mutable struct LGBMRegression <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -62,7 +63,7 @@ const LGBM_METRICS = (
 end
 
 
-@mlj_model mutable struct LGBMBinary <: MLJBase.Probabilistic
+@mlj_model mutable struct LGBMBinary <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -116,7 +117,7 @@ end
 end
 
 
-@mlj_model mutable struct LGBMClassifier <: MLJBase.Probabilistic
+@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -175,7 +176,7 @@ CLASSIFIERS = Union{LGBMBinary, LGBMClassifier}
 MODELS = Union{LGBMBinary, LGBMClassifier, LGBMRegression}
 
 
-function mlj_to_kwargs(model::MLJBase.Supervised)
+function mlj_to_kwargs(model::MLJModelInterface.Supervised)
 
     return Dict{Symbol, Any}(
         name => getfield(model, name)
@@ -194,7 +195,7 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
     model = model_init(mlj_model)
-    X = MLJBase.matrix(X)
+    X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
     report = LightGBM.fit(model, X, y_lgbm; verbosity=verbosity, weights=w)
@@ -212,12 +213,12 @@ end
 
 # This does prep for classification tasks
 @inline function prepare_targets(
-    targets::MLJBase.CategoricalArrays.CategoricalArray,
+    targets::CategoricalArrays.CategoricalArray,
     model::CLASSIFIERS,
-)::Tuple{Vector{Float64}, MLJBase.CategoricalArrays.CategoricalArray}
+)::Tuple{Vector{Float64}, CategoricalArrays.CategoricalArray}
 
-    classes = MLJBase.classes(first(targets))
-    if isa(model, mlj_interface.LGBMBinary)
+    classes = MLJModelInterface.classes(first(targets))
+    if isa(model, MLJInterface.LGBMBinary)
         # We just need to check this one because other cases throw by LightGBM
         # Whereas this will run and give incorrect (unexpected) results
         if length(classes) > 2
@@ -226,7 +227,7 @@ end
     end
     # -1 because these will be 1,2 and LGBM uses the 0/1 boundary
     # -This also works for multiclass because the classes ae 0 indexed
-    targets = Float64.(MLJBase.int(targets) .- 1)
+    targets = Float64.(MLJModelInterface.int(targets) .- 1)
     return targets, classes
 end
 
@@ -234,65 +235,65 @@ end
 @inline function prepare_targets(
     targets::AbstractVector,
     model::LGBMRegression,
-)::Tuple{Vector{Float64}, MLJBase.CategoricalArrays.CategoricalArray}
+)::Tuple{Vector{Float64}, CategoricalArrays.CategoricalArray}
 
-    return targets, MLJBase.CategoricalArrays.CategoricalArray(undef)
+    return targets, CategoricalArrays.CategoricalArray(undef)
 
 end
 
 
 function predict_binary((fitted_model, classes), Xnew)
 
-    Xnew = MLJBase.matrix(Xnew)
+    Xnew = MLJModelInterface.matrix(Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
-    return [MLJBase.UnivariateFinite(classes, [1 - pred, pred]) for pred in predicted]
+    return [MLJModelInterface.UnivariateFinite(classes, [1 - pred, pred]) for pred in predicted]
 
 end
 
 function predict_multi((fitted_model, classes), Xnew)
 
-    Xnew = MLJBase.matrix(Xnew)
+    Xnew = MLJModelInterface.matrix(Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
     # much rather use `eachrow` here but it requires julia >= 1.1 and thats probably not cool
-    return [MLJBase.UnivariateFinite(classes, predicted[row, :]) for row in 1:size(predicted, 1)]
+    return [MLJModelInterface.UnivariateFinite(classes, predicted[row, :]) for row in 1:size(predicted, 1)]
 
 end
 
 function predict_regression((fitted_model, classes), Xnew)
 
-    Xnew = MLJBase.matrix(Xnew)
+    Xnew = MLJModelInterface.matrix(Xnew)
     return LightGBM.predict(fitted_model, Xnew)
 
 end
 
 # multiple dispatch the various signatures for each model and args combo
-MLJBase.fit(model::mlj_interface.MODELS, verbosity::Int, X, y) = mlj_interface.fit(model, verbosity, X, y)
-MLJBase.fit(model::mlj_interface.MODELS, verbosity::Int, X, y, w::Nothing) = mlj_interface.fit(model, verbosity, X, y)
-MLJBase.fit(model::mlj_interface.MODELS, verbosity::Int, X, y, w) = mlj_interface.fit(model, verbosity, X, y, w)
+MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y) = MLJInterface.fit(model, verbosity, X, y)
+MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y, w::Nothing) = MLJInterface.fit(model, verbosity, X, y)
+MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y, w) = MLJInterface.fit(model, verbosity, X, y, w)
 
-MLJBase.predict(model::mlj_interface.LGBMBinary, fitresult, Xnew) = mlj_interface.predict_binary(fitresult, Xnew)
-MLJBase.predict(model::mlj_interface.LGBMClassifier, fitresult, Xnew) = mlj_interface.predict_multi(fitresult, Xnew)
-MLJBase.predict(model::mlj_interface.LGBMRegression, fitresult, Xnew) = mlj_interface.predict_regression(fitresult, Xnew)
+MLJModelInterface.predict(model::MLJInterface.LGBMBinary, fitresult, Xnew) = MLJInterface.predict_binary(fitresult, Xnew)
+MLJModelInterface.predict(model::MLJInterface.LGBMClassifier, fitresult, Xnew) = MLJInterface.predict_multi(fitresult, Xnew)
+MLJModelInterface.predict(model::MLJInterface.LGBMRegression, fitresult, Xnew) = MLJInterface.predict_regression(fitresult, Xnew)
 
 # multiple dispatch the model initialiser functions
-model_init(mlj_model::mlj_interface.LGBMBinary) = LightGBM.LGBMBinary(; mlj_to_kwargs(mlj_model)...)
-model_init(mlj_model::mlj_interface.LGBMClassifier) = LightGBM.LGBMMulticlass(; mlj_to_kwargs(mlj_model)...)
-model_init(mlj_model::mlj_interface.LGBMRegression) = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
+model_init(mlj_model::MLJInterface.LGBMBinary) = LightGBM.LGBMBinary(; mlj_to_kwargs(mlj_model)...)
+model_init(mlj_model::MLJInterface.LGBMClassifier) = LightGBM.LGBMMulticlass(; mlj_to_kwargs(mlj_model)...)
+model_init(mlj_model::MLJInterface.LGBMRegression) = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
 
 
 # metadata
-MLJBase.load_path(::Type{<:LGBMBinary})          = "LightGBM.mlj_interface.LGBMBinary"
-MLJBase.load_path(::Type{<:LGBMClassifier})      = "LightGBM.mlj_interface.LGBMMulticlass"
-MLJBase.load_path(::Type{<:LGBMRegression})      = "LightGBM.mlj_interface.LGBMRegression"
+MLJModelInterface.load_path(::Type{<:LGBMBinary})          = "LightGBM.MLJInterface.LGBMBinary"
+MLJModelInterface.load_path(::Type{<:LGBMClassifier})      = "LightGBM.MLJInterface.LGBMMulticlass"
+MLJModelInterface.load_path(::Type{<:LGBMRegression})      = "LightGBM.MLJInterface.LGBMRegression"
 
-MLJBase.package_name(::Type{<:MODELS})           = "LightGBM"
-MLJBase.package_uuid(::Type{<:MODELS})           = "50415d55-5a07-4c42-a30b-abdb22ba6b8f"
-MLJBase.is_pure_julia(::Type{<:MODELS})          = false
-MLJBase.is_wrapper(::Type{<:MODELS})             = true
-MLJBase.package_url(::Type{<:MODELS})            = "https://github.com/IQVIA-ML/LightGBM.jl"
-MLJBase.input_scitype(::Type{<:MODELS})          = Table(Continuous)
-MLJBase.target_scitype(::Type{<:CLASSIFIERS})    = AbstractVector{<:Finite}
-MLJBase.target_scitype(::Type{<:LGBMRegression}) = AbstractVector{Continuous}
-MLJBase.supports_weights(::Type{<:MODELS})       = true
+MLJModelInterface.package_name(::Type{<:MODELS})           = "LightGBM"
+MLJModelInterface.package_uuid(::Type{<:MODELS})           = "50415d55-5a07-4c42-a30b-abdb22ba6b8f"
+MLJModelInterface.is_pure_julia(::Type{<:MODELS})          = false
+MLJModelInterface.is_wrapper(::Type{<:MODELS})             = true
+MLJModelInterface.package_url(::Type{<:MODELS})            = "https://github.com/IQVIA-ML/LightGBM.jl"
+MLJModelInterface.input_scitype(::Type{<:MODELS})          = Table(Continuous)
+MLJModelInterface.target_scitype(::Type{<:CLASSIFIERS})    = AbstractVector{<:Finite}
+MLJModelInterface.target_scitype(::Type{<:LGBMRegression}) = AbstractVector{Continuous}
+MLJModelInterface.supports_weights(::Type{<:MODELS})       = true
 
 end # module

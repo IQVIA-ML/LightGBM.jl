@@ -5,6 +5,7 @@ using MLJBase
 using Test
 using Random: seed!
 
+import CategoricalArrays
 import LightGBM
 
 ## CLASSIFIER -- shamelessly adapted from binary_classification.jl
@@ -14,7 +15,7 @@ N = 5
 Nsamples = 3000
 seed!(0)
 
-model = LightGBM.mlj_interface.LGBMClassifier(num_iterations=100, num_class=N)
+model = LightGBM.MLJInterface.LGBMClassifier(num_iterations=100, num_class=N)
 
 X       = (x1=rand(Nsamples), x2=rand(Nsamples), x3=rand(Nsamples))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
@@ -45,13 +46,13 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 
 expected_return_type = Tuple{
     LightGBM.LGBMMulticlass,
-    MLJBase.CategoricalArrays.CategoricalArray,
+    CategoricalArrays.CategoricalArray,
 }
 
 @test isa(fitresult, expected_return_type)
 
 # here we test the bit where we try to fit a single class problem -- we expect this to throw
-model = LightGBM.mlj_interface.LGBMClassifier(num_iterations=100, num_class=1)
+model = LightGBM.MLJInterface.LGBMClassifier(num_iterations=100, num_class=1)
 @test_throws ErrorException MLJBase.fit(model, 0, X, y)
 
 end # module

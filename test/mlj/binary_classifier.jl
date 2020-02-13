@@ -5,11 +5,12 @@ using MLJBase
 using Test
 using Random: seed!
 
+import CategoricalArrays
 import LightGBM
 
 ## CLASSIFIER -- shamelessly copied from MLJModels/test/XGBoost.jl
 
-model = LightGBM.mlj_interface.LGBMBinary(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMBinary(num_iterations=100)
 
 # test binary case:
 N = 2
@@ -46,7 +47,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 
 expected_return_type = Tuple{
     LightGBM.LGBMBinary,
-    MLJBase.CategoricalArrays.CategoricalArray,
+    CategoricalArrays.CategoricalArray,
 }
 
 @test isa(fitresult, expected_return_type)

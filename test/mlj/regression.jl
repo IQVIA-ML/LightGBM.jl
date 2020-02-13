@@ -5,6 +5,7 @@ using MLJBase
 using Test
 using Random: seed!
 
+import CategoricalArrays
 import LightGBM
 
 ## Regression -- shamelessly adapted from the other tests
@@ -13,7 +14,7 @@ Nsamples = 3000
 seed!(0)
 calc_rmse(p, t) = sqrt(sum((p - t) .^ 2) / length(p))
 
-model = LightGBM.mlj_interface.LGBMRegression(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMRegression(num_iterations=100)
 
 X       = rand(Nsamples, 5)
 y       = sqrt.(sum(X .^ 2, dims=2)) # make the targets the L2 norm of the vectors
@@ -42,7 +43,7 @@ rmse_weights             = calc_rmse(y[test], yhat_with_weights)
 
 expected_return_type = Tuple{
     LightGBM.LGBMRegression,
-    MLJBase.CategoricalArrays.CategoricalArray,
+    CategoricalArrays.CategoricalArray,
 }
 
 @test isa(fitresult, expected_return_type)
