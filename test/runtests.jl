@@ -14,6 +14,22 @@ using Test
 
 end
 
+@testset "MLJ interface tests" begin
+
+    @testset "Binary LightGBM" begin
+        include(joinpath("mlj", "binary_classifier.jl"))
+    end
+
+    @testset "Binary LightGBM" begin
+        include(joinpath("mlj", "multiclass_classifier.jl"))
+    end
+
+    @testset "Binary LightGBM" begin
+        include(joinpath("mlj", "regression.jl"))
+    end
+
+end
+
 
 @testset "Integration tests" begin
 
