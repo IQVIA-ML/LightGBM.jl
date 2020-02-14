@@ -1,8 +1,6 @@
 module MLJInterface
 
-using MLJModelInterface
-using ScientificTypes
-
+import MLJModelInterface
 import CategoricalArrays
 import LightGBM
 
@@ -16,7 +14,7 @@ const LGBM_METRICS = (
 )
 
 
-@mlj_model mutable struct LGBMRegression <: MLJModelInterface.Deterministic
+MLJModelInterface.@mlj_model mutable struct LGBMRegression <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -63,7 +61,7 @@ const LGBM_METRICS = (
 end
 
 
-@mlj_model mutable struct LGBMBinary <: MLJModelInterface.Probabilistic
+MLJModelInterface.@mlj_model mutable struct LGBMBinary <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -117,7 +115,7 @@ end
 end
 
 
-@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
+MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     num_iterations::Int = 10::(_ >= 0)
@@ -218,18 +216,14 @@ end
 )::Tuple{Vector{Float64}, CategoricalArrays.CategoricalArray}
 
     classes = MLJModelInterface.classes(first(targets))
-    if isa(model, MLJInterface.LGBMBinary)
-        # We just need to check this one because other cases throw by LightGBM
-        # Whereas this will run and give incorrect (unexpected) results
-        if length(classes) > 2
-            throw(ErrorException("Binary classification with $(length(classes)) categories"))
-        end
-    end
+    check_classes(model, classes)
     # -1 because these will be 1,2 and LGBM uses the 0/1 boundary
     # -This also works for multiclass because the classes ae 0 indexed
     targets = Float64.(MLJModelInterface.int(targets) .- 1)
     return targets, classes
+
 end
+
 
 # This does prep for Regression, which is basically a no-op (or rather, just creation of an empty placeholder classes object
 @inline function prepare_targets(
@@ -240,6 +234,15 @@ end
     return targets, CategoricalArrays.CategoricalArray(undef)
 
 end
+
+
+function check_classes(model::MLJInterface.LGBMBinary, classes)::Nothing
+    if length(classes) > 2
+        throw(ErrorException("Binary classification with $(length(classes)) categories"))
+    end
+    return nothing
+end
+check_classes(model::MODELS, classes)::Nothing = nothing
 
 
 function predict_binary((fitted_model, classes), Xnew)
@@ -291,9 +294,9 @@ MLJModelInterface.package_uuid(::Type{<:MODELS})           = "50415d55-5a07-4c42
 MLJModelInterface.is_pure_julia(::Type{<:MODELS})          = false
 MLJModelInterface.is_wrapper(::Type{<:MODELS})             = true
 MLJModelInterface.package_url(::Type{<:MODELS})            = "https://github.com/IQVIA-ML/LightGBM.jl"
-MLJModelInterface.input_scitype(::Type{<:MODELS})          = Table(Continuous)
-MLJModelInterface.target_scitype(::Type{<:CLASSIFIERS})    = AbstractVector{<:Finite}
-MLJModelInterface.target_scitype(::Type{<:LGBMRegression}) = AbstractVector{Continuous}
+MLJModelInterface.input_scitype(::Type{<:MODELS})          = Table(MLJModelInterface.Continuous)
+MLJModelInterface.target_scitype(::Type{<:CLASSIFIERS})    = AbstractVector{<:MLJModelInterface.Finite}
+MLJModelInterface.target_scitype(::Type{<:LGBMRegression}) = AbstractVector{MLJModelInterface.Continuous}
 MLJModelInterface.supports_weights(::Type{<:MODELS})       = true
 
 end # module
