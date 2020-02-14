@@ -285,18 +285,41 @@ model_init(mlj_model::MLJInterface.LGBMRegression) = LightGBM.LGBMRegression(; m
 
 
 # metadata
-MLJModelInterface.load_path(::Type{<:LGBMBinary})          = "LightGBM.MLJInterface.LGBMBinary"
-MLJModelInterface.load_path(::Type{<:LGBMClassifier})      = "LightGBM.MLJInterface.LGBMMulticlass"
-MLJModelInterface.load_path(::Type{<:LGBMRegression})      = "LightGBM.MLJInterface.LGBMRegression"
+MLJModelInterface.metadata_pkg.(
+    (LGBMBinary, LGBMClassifier, LGBMRegression); # end positional args
+    name="LightGBM",
+    uuid="50415d55-5a07-4c42-a30b-abdb22ba6b8f",
+    url="https://github.com/IQVIA-ML/LightGBM.jl",
+    julia=false,
+    license="MIT Expat",
+    is_wrapper=true,
+)
 
-MLJModelInterface.package_name(::Type{<:MODELS})           = "LightGBM"
-MLJModelInterface.package_uuid(::Type{<:MODELS})           = "50415d55-5a07-4c42-a30b-abdb22ba6b8f"
-MLJModelInterface.is_pure_julia(::Type{<:MODELS})          = false
-MLJModelInterface.is_wrapper(::Type{<:MODELS})             = true
-MLJModelInterface.package_url(::Type{<:MODELS})            = "https://github.com/IQVIA-ML/LightGBM.jl"
-MLJModelInterface.input_scitype(::Type{<:MODELS})          = Table(MLJModelInterface.Continuous)
-MLJModelInterface.target_scitype(::Type{<:CLASSIFIERS})    = AbstractVector{<:MLJModelInterface.Finite}
-MLJModelInterface.target_scitype(::Type{<:LGBMRegression}) = AbstractVector{MLJModelInterface.Continuous}
-MLJModelInterface.supports_weights(::Type{<:MODELS})       = true
+MLJModelInterface.metadata_model(
+    LGBMBinary; # end positional args
+    path="LightGBM.MLJInterface.LGBMBinary",
+    input=MLJModelInterface.Table(MLJModelInterface.Continuous),
+    target=AbstractVector{<:MLJModelInterface.Finite},
+    weights=true,
+    descr="Microsoft LightGBM FFI wrapper: Binary classifier",
+)
+
+MLJModelInterface.metadata_model(
+    LGBMClassifier; # end positional args
+    path="LightGBM.MLJInterface.LGBMClassifier",
+    input=MLJModelInterface.Table(MLJModelInterface.Continuous),
+    target=AbstractVector{<:MLJModelInterface.Finite},
+    weights=true,
+    descr="Microsoft LightGBM FFI wrapper: Multiclass classifier",
+)
+
+MLJModelInterface.metadata_model(
+    LGBMRegression; # end positional args
+    path="LightGBM.MLJInterface.LGBMRegression",
+    input=MLJModelInterface.Table(MLJModelInterface.Continuous),
+    target=AbstractVector{MLJModelInterface.Continuous},
+    weights=true,
+    descr="Microsoft LightGBM FFI wrapper: Regression",
+)
 
 end # module
