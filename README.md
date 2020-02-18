@@ -1,46 +1,66 @@
+This package was originally authored by [Allardvm](https://github.com/Allardvm) and [wakakusa](https://github.com/wakakusa/)
+
 LightGBM.jl
 ========
 
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 
 **LightGBM.jl** provides a high-performance Julia interface for Microsoft's
-[LightGBM](https://github.com/Microsoft/LightGBM). The packages adds several convenience features,
-including automated cross-validation and exhaustive search procedures, and automatically converts
-all LightGBM parameters that refer to indices (e.g. categorical_feature) from Julia's one-based
-indices to C's zero-based indices. All major operating systems (Windows, Linux, and Mac OS X) are
-supported.
+[LightGBM](https://lightgbm.readthedocs.io/en/latest/).
+
+The packages adds a couple of convenience features:
+* Automated cross-validation 
+* Exhaustive grid search search procedure
+* Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl) (which also provides the above via different interfaces)
+
+Additionally, the package automatically converts all LightGBM parameters that refer to indices 
+(e.g. categorical_feature) from Julia's one-based indices to C's zero-based indices.
+
+A majority of the C-interfaces are implemented. A few are known to be missing and are
+[tracked.](https://github.com/IQVIA-ML/LightGBM.jl/issues)
+
+All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia versions 1.0+ are supported.
+
+# Table of Contents
+1. [Installation](#installation)
+1. [Example](#a-simple-example-using-lightgbm-example-files)
+1. [Exports](#exports)
+1. [MLJ](#mlj-support)
 
 # Installation
-Install the latest version of LightGBM by following the installation steps on: (https://github.com/Microsoft/LightGBM/wiki/Installation-Guide). Note that because LightGBM's C API
-is still under development, Upstream changes can lead to temporary incompatibilities between this
-package and the latest LightGBM master. To avoid this, you can build against
-[Allardvm/LightGBM](https://github.com/Allardvm/LightGBM.git), which contains the latest LightGBM
-version that has been confirmed to work with this package.
+Please ensure your system meets the pre-requisites for LightGBM. This generally means ensuring
+that `libomp` is installed and linkable on your system. See here for [Microsoft's installation guide.](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
 
-Then add the package to Julia with:
+Please note that the package actually downloads a [precompiled binary](https://github.com/microsoft/LightGBM/releases)
+so you do not need to install LightGBM first. This is done as a user convenience, and support
+will be added for supplying ones own LightGBM binary (for GPU acceleration, etc).
+
+To add the package to Julia:
 ```julia
-Pkg.clone("https://github.com/Allardvm/LightGBM.jl.git")
+Pkg.clone("https://github.com/IQVIA-ML/LightGBM.jl.git")
 ```
 
-To use the package, set the environment variable LIGHTGBM_PATH to point to the LightGBM directory
-prior to loading LightGBM.jl. This can be done for the duration of a single Julia session with:
-```julia
-ENV["LIGHTGBM_PATH"] = "../LightGBM"
-```
-
-To test the package, first set the environment variable LIGHTGBM_PATH and then call:
+Running tests for the package requires the use of the LightGBM example files,
+download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
+and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
+The you can run the tests by simply doing
 ```julia
 Pkg.test("LightGBM")
 ```
 
-# Getting started
+# A simple example using LightGBM example files
+
+First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip) 
+and untar it somewhere.
+
 ```julia
-ENV["LIGHTGBM_PATH"] = "../LightGBM"
+LIGHTGBM_SOURCE = "somepath"
 using LightGBM
+using DelimitedFiles
 
 # Load LightGBM's binary classification example.
-binary_test = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.test", '\t')
-binary_train = readdlm(ENV["LIGHTGBM_PATH"] * "/examples/binary_classification/binary.train", '\t')
+binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "/examples/binary_classification/binary.test"), '\t')
+binary_train = readdlm(joinpath(LIGHTGBM_SOURCE, "/examples/binary_classification/binary.train"), '\t')
 X_train = binary_train[:, 2:end]
 y_train = binary_train[:, 1]
 X_test = binary_test[:, 2:end]
@@ -81,6 +101,11 @@ loadmodel(estimator, filename)
 ```
 
 # Exports
+
+Note that a lot of parameters used within this module and in the code and examples are
+exact matches with those from [LightGBM.](https://lightgbm.readthedocs.io/en/latest/Parameters.html)
+Not all of these are necessarily supported but see the guide for detailed explanations of what these
+parameters do and their valid values.
 
 ## Functions
 
@@ -287,3 +312,7 @@ LGBMMulticlass(; [num_iterations = 10,
                   device_type="cpu"])
 ```
 Return an LGBMMulticlass estimator.
+
+# MLJ Support
+
+This package has an interface to [MLJ](https://github.com/alan-turing-institute/MLJ.jl).
