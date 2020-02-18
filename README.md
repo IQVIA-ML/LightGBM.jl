@@ -53,10 +53,17 @@ Pkg.test("LightGBM")
 First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip) 
 and untar it somewhere.
 
+```bash
+cd ~
+wget https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz
+tar -xf v2.3.1.tar.gz
+```
+
 ```julia
-LIGHTGBM_SOURCE = "somepath"
 using LightGBM
 using DelimitedFiles
+
+LIGHTGBM_SOURCE = abspath("~/LightGBM-2.3.1")
 
 # Load LightGBM's binary classification example.
 binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "/examples/binary_classification/binary.test"), '\t')
