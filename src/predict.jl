@@ -40,7 +40,7 @@ end
 
 
 function predict_classes(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
+    estimator::LGBMMulticlass, X::AbstractMatrix{TX}; predict_type::Integer = 0,
     num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false,
 ) where TX<:Real
