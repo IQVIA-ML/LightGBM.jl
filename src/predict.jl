@@ -31,9 +31,8 @@ function predict(
         estimator.booster, X, predict_type, num_iterations, is_row_major
     )
 
-    num_classes = get_num_classes(estimator)
     # This works the same one way or another because when n=1, reshaping is basically no-op
-    prediction  = transpose(reshape(prediction, num_classes, :))
+    prediction = prediction_reshaper(estimator, prediction)
 
     return prediction
 
@@ -56,5 +55,12 @@ function predict_classes(
 
 end
 
-get_num_classes(estimator::LGBMEstimator) = 1
-get_num_classes(estimator::LGBMMulticlass) = estimator.num_class
+
+@inline function prediction_reshaper(estimator::LGBMMulticlass, prediction::AbstractVector{Float64})
+
+    num_classes = estimator.num_class
+    return transpose(reshape(prediction, num_classes, :))
+
+end
+@inline prediction_reshaper(estimator::LGBMEstimator, prediction::AbstractVector{Float64}) = prediction
+
