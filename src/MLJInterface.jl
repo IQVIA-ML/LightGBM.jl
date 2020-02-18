@@ -265,7 +265,8 @@ end
 function predict_regression((fitted_model, classes), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
-    return LightGBM.predict(fitted_model, Xnew)
+    # the Float64. effectly copies the array, because otherwise it stays as a "reshape" object
+    return Float64.(dropdims(LightGBM.predict(fitted_model, Xnew), dims=2))
 
 end
 
