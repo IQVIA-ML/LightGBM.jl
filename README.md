@@ -43,7 +43,7 @@ Pkg.clone("https://github.com/IQVIA-ML/LightGBM.jl.git")
 Running tests for the package requires the use of the LightGBM example files,
 download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
 and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
-The you can run the tests by simply doing
+Then you can run the tests by simply doing
 ```julia
 Pkg.test("LightGBM")
 ```
@@ -131,7 +131,12 @@ array that holds the validation metric's value at each evaluation of the metric.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 
 ### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
-Return an array with the labels that the `estimator` predicts for features data `X`.
+Return an array with outputs
+* Probabilities for binary or multiclass (with output being 2-d if multiclass)
+* Regression predictions
+
+### `predict_classes(multiclass_estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
+A convenience method for obtaining predicted classes from the `LGBMMulticlass` estimator.
 
 #### Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
@@ -316,3 +321,16 @@ Return an LGBMMulticlass estimator.
 # MLJ Support
 
 This package has an interface to [MLJ](https://github.com/alan-turing-institute/MLJ.jl).
+Exhaustive MLJ documentation is out of scope for here, however the main things are:
+
+The MLJ interface models are
+```julia
+LightGBM.MLJInterface.LGBMBinary
+LightGBM.MLJInterface.LGBMClassifier
+LightGBM.MLJInterface.LGBMRegression
+```
+
+And these have the same interface parameters as the [estimators](#estimators)
+
+The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
+and integrated as part of a larger MLJ pipeline. [An example is provided](#where)
