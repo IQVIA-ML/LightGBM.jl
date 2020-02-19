@@ -8,13 +8,13 @@ LightGBM.jl
 **LightGBM.jl** provides a high-performance Julia interface for Microsoft's
 [LightGBM](https://lightgbm.readthedocs.io/en/latest/).
 
-The packages adds a couple of convenience features:
+The package adds a couple of convenience features:
 * Automated cross-validation 
 * Exhaustive grid search search procedure
 * Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl) (which also provides the above via different interfaces)
 
 Additionally, the package automatically converts all LightGBM parameters that refer to indices 
-(e.g. categorical_feature) from Julia's one-based indices to C's zero-based indices.
+(e.g. `categorical_feature`) from Julia's one-based indices to C's zero-based indices.
 
 A majority of the C-interfaces are implemented. A few are known to be missing and are
 [tracked.](https://github.com/IQVIA-ML/LightGBM.jl/issues)
@@ -37,7 +37,7 @@ will be added for supplying ones own LightGBM binary (for GPU acceleration, etc)
 
 To add the package to Julia:
 ```julia
-Pkg.clone("https://github.com/IQVIA-ML/LightGBM.jl.git")
+Pkg.add("https://github.com/IQVIA-ML/LightGBM.jl.git")
 ```
 
 Running tests for the package requires the use of the LightGBM example files,
