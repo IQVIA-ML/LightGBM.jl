@@ -1,9 +1,9 @@
 This package was originally authored by [Allardvm](https://github.com/Allardvm) and [wakakusa](https://github.com/wakakusa/)
 
 LightGBM.jl
-========
-
+![CI](https://github.com/IQVIA-ML/LightGBM.jl/workflows/CI/badge.svg)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
+========
 
 **LightGBM.jl** provides a high-performance Julia interface for Microsoft's
 [LightGBM](https://lightgbm.readthedocs.io/en/latest/).
