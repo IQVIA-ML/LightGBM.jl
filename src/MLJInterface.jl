@@ -1,7 +1,6 @@
 module MLJInterface
 
 import MLJModelInterface
-import CategoricalArrays
 import LightGBM
 
 
@@ -211,9 +210,8 @@ end
 
 # This does prep for classification tasks
 @inline function prepare_targets(
-    targets::CategoricalArrays.CategoricalArray,
-    model::CLASSIFIERS,
-)::Tuple{Vector{Float64}, CategoricalArrays.CategoricalArray}
+    targets,
+    model::CLASSIFIERS)
 
     classes = MLJModelInterface.classes(first(targets))
     check_classes(model, classes)
@@ -228,10 +226,9 @@ end
 # This does prep for Regression, which is basically a no-op (or rather, just creation of an empty placeholder classes object
 @inline function prepare_targets(
     targets::AbstractVector,
-    model::LGBMRegression,
-)::Tuple{Vector{Float64}, CategoricalArrays.CategoricalArray}
+    model::LGBMRegression)
 
-    return targets, CategoricalArrays.CategoricalArray(undef)
+    return targets, []
 
 end
 
