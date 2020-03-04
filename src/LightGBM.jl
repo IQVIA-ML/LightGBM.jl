@@ -15,7 +15,10 @@ include("fit.jl")
 include("predict.jl")
 include("cv.jl")
 include("search_cv.jl")
-include("MLJInterface.jl")
+
+function __init__()
+    include(joinpath(@__DIR__, "MLJInterface.jl"))
+end
 
 export fit, predict, predict_classes, cv, search_cv, savemodel, loadmodel
 export LGBMEstimator, LGBMRegression, LGBMBinary, LGBMMulticlass
