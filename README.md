@@ -66,8 +66,8 @@ using DelimitedFiles
 LIGHTGBM_SOURCE = abspath("~/LightGBM-2.3.1")
 
 # Load LightGBM's binary classification example.
-binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "/examples/binary_classification/binary.test"), '\t')
-binary_train = readdlm(joinpath(LIGHTGBM_SOURCE, "/examples/binary_classification/binary.train"), '\t')
+binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "examples", "binary_classification", "binary.test"), '\t')
+binary_train = readdlm(joinpath(LIGHTGBM_SOURCE, "examples", "binary_classification", "binary.train"), '\t')
 X_train = binary_train[:, 2:end]
 y_train = binary_train[:, 1]
 X_test = binary_test[:, 2:end]
