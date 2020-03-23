@@ -9,7 +9,7 @@ MLJModelInterface = "e80e1ace-859a-464e-9ed9-23947d8ae3ea"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-MLJModelInterface = "0.1"
+MLJModelInterface = "^0.2"
 StatsBase = "0.32"
 julia = "1.0"
 
