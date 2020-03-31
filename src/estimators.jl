@@ -131,7 +131,7 @@ function LGBMRegression(; num_iterations = 10,
                           is_sparse, save_binary, categorical_feature,
                           is_unbalance, metric, metric_freq,
                           is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file,1,device_type)
+                          machine_list_file, 1, device_type)
 end
 
 mutable struct LGBMBinary <: LGBMEstimator
@@ -267,7 +267,7 @@ function LGBMBinary(; num_iterations = 10,
                       init_score, is_sparse, save_binary,
                       categorical_feature, sigmoid, is_unbalance, metric,
                       metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port,
-                      time_out, machine_list_file, 1,device_type)
+                      time_out, machine_list_file, 1, device_type)
 end
 
 mutable struct LGBMMulticlass <: LGBMEstimator
@@ -403,5 +403,5 @@ function LGBMMulticlass(; num_iterations = 10,
                           is_sparse, save_binary, categorical_feature,
                           is_unbalance, metric, metric_freq,
                           is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-                          machine_list_file, num_class,device_type)
+                          machine_list_file, num_class, device_type)
 end

@@ -182,6 +182,19 @@ function mlj_to_kwargs(model::MLJModelInterface.Supervised)
 
 end
 
+function mlj_to_kwargs(model::MLJModelInterface.Supervised, classes)
+
+    num_class = length(classes)
+
+    retval = Dict{Symbol, Any}(
+        name => getfield(model, name)
+        for name in fieldnames(typeof(model))
+    )
+
+    retval[:num_class] = num_class
+    return retval
+
+end
 
 # X and y must be untyped per MLJ docs (and probably w too, getting nothing by default is zzz though)
 function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
@@ -191,7 +204,7 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
     verbosity = if verbosity == 0; -1 else verbosity end
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
-    model = model_init(mlj_model)
+    model = model_init(mlj_model, classes)
     X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
@@ -277,9 +290,9 @@ MLJModelInterface.predict(model::MLJInterface.LGBMClassifier, fitresult, Xnew) =
 MLJModelInterface.predict(model::MLJInterface.LGBMRegression, fitresult, Xnew) = MLJInterface.predict_regression(fitresult, Xnew)
 
 # multiple dispatch the model initialiser functions
-model_init(mlj_model::MLJInterface.LGBMBinary) = LightGBM.LGBMBinary(; mlj_to_kwargs(mlj_model)...)
-model_init(mlj_model::MLJInterface.LGBMClassifier) = LightGBM.LGBMMulticlass(; mlj_to_kwargs(mlj_model)...)
-model_init(mlj_model::MLJInterface.LGBMRegression) = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
+model_init(mlj_model::MLJInterface.LGBMBinary, classes) = LightGBM.LGBMBinary(; mlj_to_kwargs(mlj_model)...)
+model_init(mlj_model::MLJInterface.LGBMClassifier, classes) = LightGBM.LGBMMulticlass(; mlj_to_kwargs(mlj_model, classes)...)
+model_init(mlj_model::MLJInterface.LGBMRegression, targets) = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
 
 
 # metadata

@@ -20,11 +20,11 @@ end
         include(joinpath("mlj", "binary_classifier.jl"))
     end
 
-    @testset "Binary LightGBM" begin
+    @testset "Multiclass LightGBM" begin
         include(joinpath("mlj", "multiclass_classifier.jl"))
     end
 
-    @testset "Binary LightGBM" begin
+    @testset "Regression LightGBM" begin
         include(joinpath("mlj", "regression.jl"))
     end
 
