@@ -10,7 +10,7 @@ import LightGBM
 
 ## CLASSIFIER -- shamelessly copied from MLJModels/test/XGBoost.jl
 
-model = LightGBM.MLJInterface.LGBMBinary(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=100)
 
 # test binary case:
 N = 2
@@ -46,7 +46,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 @test isa(report, Tuple)
 
 expected_return_type = Tuple{
-    LightGBM.LGBMBinary,
+    LightGBM.LGBMClassification,
     CategoricalArrays.CategoricalArray,
 }
 
@@ -55,7 +55,7 @@ expected_return_type = Tuple{
 # here we test the bit where we try to fit a nonbinary using a binary estimator -- we expect this to throw
 crazyN = 5 # testing nonbinary
 ycrazy = string.(mod.(round.(Int, X.x1 * 10), crazyN)) |> MLJBase.categorical
-@test_throws ErrorException MLJBase.fit(model, 0, X, ycrazy)
+@test_throws ArgumentError MLJBase.fit(model, 0, X, ycrazy)
 
 end # module
 true

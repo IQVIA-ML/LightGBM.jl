@@ -33,7 +33,9 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     @test LightGBM.LGBM_BoosterGetEvalNames(bst) |> first == "auc"
 
     # Test binary estimator.
-    estimator = LightGBM.LGBMBinary(
+    estimator = LightGBM.LGBMClassification(
+        objective = "binary",
+        num_class = 1,
         num_iterations = 20,
         learning_rate = .1,
         early_stopping_round = 1,
@@ -48,9 +50,44 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
         min_data_in_leaf = 1,
     )
 
+    estimator_equiv = LightGBM.LGBMClassification(
+        objective = "multiclassova",
+        num_class = 2,
+        num_iterations = 20,
+        learning_rate = .1,
+        early_stopping_round = 1,
+        feature_fraction = .8,
+        bagging_fraction = .9,
+        bagging_freq = 1,
+        num_leaves = 1000,
+        metric = ["multi_logloss"],
+        is_training_metric = true,
+        max_bin = 255,
+        min_sum_hessian_in_leaf = 0.,
+        min_data_in_leaf = 1,
+    )
+
     # Test fitting.
-    LightGBM.fit(estimator, X_train, y_train, verbosity = -1);
-    LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
+    LightGBM.fit!(estimator, X_train, y_train, verbosity = -1);
+    LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
+    LightGBM.fit!(estimator_equiv, X_train, y_train, (X_test, y_test), verbosity = -1)
+
+    p_binary = LightGBM.predict(estimator, X_train, verbosity = -1)
+    p_multi = LightGBM.predict(estimator_equiv, X_train, verbosity = -1)
+    binary_classes = LightGBM.predict_classes(estimator, X_train, verbosity = -1)
+    multi_classes = LightGBM.predict_classes(estimator_equiv, X_train, verbosity = -1)
+
+    # check also that binary outputs and classes are invariant in prediction output shapes, i.e. they're matrices
+    @test length(size(p_binary)) == 2
+    @test length(size(p_multi)) == 2
+    @test length(size(binary_classes)) == 2
+    @test length(size(multi_classes)) == 2
+
+    # check binary and multi are equivalent
+    # Not the case while the random functions are enabled: bagging fraction and feature fraction
+    # but they should generally be otherwise
+    @test_broken isapprox(p_binary, p_multi[:, 2], rtol=1e-16)
+    @test_broken binary_classes == multi_classes
 
     # Test setting feature names
     jl_feature_names = ["testname_$i" for i in 1:28]
@@ -69,7 +106,7 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
 
     rm(test_filename)
 
-    @test isapprox(pre, post)
+    @test isapprox(pre, post, rtol=1e-16)
 
     # Test cross-validation.
     splits = (collect(1:3500), collect(3501:7000))
@@ -110,7 +147,7 @@ end
         max_depth = -1,
     )
 
-    scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
+    scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
     @test scores["test_1"]["l2"][end] < .5
 
 end
@@ -126,7 +163,7 @@ end
     X_test = Matrix(multiclass_test[:, 2:end])
     y_test = Array(multiclass_test[:, 1])
 
-    estimator = LightGBM.LGBMMulticlass(
+    estimator = LightGBM.LGBMClassification(
         num_iterations = 100,
         learning_rate = .05,
         feature_fraction = .9,
@@ -143,14 +180,14 @@ end
         early_stopping_round = 10,
     )
 
-    scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
+    scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
     @test scores["test_1"]["multi_logloss"][end] < 1.4
 
     # Test row major multiclass
     X_train = Matrix(multiclass_train[:, 2:end]')
     X_test = Matrix(multiclass_test[:, 2:end]')
 
-    estimator = LightGBM.LGBMMulticlass(
+    estimator = LightGBM.LGBMClassification(
         num_iterations = 100,
         learning_rate = .05,
         feature_fraction = .9,
@@ -167,7 +204,7 @@ end
         early_stopping_round = 10,
     )
 
-    scores = LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, is_row_major = true)
+    scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, is_row_major = true)
     @test scores["test_1"]["multi_logloss"][end] < 1.4
 
 end

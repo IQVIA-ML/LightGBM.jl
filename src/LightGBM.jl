@@ -21,6 +21,6 @@ function __init__()
 end
 
 export fit, predict, predict_classes, cv, search_cv, savemodel, loadmodel
-export LGBMEstimator, LGBMRegression, LGBMBinary, LGBMMulticlass
+export LGBMEstimator, LGBMRegression, LGBMClassification
 
 end # module LightGBM

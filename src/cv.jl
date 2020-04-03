@@ -44,7 +44,7 @@ function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
         estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
         LGBM_BoosterAddValidData(estimator.booster, test_ds)
 
-        results = train(estimator, ["validation"], verbosity, start_time)
+        results = train!(estimator, ["validation"], verbosity, start_time)
 
         for dataset in keys(results)
             dataset_results = results[dataset]
