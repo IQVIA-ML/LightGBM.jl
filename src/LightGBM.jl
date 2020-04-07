@@ -2,6 +2,7 @@ module LightGBM
 
 using Dates
 
+import Base
 import Libdl
 import StatsBase
 

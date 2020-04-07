@@ -12,6 +12,10 @@ using Test
         include(joinpath("ffi", "booster.jl"))
     end
 
+    @testset "Base Utils" begin
+        include(joinpath("ffi", "base_utils.jl"))
+    end
+
 end
 
 @testset "MLJ interface tests" begin

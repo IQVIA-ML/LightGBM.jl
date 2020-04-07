@@ -11,7 +11,7 @@ mutable struct Dataset
 
     function Dataset(handle::DatasetHandle)
         ds = new(handle)
-        finalizer(Dataset_finalizer,ds)
+        finalizer(Dataset_finalizer, ds)
         return ds
     end
 
@@ -28,7 +28,7 @@ mutable struct Booster
 
     function Booster(handle::BoosterHandle, datasets::Vector{Dataset})
         bst = new(handle, datasets)
-        finalizer(Booster_finalizer,bst)
+        finalizer(Booster_finalizer, bst)
         return bst
     end
 
@@ -45,6 +45,26 @@ end
 
 function Booster(handle::BoosterHandle)
     return Booster(handle, Dataset[])
+end
+
+
+# deepcopy utils, but we can't reasonably do this for datasets
+function Base.deepcopy_internal(x::Booster, stackdict::IdDict)
+
+    if haskey(stackdict, x)
+        return stackdict[x]
+    end
+
+    if x.handle == C_NULL
+        # just init a new object
+        return Booster()
+    end
+
+    serialised = LGBM_BoosterSaveModelToString(x, 0, 0)
+    y = LGBM_BoosterLoadModelFromString(serialised)
+
+    return y
+
 end
 
 
@@ -493,7 +513,7 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::
                                      num_iteration)
 end
 
-function LGBM_BoosterSaveModel(bst::Booster , start_iteration::Integer , num_iteration::Integer , filename::String)
+function LGBM_BoosterSaveModel(bst::Booster, start_iteration::Integer, num_iteration::Integer, filename::String)
     @lightgbm(:LGBM_BoosterSaveModel,
               bst.handle => BoosterHandle,
               start_iteration => Cint,
@@ -502,7 +522,39 @@ function LGBM_BoosterSaveModel(bst::Booster , start_iteration::Integer , num_ite
     return nothing
 end
 
-# function LGBM_BoosterSaveModelToString()
+function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, num_iteration::Integer)::String
+
+    # places forthe call to write to
+    out_len = Ref{Int64}()
+    out_str = Vector{UInt8}(undef, 2)
+    buffer_len = Int64(1)
+
+    # first time will not work, we calling it to be told out_len
+    @lightgbm(:LGBM_BoosterSaveModelToString,
+              bst.handle => BoosterHandle,
+              start_iteration => Cint,
+              num_iteration => Cint,
+              buffer_len => Int64,
+              out_len => Ref{Int64},
+              out_str => Ref{UInt8})
+
+    out_str = Vector{UInt8}(undef, out_len[] + 1)
+    buffer_len = out_len[]
+
+    # now it works, and we have our serialised model in out_str, in c-memory
+    @lightgbm(:LGBM_BoosterSaveModelToString,
+              bst.handle => BoosterHandle,
+              start_iteration => Cint,
+              num_iteration => Cint,
+              buffer_len => Int64,
+              out_len => Ref{Int64},
+              out_str => Ref{UInt8})
+
+    jl_out_str = unsafe_string(pointer(out_str))
+    return jl_out_str
+
+end
+
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()
