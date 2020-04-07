@@ -42,8 +42,8 @@ using LightGBM
             max_depth = -1,
         )
 
-        LightGBM.fit(estimator, X_train, y_train, verbosity = -1, init_score=regression_train_init);
-        LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, init_score=regression_train_init);
+        LightGBM.fit!(estimator, X_train, y_train, verbosity = -1, init_score=regression_train_init);
+        LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, init_score=regression_train_init);
         @test true
     catch
         @test false

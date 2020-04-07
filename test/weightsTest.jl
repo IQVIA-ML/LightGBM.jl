@@ -23,7 +23,9 @@ using LightGBM
         binary_train_weight = readdlm(joinpath(LGBM_PATH, "examples", "binary_classification", "binary.train.weight"), '\t')[:,1]
 
         # Test binary estimator.
-        estimator = LightGBM.LGBMBinary(
+        estimator = LightGBM.LGBMClassification(
+            objective = "binary",
+            num_class = 1,
             num_iterations = 20,
             learning_rate = .1,
             early_stopping_round = 1,
@@ -39,8 +41,8 @@ using LightGBM
         )
 
         # Test fitting.
-        LightGBM.fit(estimator, X_train, y_train, verbosity = -1, weights=binary_train_weight[:,1])
-        LightGBM.fit(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, weights=binary_train_weight[:,1])
+        LightGBM.fit!(estimator, X_train, y_train, verbosity = -1, weights=binary_train_weight[:,1])
+        LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, weights=binary_train_weight[:,1])
 
         @test true
     catch

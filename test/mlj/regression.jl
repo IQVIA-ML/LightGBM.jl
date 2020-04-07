@@ -13,7 +13,7 @@ Nsamples = 3000
 seed!(0)
 calc_rmse(p, t) = sqrt(sum((p - t) .^ 2) / length(p))
 
-model = LightGBM.MLJInterface.LGBMRegression(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMRegressor(num_iterations=100)
 
 X       = rand(Nsamples, 5)
 y       = sqrt.(sum(X .^ 2, dims=2)) # make the targets the L2 norm of the vectors

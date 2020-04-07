@@ -74,17 +74,20 @@ X_test = binary_test[:, 2:end]
 y_test = binary_test[:, 1]
 
 # Create an estimator with the desired parameters—leave other parameters at the default values.
-estimator = LGBMBinary(num_iterations = 100,
-                       learning_rate = .1,
-                       early_stopping_round = 5,
-                       feature_fraction = .8,
-                       bagging_fraction = .9,
-                       bagging_freq = 1,
-                       num_leaves = 1000,
-                       metric = ["auc", "binary_logloss"])
+estimator = LGBMClassification(
+    objective = "binary",
+    num_iterations = 100,
+    learning_rate = .1,
+    early_stopping_round = 5,
+    feature_fraction = .8,
+    bagging_fraction = .9,
+    bagging_freq = 1,
+    num_leaves = 1000,
+    metric = ["auc", "binary_logloss"]
+)
 
 # Fit the estimator on the training data and return its scores for the test data.
-fit(estimator, X_train, y_train, (X_test, y_test))
+fit!(estimator, X_train, y_train, (X_test, y_test))
 
 # Predict arbitrary data with the estimator.
 predict(estimator, X_train)
@@ -116,7 +119,7 @@ parameters do and their valid values.
 
 ## Functions
 
-### `fit(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])`
+### `fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])`
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
 
@@ -142,8 +145,8 @@ Return an array with outputs
 * Probabilities for binary or multiclass (with output being 2-d if multiclass)
 * Regression predictions
 
-### `predict_classes(multiclass_estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
-A convenience method for obtaining predicted classes from the `LGBMMulticlass` estimator.
+### `predict_classes(multiclass_estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false, binary_threshold = 0.5])`
+A convenience method for obtaining predicted classes from the `LGBMClassification` estimator.
 
 #### Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
@@ -156,6 +159,8 @@ A convenience method for obtaining predicted classes from the `LGBMMulticlass` e
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
+* `binary_threshold::Real`: The decision threshold to use for a binary classification
+    (when using `binary` objective only, otherwise argmax decision)
 
 ### `cv(estimator, X, y, splits; [verbosity = 1])` (Experimental—interface may change)
 Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
@@ -220,110 +225,88 @@ the parameters or data of the estimator whose model was saved as `filename`.
 
 ### `LGBMRegression <: LGBMEstimator`
 ```julia
-LGBMRegression(; [num_iterations = 10,
-                  learning_rate = .1,
-                  num_leaves = 127,
-                  max_depth = -1,
-                  tree_learner = "serial",
-                  num_threads = Sys.CPU_CORES,
-                  histogram_pool_size = -1.,
-                  min_data_in_leaf = 100,
-                  min_sum_hessian_in_leaf = 10.,
-                  feature_fraction = 1.,
-                  feature_fraction_seed = 2,
-                  bagging_fraction = 1.,
-                  bagging_freq = 0,
-                  bagging_seed = 3,
-                  early_stopping_round = 0,
-                  max_bin = 255,
-                  data_random_seed = 1,
-                  init_score = "",
-                  is_sparse = true,
-                  save_binary = false,
-                  is_unbalance = false,
-                  metric = ["l2"],
-                  metric_freq = 1,
-                  is_training_metric = false,
-                  ndcg_at = Int[],
-                  num_machines = 1,
-                  local_listen_port = 12400,
-                  time_out = 120,
-                  machine_list_file = "",
-                  device_type="cpu"])
+LGBMRegression(;
+    objective = "regression",
+    num_iterations = 10,
+    learning_rate = .1,
+    num_leaves = 127,
+    max_depth = -1,
+    tree_learner = "serial",
+    num_threads = Sys.CPU_THREADS,
+    histogram_pool_size = -1.,
+    min_data_in_leaf = 100,
+    min_sum_hessian_in_leaf = 10.,
+    lambda_l1 = 0.,
+    lambda_l2 = 0.,
+    min_gain_to_split = 0.,
+    feature_fraction = 1.,
+    feature_fraction_seed = 2,
+    bagging_fraction = 1.,
+    bagging_freq = 0,
+    bagging_seed = 3,
+    early_stopping_round = 0,
+    max_bin = 255,
+    data_random_seed = 1,
+    init_score = "",
+    is_sparse = true,
+    save_binary = false,
+    categorical_feature = Int[],
+    is_unbalance = false,
+    metric = ["l2"],
+    metric_freq = 1,
+    is_training_metric = false,
+    ndcg_at = Int[],
+    num_machines = 1,
+    local_listen_port = 12400,
+    time_out = 120,
+    machine_list_file = "",
+    device_type="cpu",
+)
 ```
 Return an LGBMRegression estimator.
 
-### `LGBMBinary <: LGBMEstimator`
+### `LGBMClassification <: LGBMEstimator`
 ```julia
-LGBMBinary(; [num_iterations = 10,
-              learning_rate = .1,
-              num_leaves = 127,
-              max_depth = -1,
-              tree_learner = "serial",
-              num_threads = Sys.CPU_CORES,
-              histogram_pool_size = -1.,
-              min_data_in_leaf = 100,
-              min_sum_hessian_in_leaf = 10.,
-              feature_fraction = 1.,
-              feature_fraction_seed = 2,
-              bagging_fraction = 1.,
-              bagging_freq = 0,
-              bagging_seed = 3,
-              early_stopping_round = 0,
-              max_bin = 255,
-              data_random_seed = 1,
-              init_score = "",
-              is_sparse = true,
-              save_binary = false,
-              sigmoid = 1.,
-              is_unbalance = false,
-              metric = ["binary_logloss"],
-              metric_freq = 1,
-              is_training_metric = false,
-              ndcg_at = Int[],
-              num_machines = 1,
-              local_listen_port = 12400,
-              time_out = 120,
-              machine_list_file = "",
-              device_type="cpu"])
+LGBMClassification(;
+    objective = "multiclass",
+    num_iterations = 10,
+    learning_rate = .1,
+    num_leaves = 127,
+    max_depth = -1,
+    tree_learner = "serial",
+    num_threads = Sys.CPU_THREADS,
+    histogram_pool_size = -1.,
+    min_data_in_leaf = 100,
+    min_sum_hessian_in_leaf = 10.,
+    lambda_l1 = 0.,
+    lambda_l2 = 0.,
+    min_gain_to_split = 0.,
+    feature_fraction = 1.,
+    feature_fraction_seed = 2,
+    bagging_fraction = 1.,
+    bagging_freq = 0,
+    bagging_seed = 3,
+    early_stopping_round = 0,
+    max_bin = 255,
+    data_random_seed = 1,
+    init_score = "",
+    is_sparse = true,
+    save_binary = false,
+    categorical_feature = Int[],
+    is_unbalance = false,
+    metric = ["multi_logloss"],
+    metric_freq = 1,
+    is_training_metric = false,
+    ndcg_at = Int[],
+    num_machines = 1,
+    local_listen_port = 12400,
+    time_out = 120,
+    machine_list_file = "",
+    num_class = 2,
+    device_type="cpu",
+)
 ```
-Return an LGBMBinary estimator.
-
-### `LGBMMulticlass <: LGBMEstimator`
-```julia
-LGBMMulticlass(; [num_iterations = 10,
-                  learning_rate = .1,
-                  num_leaves = 127,
-                  max_depth = -1,
-                  tree_learner = "serial",
-                  num_threads = Sys.CPU_CORES,
-                  histogram_pool_size = -1.,
-                  min_data_in_leaf = 100,
-                  min_sum_hessian_in_leaf = 10.,
-                  feature_fraction = 1.,
-                  feature_fraction_seed = 2,
-                  bagging_fraction = 1.,
-                  bagging_freq = 0,
-                  bagging_seed = 3,
-                  early_stopping_round = 0,
-                  max_bin = 255,
-                  data_random_seed = 1,
-                  init_score = "",
-                  is_sparse = true,
-                  save_binary = false,
-                  is_unbalance = false,
-                  metric = ["multi_logloss"],
-                  metric_freq = 1,
-                  is_training_metric = false,
-                  ndcg_at = Int[],
-                  num_machines = 1,
-                  local_listen_port = 12400,
-                  time_out = 120,
-                  machine_list_file = "",
-                  num_class = 1,
-                  device_type="cpu"])
-```
-Return an LGBMMulticlass estimator.
+Return an LGBMClassification estimator.
 
 # MLJ Support
 
@@ -332,9 +315,8 @@ Exhaustive MLJ documentation is out of scope for here, however the main things a
 
 The MLJ interface models are
 ```julia
-LightGBM.MLJInterface.LGBMBinary
 LightGBM.MLJInterface.LGBMClassifier
-LightGBM.MLJInterface.LGBMRegression
+LightGBM.MLJInterface.LGBMRegressor
 ```
 
 And these have the same interface parameters as the [estimators](#estimators)

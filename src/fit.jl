@@ -1,5 +1,5 @@
 """
-    fit(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
+    fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
 
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
@@ -21,7 +21,7 @@ array that holds the validation metric's value at each iteration.
 * `weights::Vector{Tw<:Real}`: the training weights.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 """
-function fit(estimator::LGBMEstimator, X::Matrix{TX},
+function fit!(estimator::LGBMEstimator, X::Matrix{TX},
     y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
     is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
     init_score::Vector{Ti} = Vector{Float64}()) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
@@ -57,13 +57,13 @@ function fit(estimator::LGBMEstimator, X::Matrix{TX},
     end
 
     log_debug(verbosity, "Started training...\n")
-    results = train(estimator, tests_names, verbosity, start_time)
+    results = train!(estimator, tests_names, verbosity, start_time)
     # estimator.model = readlines("$(tempdir)/model.txt")
 
     return results
 end
 
-function train(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
+function train!(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
                start_time::DateTime)
     results = Dict{String,Dict{String,Vector{Float64}}}()
     n_tests = length(tests_names)
