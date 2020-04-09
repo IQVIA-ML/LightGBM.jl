@@ -49,9 +49,9 @@ expected_return_type = Tuple{
 
 
 # simple integration test, should work end to end, no throw, thats all
-X, y = @load_boston
-model = LightGBM.MLJInterface.LGBMRegressor()
-output = evaluate(model, X, y, verbosity = 0)
+#X, y = @load_boston
+#model = LightGBM.MLJInterface.LGBMRegressor()
+#output = evaluate(model, X, y, verbosity = 0)
 
 
 end # module
