@@ -211,7 +211,7 @@ end
 function predict_regression((fitted_model, classes), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
-    return LightGBM.predict(fitted_model, Xnew)
+    return dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
 
 end
 

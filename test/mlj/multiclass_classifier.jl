@@ -51,5 +51,12 @@ expected_return_type = Tuple{
 
 @test isa(fitresult, expected_return_type)
 
+# simple integration test, should work end to end, no throw, thats all
+# commented out pending resolution as to why we get the broken pipe errors
+# X, y = @load_iris
+# model = LightGBM.MLJInterface.LGBMClassifier()
+# output = evaluate(model, X, y)
+
+
 end # module
 true
