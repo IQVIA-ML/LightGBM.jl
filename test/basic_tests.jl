@@ -108,6 +108,21 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
 
     @test isapprox(pre, post, rtol=1e-16)
 
+    # test making copy of estimator
+    copy_estimator = deepcopy(estimator)
+    @test copy_estimator.booster.handle != estimator.booster.handle
+
+    # check that deepcopy predictions are equivalent
+    copy_pre_preds = LightGBM.predict(copy_estimator, X_train, verbosity = -1)
+    @test isapprox(copy_pre_preds, pre, rtol=1e-16)
+
+    # test reload upon predict works if we have a null handle
+    LightGBM.LGBM_BoosterFree(copy_estimator.booster)
+    copy_preds = LightGBM.predict(copy_estimator, X_train, verbosity = -1)
+
+    @test isapprox(copy_pre_preds, copy_preds, rtol=1e-16)
+    @test isapprox(pre, copy_preds, rtol=1e-16)
+
     # Test cross-validation.
     splits = (collect(1:3500), collect(3501:7000))
     LightGBM.cv(estimator, X_train, y_train, splits; verbosity = -1)

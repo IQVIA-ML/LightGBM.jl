@@ -24,7 +24,7 @@ function predict(
     is_row_major::Bool = false,
 )::Matrix{Float64} where TX <:Real
 
-    @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
+    tryload!(estimator)
 
     log_debug(verbosity, "Started predicting\n")
 
@@ -60,4 +60,18 @@ function predict_classes(
 
     return getindex.(argmax(predicted_probabilities, dims=2), 2) .- 1
 
+end
+
+function tryload!(estimator::LGBMEstimator)
+
+    if estimator.booster.handle == C_NULL
+        # first check for a serialised model
+        if length(estimator.model) == 0
+            throw(ErrorException("Estimator does not contain a fitted model."))
+        end
+        # load it
+        estimator.booster = LGBM_BoosterLoadModelFromString(estimator.model)
+    end
+
+    return nothing
 end
