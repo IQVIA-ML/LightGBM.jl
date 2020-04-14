@@ -524,7 +524,7 @@ end
 
 function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, num_iteration::Integer)::String
 
-    # places forthe call to write to
+    # places for the call to write to
     out_len = Ref{Int64}()
     out_str = Vector{UInt8}(undef, 2)
     buffer_len = Int64(1)
