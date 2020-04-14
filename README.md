@@ -37,7 +37,7 @@ will be added for supplying ones own LightGBM binary (for GPU acceleration, etc)
 
 To add the package to Julia:
 ```julia
-Pkg.add("https://github.com/IQVIA-ML/LightGBM.jl.git")
+Pkg.add("LightGBM")
 ```
 
 Running tests for the package requires the use of the LightGBM example files,
