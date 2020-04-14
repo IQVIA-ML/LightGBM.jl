@@ -58,7 +58,6 @@ function fit!(estimator::LGBMEstimator, X::Matrix{TX},
 
     log_debug(verbosity, "Started training...\n")
     results = train!(estimator, tests_names, verbosity, start_time)
-    # estimator.model = readlines("$(tempdir)/model.txt")
 
     return results
 end
@@ -85,8 +84,16 @@ function train!(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity
             log_info(verbosity, "Stopped training because there are no more leaves that meet the ",
                      "split requirements.")
         end
-        is_finished == 1 && return results
+        if is_finished == 1
+            # save the model in serialised form, in case we should be deepcopied or serialised elsewhere
+            estimator.model = LGBM_BoosterSaveModelToString(estimator.booster, 0, 0)
+            return results
+        end
     end
+
+    # save the model in serialised form, in case we should be deepcopied or serialised elsewhere
+    estimator.model = LGBM_BoosterSaveModelToString(estimator.booster, 0, 0)
+
     return results
 end
 
