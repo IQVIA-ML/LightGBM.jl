@@ -21,7 +21,7 @@ function __init__()
     include(joinpath(@__DIR__, "MLJInterface.jl"))
 end
 
-export fit, predict, predict_classes, cv, search_cv, savemodel, loadmodel
+export fit!, predict, predict_classes, cv, search_cv, savemodel, loadmodel
 export LGBMEstimator, LGBMRegression, LGBMClassification
 
 end # module LightGBM

@@ -83,6 +83,7 @@ estimator = LGBMClassification(
     bagging_fraction = .9,
     bagging_freq = 1,
     num_leaves = 1000,
+    num_class = 1,
     metric = ["auc", "binary_logloss"]
 )
 
