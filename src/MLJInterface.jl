@@ -237,7 +237,7 @@ MLJModelInterface.metadata_pkg.(
     url="https://github.com/IQVIA-ML/LightGBM.jl",
     julia=false,
     license="MIT Expat",
-    is_wrapper=true,
+    is_wrapper=false,
 )
 
 
