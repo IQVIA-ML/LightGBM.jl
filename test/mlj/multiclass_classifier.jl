@@ -51,11 +51,12 @@ expected_return_type = Tuple{
 
 @test isa(fitresult, expected_return_type)
 
-# simple integration test, should work end to end, no throw, thats all
-# commented out pending resolution as to why we get the broken pipe errors
-# X, y = @load_iris
-# model = LightGBM.MLJInterface.LGBMClassifier()
-# output = evaluate(model, X, y)
+# Provided by Anthony Blaom as a simple integration test
+X, y = @load_iris;
+model = LightGBM.MLJInterface.LGBMClassifier()
+yhat = machine(model, X, y) |> fit! |> predict;
+@test scitype(mode.(yhat)) <: AbstractVector{Multiclass{3}}
+@test mean(cross_entropy(yhat, y)) < 0.6  # or do proper out-of-sample test
 
 
 end # module

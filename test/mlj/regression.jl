@@ -48,10 +48,12 @@ expected_return_type = Tuple{
 @test isa(fitresult, expected_return_type)
 
 
-# simple integration test, should work end to end, no throw, thats all
-#X, y = @load_boston
-#model = LightGBM.MLJInterface.LGBMRegressor()
-#output = evaluate(model, X, y, verbosity = 0)
+# Provided by Anthony Blaom as a simple integration test
+X, y = @load_boston;
+model = LightGBM.MLJInterface.LGBMRegressor()
+yhat = machine(model, X, y) |> fit! |> predict;
+scitype(yhat) == AbstractVector{Continuous}
+@test rms(yhat, y) < 6  # or do proper out-of-sample test
 
 
 end # module
