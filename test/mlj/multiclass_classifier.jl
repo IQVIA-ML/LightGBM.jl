@@ -54,7 +54,7 @@ expected_return_type = Tuple{
 # Provided by Anthony Blaom as a simple integration test
 X, y = @load_iris;
 model = LightGBM.MLJInterface.LGBMClassifier()
-yhat = machine(model, X, y) |> fit! |> predict;
+yhat = fit!(machine(model, X, y); verbosity=0) |> predict;
 @test scitype(mode.(yhat)) <: AbstractVector{Multiclass{3}}
 @test mean(cross_entropy(yhat, y)) < 0.6  # or do proper out-of-sample test
 
