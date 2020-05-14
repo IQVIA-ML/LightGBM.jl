@@ -174,8 +174,6 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
     cache = nothing
     report = (report,)
 
-    # Caution: The model is a pointer to a memory location including its training data
-    # This definitely needs fixing
     return (model, cache, report)
 
 end
