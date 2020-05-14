@@ -1,4 +1,5 @@
 """
+    fit!(estimator, num_iterations, X, y[, test...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
 
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
@@ -10,6 +11,7 @@ array that holds the validation metric's value at each iteration.
 
 # Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
+* `num_iterations::Int`: OPTIONAL -- defaults to estimator.num_iterations if not provided
 * `X::Matrix{TX<:Real}`: the features data.
 * `y::Vector{Ty<:Real}`: the labels.
 * `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
@@ -21,10 +23,13 @@ array that holds the validation metric's value at each iteration.
 * `weights::Vector{Tw<:Real}`: the training weights.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 """
-function fit!(estimator::LGBMEstimator, X::Matrix{TX},
-    y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...; verbosity::Integer = 1,
-    is_row_major = false, weights::Vector{Tw} = Vector{Float32}(),
-    init_score::Vector{Ti} = Vector{Float64}()) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
+function fit!(
+    estimator::LGBMEstimator, num_iterations::Int, X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...;
+    verbosity::Integer = 1,
+    is_row_major = false,
+    weights::Vector{Tw} = Vector{Float32}(),
+    init_score::Vector{Ti} = Vector{Float64}(),
+) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
     start_time = now()
 
@@ -61,9 +66,13 @@ function fit!(estimator::LGBMEstimator, X::Matrix{TX},
 
     return results
 end
+# Old signature, pass through args
+fit!(estimator, X, y, test...; kwargs...) = fit!(estimator, estimator.num_iterations, X, y, test...; kwargs...)
 
-function train!(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer,
-               start_time::DateTime)
+
+function train!(
+    estimator::LGBMEstimator, num_iterations::Int, tests_names::Vector{String}, verbosity::Integer, start_time::DateTime
+)
     results = Dict{String,Dict{String,Vector{Float64}}}()
     n_tests = length(tests_names)
     metrics = LGBM_BoosterGetEvalNames(estimator.booster)
@@ -96,6 +105,8 @@ function train!(estimator::LGBMEstimator, tests_names::Vector{String}, verbosity
 
     return results
 end
+# Old signature, pas through args
+train!(estimator, tests_names, verbosity, start_time) = train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time)
 
 function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, tests_names::Vector{String}, iter::Integer,
@@ -139,6 +150,7 @@ function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
     return 0
 end
 
+
 function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, iter::Integer, evalname::String,
                        scores::Vector{Cdouble}, metrics::Vector{String})
@@ -158,6 +170,7 @@ function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
     return nothing
 end
 
+
 function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_metrics::Integer,
                       scores::Vector{Cdouble}, metrics::Vector{String}, verbosity::Integer)
     log_info(verbosity, "Iteration: ", iter, ", ", name, "'s ")
@@ -167,6 +180,7 @@ function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_m
     end
     log_info(verbosity, "\n")
 end
+
 
 function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
     paramstring = ""
