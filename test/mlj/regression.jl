@@ -51,7 +51,7 @@ expected_return_type = Tuple{
 # Provided by Anthony Blaom as a simple integration test
 X, y = @load_boston;
 model = LightGBM.MLJInterface.LGBMRegressor()
-yhat = machine(model, X, y) |> fit! |> predict;
+yhat = fit!(machine(model, X, y); verbosity=0) |> predict;
 scitype(yhat) == AbstractVector{Continuous}
 @test rms(yhat, y) < 6  # or do proper out-of-sample test
 
