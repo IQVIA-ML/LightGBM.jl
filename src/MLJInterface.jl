@@ -189,7 +189,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
         report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
         # should probably dump report too, its just an empty dict...
         fitresult = (old_lgbm_model, old_classes, mlj_model)
-        return (fitresult, cache, report)
+        return (fitresult, cache, (report,))
     end
 
     # if we get here it's just means we need to call fit directly
