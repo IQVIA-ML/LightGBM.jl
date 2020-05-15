@@ -47,6 +47,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 expected_return_type = Tuple{
     LightGBM.LGBMClassification,
     CategoricalArrays.CategoricalArray,
+    LightGBM.MLJInterface.LGBMClassifier,
 }
 
 @test isa(fitresult, expected_return_type)
