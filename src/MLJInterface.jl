@@ -183,7 +183,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model, old_classes, old_mlj_model = fitresult
 
     # we can continue boosting if and only if num_iterations has changed
-    if MLJModelInterface.is_same_except(old_model, mode, :num_iterations)
+    if MLJModelInterface.is_same_except(old_mlj_model, mlj_model, :num_iterations)
         additional_iterations = mlj_model.num_iterations - old_mlj_model.num_iterations
         # eh this is ugly, possibly prompts a need for some refactoring
         report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
