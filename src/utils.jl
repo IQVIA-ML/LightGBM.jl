@@ -69,3 +69,32 @@ function shrinkresults!(results, last_retained_iter::Integer)
     end
     return nothing
 end
+
+
+function tryload!(estimator::LGBMEstimator)
+
+    if estimator.booster.handle == C_NULL
+        # first check for a serialised model
+        if length(estimator.model) == 0
+            throw(ErrorException("Estimator does not contain a fitted model."))
+        end
+        # load it
+        estimator.booster = LGBM_BoosterLoadModelFromString(estimator.model)
+    end
+
+    return nothing
+end
+
+
+function get_iter_number(estimator::LGBMEstimator)
+
+    if estimator.booster.handle == C_NULL
+        # We cannot call LGBM_BoosterGetCurrentIteration without an initialised booster
+        throw(ErrorException("Estimator does not contain any form of booster"))
+    end
+
+    # we add plus 1 to be julia indexing friendly
+    return LGBM_BoosterGetCurrentIteration(estimator.booster)
+
+end
+

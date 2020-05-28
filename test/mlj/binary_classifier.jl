@@ -40,8 +40,9 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 # All we can really say about fitting with/without weights for this example is that the solutions shouldn't be identical
 @test yhat_with_weights != yhat
 
-# It's what it should be for now
-@test cache==nothing
+# Cache contains iterations counts history
+@test cache isa NamedTuple
+@test cache.num_boostings_done == [100]
 
 @test isa(report, Tuple)
 

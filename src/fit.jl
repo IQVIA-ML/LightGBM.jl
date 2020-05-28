@@ -81,7 +81,10 @@ function train!(
     best_score = fill(-Inf, (n_metrics, n_tests))
     best_iter = fill(1, (n_metrics, n_tests))
 
-    for iter in 1:estimator.num_iterations
+    start_iter = get_iter_number(estimator) + 1
+    end_iter = start_iter + num_iterations - 1
+
+    for iter in start_iter:end_iter
         is_finished = LGBM_BoosterUpdateOneIter(estimator.booster)
         log_debug(verbosity, Dates.CompoundPeriod(now() - start_time),
                   " elapsed, finished iteration ", iter, "\n")
@@ -94,9 +97,7 @@ function train!(
                      "split requirements.")
         end
         if is_finished == 1
-            # save the model in serialised form, in case we should be deepcopied or serialised elsewhere
-            estimator.model = LGBM_BoosterSaveModelToString(estimator.booster, 0, 0)
-            return results
+            break
         end
     end
 
@@ -105,8 +106,9 @@ function train!(
 
     return results
 end
-# Old signature, pas through args
+# Old signature, pass through args
 train!(estimator, tests_names, verbosity, start_time) = train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time)
+
 
 function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
                        estimator::LGBMEstimator, tests_names::Vector{String}, iter::Integer,

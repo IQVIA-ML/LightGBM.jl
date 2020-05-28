@@ -170,8 +170,8 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     w = Float32.(w)
     report = LightGBM.fit!(model, X, y_lgbm; verbosity=verbosity, weights=w)
 
-    fitresult = (model, classes, mlj_model)
-    cache = nothing
+    fitresult = (model, classes, deepcopy(mlj_model))
+    cache = (num_boostings_done=[LightGBM.get_iter_number(model)], )
     report = (report,)
 
     return (fitresult, cache, report)
@@ -183,17 +183,35 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model, old_classes, old_mlj_model = fitresult
 
     # we can continue boosting if and only if num_iterations has changed
-    if MLJModelInterface.is_same_except(old_mlj_model, mlj_model, :num_iterations)
-        additional_iterations = mlj_model.num_iterations - old_mlj_model.num_iterations
-        # eh this is ugly, possibly prompts a need for some refactoring
-        report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
-        # should probably dump report too, its just an empty dict...
-        fitresult = (old_lgbm_model, old_classes, mlj_model)
-        return (fitresult, cache, (report,))
+    if !MLJModelInterface.is_same_except(old_mlj_model, mlj_model, :num_iterations)
+        # if we get here it's just means we need to call fit directly
+        return MLJInterface.fit(mlj_model, verbosity, X, y, w)
     end
 
-    # if we get here it's just means we need to call fit directly
-    return MLJInterface.fit(mlj_model, verbosity, X, y, w)
+    additional_iterations = mlj_model.num_iterations - old_mlj_model.num_iterations
+    if verbosity >= 1
+        @info("Not refitting from scratch", additional_iterations)
+    end
+
+    # splice the data into the estimator -- we need to update num_iterations,
+    # taking into account it may have stopped early previously
+    # It might well stop early again too, but give it a chance
+    # Also ideally early stopping would be implemented via this mechanism and MLJ anyway
+    num_iterations = sum(cache.num_boostings_done)
+    old_lgbm_model.num_iterations = num_iterations + additional_iterations
+
+    # eh this is ugly, possibly prompts a need for some refactoring
+    report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
+
+    # should probably dump report too, its just an empty dict...
+    fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
+
+    final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
+    iteration_history = deepcopy(cache.num_boostings_done)
+    push!(iteration_history, final_num_iter - num_iterations)
+    newcache = (num_boostings_done=iteration_history, )
+
+    return (fitresult, newcache, (report,))
 
 end
 

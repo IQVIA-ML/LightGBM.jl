@@ -62,16 +62,3 @@ function predict_classes(
 
 end
 
-function tryload!(estimator::LGBMEstimator)
-
-    if estimator.booster.handle == C_NULL
-        # first check for a serialised model
-        if length(estimator.model) == 0
-            throw(ErrorException("Estimator does not contain a fitted model."))
-        end
-        # load it
-        estimator.booster = LGBM_BoosterLoadModelFromString(estimator.model)
-    end
-
-    return nothing
-end
