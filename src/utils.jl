@@ -93,7 +93,6 @@ function get_iter_number(estimator::LGBMEstimator)
         throw(ErrorException("Estimator does not contain any form of booster"))
     end
 
-    # we add plus 1 to be julia indexing friendly
     return LGBM_BoosterGetCurrentIteration(estimator.booster)
 
 end
