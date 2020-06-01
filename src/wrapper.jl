@@ -555,6 +555,22 @@ function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, n
 
 end
 
+function LGBM_BoosterFeatureImportance(bst::Booster, num_iteration::Integer, importance_type::Integer)::Vector{Float64}
+
+    num_features = LGBM_BoosterGetNumFeature(bst)
+    out_result = Array{Cdouble}(undef, num_features)
+
+    @lightgbm(
+        :LGBM_BoosterFeatureImportance,
+        bst.handle => BoosterHandle,
+        num_iteration => Cint,
+        importance_type => Cint,
+        out_result => Ref{Cdouble},
+    )
+
+    return out_result
+end
+
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()

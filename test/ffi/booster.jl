@@ -311,4 +311,30 @@ end
 end
 
 
+@testset "LGBM_BoosterFeatureImportance" begin
+
+    booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "gain_test_booster"))
+
+    split_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 0)
+    gain_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 1)
+
+    split_sub_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 2, 0)
+    gain_sub_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 2, 1)
+
+    # this is copy/paste from python output without tweaks to display nums, it should be fine though
+    # splits are actually ints
+    expected_gain = [1564.8602393 , 1626.44645841, 1511.61817613, 1797.4520696, 1765.86685777]
+    expected_split = [563, 588, 553, 663, 633]
+
+    @test isapprox(gain_importance, expected_gain, atol=1e-4)
+    @test split_importance == expected_split
+
+    expected_sub_gain = [69.14388967, 52.85783052, 75.43093014, 56.17689991, 96.83372998]
+    expected_sub_split = [12,  8, 13, 10, 17]
+
+    @test isapprox(gain_sub_importance, expected_sub_gain, atol=1e-4)
+    @test split_sub_importance == expected_sub_split
+
+end
+
 end # module
