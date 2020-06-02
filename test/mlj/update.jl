@@ -63,7 +63,7 @@ end
 
 @testset "MLJ update less iterations triggers refit" begin
     m.model.num_iterations -= 1
-    MLJBase.fit!(m; force=true, verbosity=0)
+    MLJBase.fit!(m; verbosity=0)
 
     iteration_count = LightGBM.get_iter_number(first(m.fitresult))
     cached_iteration_count = sum(m.cache.num_boostings_done)
