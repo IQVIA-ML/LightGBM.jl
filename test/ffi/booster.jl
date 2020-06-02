@@ -313,7 +313,11 @@ end
 
 @testset "LGBM_BoosterFeatureImportance" begin
 
+    @info "Before loading the gain_test_booster"
+
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "gain_test_booster"))
+
+    @info "After loading the gain_test_booster"
 
     split_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 0)
     gain_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 1)
