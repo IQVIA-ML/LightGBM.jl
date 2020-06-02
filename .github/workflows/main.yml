@@ -43,4 +43,3 @@ jobs:
         continue-on-error: false
         env:
           LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
-          OMP_NUM_THREADS: 1
