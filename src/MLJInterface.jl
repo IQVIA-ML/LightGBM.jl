@@ -189,6 +189,15 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     end
 
     additional_iterations = mlj_model.num_iterations - old_mlj_model.num_iterations
+
+    if additional_iterations < 0
+        # less iterations isn't very valid so re-fit from scratch
+        # TODO: I think theres a LightGBM API where you can prune
+        # the boosting, so we would just do that instead of wasting time re-fitting
+        # although we'd still have to consider fit-report etc
+        return MLJInterface.fit(mlj_model, verbosity, X, y, w)
+    end
+
     if verbosity >= 1
         @info("Not refitting from scratch", additional_iterations)
     end

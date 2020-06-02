@@ -27,8 +27,8 @@ function fit!(
     estimator::LGBMEstimator, num_iterations::Int, X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...;
     verbosity::Integer = 1,
     is_row_major = false,
-    weights::Vector{Tw} = Vector{Float32}(),
-    init_score::Vector{Ti} = Vector{Float64}(),
+    weights::Vector{Tw} = Float32[],
+    init_score::Vector{Ti} = Float64[],
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
     start_time = now()
