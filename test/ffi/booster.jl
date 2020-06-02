@@ -331,8 +331,8 @@ end
 
     # this is copy/paste from python output without tweaks to display nums, it should be fine though
     # splits are actually ints
-    expected_gain = [262.93368053, 269.4555105, 320.6928091, 286.09041023, 308.96520162]
-    expected_split = [55, 58, 67, 59, 61]
+    expected_gain = [89.73980999, 65.49232054, 112.80447054, 107.81817985, 124.81229973]
+    expected_split = [17, 11, 19, 20, 23]
 
     @test isapprox(gain_importance, expected_gain, atol=1e-4)
     @test split_importance == expected_split
