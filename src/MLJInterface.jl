@@ -157,7 +157,7 @@ function mlj_to_kwargs(model::LGBMClassifier, classes)
 end
 
 # X and y and w must be untyped per MLJ docs
-function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
+function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
     # MLJ docs are clear that 0 means silent. but 0 in LightGBM world means "warnings"
     # and < 0 means fatal logs only, so we put intended silence to -1 (which is probably the closest we get)
@@ -170,13 +170,57 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=Vector{AbstractFloat}())
     w = Float32.(w)
     report = LightGBM.fit!(model, X, y_lgbm; verbosity=verbosity, weights=w)
 
-    model = (model, classes)
-    cache = nothing
+    fitresult = (model, classes, deepcopy(mlj_model))
+    cache = (num_boostings_done=[LightGBM.get_iter_number(model)], )
     report = (report,)
 
-    # Caution: The model is a pointer to a memory location including its training data
-    # This definitely needs fixing
-    return (model, cache, report)
+    return (fitresult, cache, report)
+
+end
+
+function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w=AbstractFloat[])
+
+    old_lgbm_model, old_classes, old_mlj_model = fitresult
+
+    # we can continue boosting if and only if num_iterations has changed
+    if !MLJModelInterface.is_same_except(old_mlj_model, mlj_model, :num_iterations)
+        # if we get here it's just means we need to call fit directly
+        return MLJInterface.fit(mlj_model, verbosity, X, y, w)
+    end
+
+    additional_iterations = mlj_model.num_iterations - old_mlj_model.num_iterations
+
+    if additional_iterations < 0
+        # less iterations isn't very valid so re-fit from scratch
+        # TODO: I think theres a LightGBM API where you can prune
+        # the boosting, so we would just do that instead of wasting time re-fitting
+        # although we'd still have to consider fit-report etc
+        return MLJInterface.fit(mlj_model, verbosity, X, y, w)
+    end
+
+    if verbosity >= 1
+        @info("Not refitting from scratch", additional_iterations)
+    end
+
+    # splice the data into the estimator -- we need to update num_iterations,
+    # taking into account it may have stopped early previously
+    # It might well stop early again too, but give it a chance
+    # Also ideally early stopping would be implemented via this mechanism and MLJ anyway
+    num_iterations = sum(cache.num_boostings_done)
+    old_lgbm_model.num_iterations = num_iterations + additional_iterations
+
+    # eh this is ugly, possibly prompts a need for some refactoring
+    report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
+
+    # should probably dump report too, its just an empty dict...
+    fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
+
+    final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
+    iteration_history = deepcopy(cache.num_boostings_done)
+    push!(iteration_history, final_num_iter - num_iterations)
+    newcache = (num_boostings_done=iteration_history, )
+
+    return (fitresult, newcache, (report,))
 
 end
 
@@ -195,7 +239,7 @@ end
 @inline prepare_targets(targets::AbstractVector, model::LGBMRegressor) = targets, []
 
 
-function predict_classifier((fitted_model, classes), Xnew)
+function predict_classifier((fitted_model, classes, _), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
@@ -208,7 +252,7 @@ function predict_classifier((fitted_model, classes), Xnew)
 
 end
 
-function predict_regression((fitted_model, classes), Xnew)
+function predict_regression((fitted_model, classes, _), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
     return dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
@@ -220,6 +264,11 @@ end
 MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y) = MLJInterface.fit(model, verbosity, X, y)
 MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y, w::Nothing) = MLJInterface.fit(model, verbosity, X, y)
 MLJModelInterface.fit(model::MLJInterface.MODELS, verbosity::Int, X, y, w) = MLJInterface.fit(model, verbosity, X, y, w)
+
+# Add `update` method
+MLJModelInterface.update(model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y) = MLJInterface.update(model, verbosity, fitresult, cache, X, y)
+MLJModelInterface.update(model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w::Nothing) = MLJInterface.update(model, verbosity, fitresult, cache, X, y)
+MLJModelInterface.update(model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w) = MLJInterface.update(model, verbosity, fitresult, cache, X, y, w)
 
 MLJModelInterface.predict(model::MLJInterface.LGBMClassifier, fitresult, Xnew) = MLJInterface.predict_classifier(fitresult, Xnew)
 MLJModelInterface.predict(model::MLJInterface.LGBMRegressor, fitresult, Xnew) = MLJInterface.predict_regression(fitresult, Xnew)

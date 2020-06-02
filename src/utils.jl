@@ -6,7 +6,7 @@ const BOOSTERPARAMS = [:application, :learning_rate, :num_leaves, :max_depth, :t
                        :feature_fraction, :feature_fraction_seed, :bagging_fraction,
                        :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
                        :is_unbalance, :metric, :is_training_metric, :ndcg_at, :num_machines,
-                       :local_listen_port, :time_out, :machine_list_file, :num_class,:device]
+                       :local_listen_port, :time_out, :machine_list_file, :num_class, :device_type]
 
 const INDEXPARAMS = [:categorical_feature]
 
@@ -69,3 +69,31 @@ function shrinkresults!(results, last_retained_iter::Integer)
     end
     return nothing
 end
+
+
+function tryload!(estimator::LGBMEstimator)
+
+    if estimator.booster.handle == C_NULL
+        # first check for a serialised model
+        if length(estimator.model) == 0
+            throw(ErrorException("Estimator does not contain a fitted model."))
+        end
+        # load it
+        estimator.booster = LGBM_BoosterLoadModelFromString(estimator.model)
+    end
+
+    return nothing
+end
+
+
+function get_iter_number(estimator::LGBMEstimator)
+
+    if estimator.booster.handle == C_NULL
+        # We cannot call LGBM_BoosterGetCurrentIteration without an initialised booster
+        throw(ErrorException("Estimator does not contain any form of booster"))
+    end
+
+    return LGBM_BoosterGetCurrentIteration(estimator.booster)
+
+end
+

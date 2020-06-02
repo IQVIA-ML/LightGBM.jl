@@ -32,6 +32,10 @@ end
         include(joinpath("mlj", "regression.jl"))
     end
 
+    @testset "MLJ update interface" begin
+        include(joinpath("mlj", "update.jl"))
+    end
+
 end
 
 
