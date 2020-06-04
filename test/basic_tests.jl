@@ -89,6 +89,34 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     @test_broken isapprox(p_binary, p_multi[:, 2], rtol=1e-16)
     @test_broken binary_classes == multi_classes
 
+    @testset "feature importances" begin
+    # This is kinda lazy .... tests start to need more refactoring
+
+        # Check the feature importances seems to work
+        gains = LightGBM.gain_importance(estimator)
+        splits = LightGBM.split_importance(estimator)
+
+        # splits should always be ints, gains can be anything but what we know is that they should be different than splits
+        @test all(isinteger.(splits))
+        @test splits != gains
+
+        sub_gains = LightGBM.gain_importance(estimator, 1)
+        sub_splits = LightGBM.split_importance(estimator, 1)
+
+        @test all(isinteger.(splits))
+        @test splits != gains
+
+        @test sub_splits != splits
+        @test sub_gains != gains
+
+        # check it voms appropriately when fed an untrained thingy
+        empty_estimator = LightGBM.LGBMClassification()
+        @test_throws ErrorException LightGBM.gain_importance(empty_estimator)
+        @test_throws ErrorException LightGBM.split_importance(empty_estimator)
+
+    end
+
+
     # Test setting feature names
     jl_feature_names = ["testname_$i" for i in 1:28]
     LightGBM.LGBM_DatasetSetFeatureNames(estimator.booster.datasets |> first, jl_feature_names)

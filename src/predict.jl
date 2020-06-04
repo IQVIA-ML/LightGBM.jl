@@ -10,13 +10,16 @@ Use `dropdims` if a vector is required.
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `X::Matrix{T<:Real}`: the features data.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
-    scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
+    scores with transform (if needed), `1` for raw scores, `2` for leaf indices, `3` for SHAP contributions.
 * `num_iterations::Integer`: keyword argument that sets the number of iterations of the model to
     use in the prediction. `< 0` for all iterations.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
+
+One can obtain some form of feature importances by averaging SHAP contributions across predictions, i.e.
+`mean(LightGBM.predict(estimator, X; predict_type=3); dims=1)`
 """
 function predict(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,

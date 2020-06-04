@@ -12,6 +12,24 @@ const INDEXPARAMS = [:categorical_feature]
 
 const MAXIMIZE_METRICS = ["auc", "ndcg"]
 
+# LOGGING Funcs
+function log_fatal(verbosity::Integer, msg...)
+    warn(msg...)
+end
+
+function log_warning(verbosity::Integer, msg...)
+    verbosity >= 0 && warn(msg...)
+end
+
+function log_info(verbosity::Integer, msg...)
+    verbosity >= 1 && print(msg...)
+end
+
+function log_debug(verbosity::Integer, msg...)
+    verbosity >= 2 && print(msg...)
+end
+
+
 """
     savemodel(estimator, filename; [num_iteration = -1])
 
@@ -44,21 +62,6 @@ function loadmodel(estimator::LGBMEstimator, filename::String)
     return nothing
 end
 
-function log_fatal(verbosity::Integer, msg...)
-    warn(msg...)
-end
-
-function log_warning(verbosity::Integer, msg...)
-    verbosity >= 0 && warn(msg...)
-end
-
-function log_info(verbosity::Integer, msg...)
-    verbosity >= 1 && print(msg...)
-end
-
-function log_debug(verbosity::Integer, msg...)
-    verbosity >= 2 && print(msg...)
-end
 
 function shrinkresults!(results, last_retained_iter::Integer)
     for test_key in keys(results)
@@ -97,3 +100,31 @@ function get_iter_number(estimator::LGBMEstimator)
 
 end
 
+
+function feature_importance_wrapper(estimator::LGBMEstimator, importance_type::Integer, num_iteration::Integer)
+    # reason why main func isn't marked as a mutator because it isnt an "important" mutation
+    tryload!(estimator)
+    return LGBM_BoosterFeatureImportance(estimator.booster, num_iteration, importance_type)
+
+end
+
+"""
+    gain_importance(estimator, num_iteration)
+    gain_importance(estimator)
+
+    Returns the importance of a fitted booster in terms of information gain across
+    all boostings, or up to `num_iteration` boostings
+"""
+gain_importance(estimator::LGBMEstimator, num_iteration::Integer) = feature_importance_wrapper(estimator, 1, num_iteration)
+gain_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator, 1, 0)
+
+
+"""
+    split_importance(estimator, num_iteration)
+    split_importance(estimator)
+
+    Returns the importance of a fitted booster in terms of number of times feature was
+    used in a split across all boostings, or up to `num_iteration` boostings
+"""
+split_importance(estimator::LGBMEstimator, num_iteration::Integer) = feature_importance_wrapper(estimator, 0, num_iteration)
+split_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator, 0, 0)
