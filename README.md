@@ -222,6 +222,27 @@ the parameters or data of the estimator whose model was saved as `filename`.
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `filename::String`: the name of the file that contains the model.
 
+### `gain_importance(estimator, num_iterations)`
+Returns the importance of a fitted booster in terms of information gain across
+all boostings, or up to `num_iteration` boostings. If `num_iterations` is not provided
+all iterations will be used.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `num_iteration::Integer`: sets the number of iterations of the model that should be used
+for gain computations
+
+### `split_importance(estimator, num_iterations)`
+Returns the importance of a fitted booster in terms of number of times feature was
+used in a split across all boostings, or up to `num_iteration` boostings. If `num_iterations`
+is not provided all iterations will be used.
+
+#### Arguments
+* `estimator::LGBMEstimator`: the estimator to use in the prediction.
+* `num_iteration::Integer`: sets the number of iterations of the model that should be used
+for split importance computations
+
+
 ## Estimators
 
 ### `LGBMRegression <: LGBMEstimator`
