@@ -313,15 +313,8 @@ end
 
 @testset "LGBM_BoosterFeatureImportance" begin
 
-    @info "Before loading the gain_test_booster"
     booster_path = joinpath(@__DIR__, "data", "gain_test_booster")
-    booster_str = read(booster_path, String)
-    @info "Read booster as a string"
-    booster1 = LightGBM.LGBM_BoosterLoadModelFromString(booster_str)
-    @info "Now reading directly from file"
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(booster_path)
-
-    @info "After loading the gain_test_booster"
 
     split_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 0)
     gain_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 1)
