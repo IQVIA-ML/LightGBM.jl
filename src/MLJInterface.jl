@@ -248,7 +248,7 @@ function predict_classifier((fitted_model, classes, _), Xnew)
         predicted = hcat(1. .- predicted, predicted)
     end
 
-    return [MLJModelInterface.UnivariateFinite(classes, predicted[row, :]) for row in 1:size(predicted, 1)]
+    return MLJModelInterface.UnivariateFinite(classes, predicted)
 
 end
 
