@@ -67,7 +67,15 @@ function fit!(
     return results
 end
 # Old signature, pass through args
-fit!(estimator, X, y, test...; kwargs...) = fit!(estimator, estimator.num_iterations, X, y, test...; kwargs...)
+function fit!(
+    estimator::LGBMEstimator,
+    X::Matrix{TX},
+    y::Vector{Ty},
+    test::Tuple{Matrix{TX},Vector{Ty}}...;
+    kwargs...
+)  where {TX<:Real,Ty<:Real}
+    return fit!(estimator, estimator.num_iterations, X, y, test...; kwargs...)
+end
 
 
 function train!(
@@ -107,7 +115,11 @@ function train!(
     return results
 end
 # Old signature, pass through args
-train!(estimator, tests_names, verbosity, start_time) = train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time)
+function train!(
+    estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer, start_time::DateTime
+)
+    return train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time)
+end
 
 
 function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
