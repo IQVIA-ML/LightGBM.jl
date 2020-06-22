@@ -4,8 +4,9 @@ abstract type LGBMEstimator <: Estimator end
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
-
+    application::String    
+    boosting::String
+    
     num_iterations::Int
     learning_rate::Float64
     num_leaves::Int
@@ -35,6 +36,15 @@ mutable struct LGBMRegression <: LGBMEstimator
 
     is_unbalance::Bool
 
+    drop_rate::Float64
+    max_drop::Int
+    skip_drop:: Float64
+    xgboost_dart_mode::Bool
+    uniform_drop::Bool
+    drop_seed::Int
+    top_rate::Float64
+    other_rate::Float64
+
     metric::Vector{String}
     metric_freq::Int
     is_training_metric::Bool
@@ -52,6 +62,7 @@ end
 """
     LGBMRegression(; [
         objective = "regression",
+        boosting = "gbdt",
         num_iterations = 10,
         learning_rate = .1,
         num_leaves = 127,
@@ -77,6 +88,14 @@ end
         save_binary = false,
         categorical_feature = Int[],
         is_unbalance = false,
+        drop_rate = 0.1,
+        max_drop = 50,
+        skip_drop = 0.5,
+        xgboost_dart_mode = false,
+        uniform_drop = false,
+        drop_seed = 4,
+        top_rate = 0.2,
+        other_rate = 0.1,
         metric = [\"l2\"],
         metric_freq = 1,
         is_training_metric = false,
@@ -92,6 +111,7 @@ Return a LGBMRegression estimator.
 """
 function LGBMRegression(;
     objective = "regression",
+    boosting = "gbdt",
     num_iterations = 10,
     learning_rate = .1,
     num_leaves = 127,
@@ -117,6 +137,14 @@ function LGBMRegression(;
     save_binary = false,
     categorical_feature = Int[],
     is_unbalance = false,
+    drop_rate = 0.1,
+    max_drop = 50,
+    skip_drop = 0.5,
+    xgboost_dart_mode = false,
+    uniform_drop = false,
+    drop_seed = 4,
+    top_rate = 0.2,
+    other_rate = 0.1,
     metric = ["l2"],
     metric_freq = 1,
     is_training_metric = false,
@@ -129,14 +157,16 @@ function LGBMRegression(;
 )
 
     return LGBMRegression(
-        Booster(), "", objective, num_iterations, learning_rate, num_leaves,
+        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves,
         max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
         max_bin, data_random_seed, init_score,
         is_sparse, save_binary, categorical_feature,
-        is_unbalance, metric, metric_freq,
+        is_unbalance, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
+        uniform_drop, drop_seed, top_rate, other_rate,
+        metric, metric_freq,
         is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, 1, device_type
     )
@@ -147,6 +177,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     booster::Booster
     model::String
     application::String
+    boosting :: String
 
     num_iterations::Int
     learning_rate::Float64
@@ -176,6 +207,15 @@ mutable struct LGBMClassification <: LGBMEstimator
     categorical_feature::Vector{Int}
 
     is_unbalance::Bool
+
+    drop_rate::Float64
+    max_drop::Int
+    skip_drop:: Float64
+    xgboost_dart_mode::Bool
+    uniform_drop::Bool
+    drop_seed::Int
+    top_rate::Float64
+    other_rate::Float64
 
     metric::Vector{String}
     metric_freq::Int
@@ -195,6 +235,7 @@ end
 """
     LGBMClassification(;[
         objective = "multiclass",
+        boosting = "gbdt",
         num_iterations = 10,
         learning_rate = .1,
         num_leaves = 127,
@@ -220,6 +261,14 @@ end
         save_binary = false,
         categorical_feature = Int[],
         is_unbalance = false,
+        drop_rate = 0.1,
+        max_drop = 50,
+        skip_drop = 0.5,
+        xgboost_dart_mode = false,
+        uniform_drop = false,
+        drop_seed = 4,
+        top_rate = 0.2,
+        other_rate = 0.1,
         metric = [\"multi_logloss\"],
         metric_freq = 1,
         is_training_metric = false,
@@ -236,6 +285,7 @@ Return a LGBMClassification estimator.
 """
 function LGBMClassification(;
     objective = "multiclass",
+    boosting = "gbdt",
     num_iterations = 10,
     learning_rate = .1,
     num_leaves = 127,
@@ -261,6 +311,14 @@ function LGBMClassification(;
     save_binary = false,
     categorical_feature = Int[],
     is_unbalance = false,
+    drop_rate = 0.1,
+    max_drop = 50,
+    skip_drop = 0.5,
+    xgboost_dart_mode = false,
+    uniform_drop = false,
+    drop_seed = 4,
+    top_rate = 0.2,
+    other_rate = 0.1,
     metric = ["None"],
     metric_freq = 1,
     is_training_metric = false,
@@ -274,14 +332,15 @@ function LGBMClassification(;
 )
 
     return LGBMClassification(
-        Booster(), "", objective, num_iterations, learning_rate,
+        Booster(), "", objective, boosting, num_iterations, learning_rate,
         num_leaves, max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
         max_bin, data_random_seed, init_score,
         is_sparse, save_binary, categorical_feature,
-        is_unbalance, metric, metric_freq,
+        is_unbalance, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
+        uniform_drop, drop_seed, top_rate, other_rate, metric, metric_freq,
         is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, num_class, device_type,
     )
