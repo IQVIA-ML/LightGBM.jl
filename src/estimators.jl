@@ -4,9 +4,9 @@ abstract type LGBMEstimator <: Estimator end
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String
-    application::String    
+    application::String
     boosting::String
-    
+
     num_iterations::Int
     learning_rate::Float64
     num_leaves::Int
