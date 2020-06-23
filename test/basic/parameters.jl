@@ -25,24 +25,34 @@ norm(x) = sqrt(sum(x .^ 2))
 
     classifier_gdbt = LightGBM.LGBMClassification(boosting = "gbdt")
     classifier_dart = LightGBM.LGBMClassification(boosting = "dart")
+    classifier_goss = LightGBM.LGBMClassification(boosting = "goss")
     regressor_gbdt = LightGBM.LGBMRegression(boosting = "gbdt")
     regressor_dart = LightGBM.LGBMRegression(boosting = "dart")
+    regressor_goss = LightGBM.LGBMRegression(boosting = "goss")
 
     LightGBM.fit!(classifier_dart, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(classifier_gdbt, X_train, y_train_binary, verbosity = -1)
+    LightGBM.fit!(classifier_goss, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(regressor_gbdt, X_train, y_train_regression, verbosity = -1)
     LightGBM.fit!(regressor_dart, X_train, y_train_regression, verbosity = -1)
+    LightGBM.fit!(regressor_goss, X_train, y_train_regression, verbosity = -1)
 
     p_gbdt = LightGBM.predict(classifier_gdbt, X_test, verbosity = -1)
     p_dart = LightGBM.predict(classifier_dart, X_test, verbosity = -1)
-    r_gdbt = LightGBM.predict(regressor_gbdt, X_test, verbosity = -1)
+    p_goss = LightGBM.predict(classifier_goss, X_test, verbosity = -1)
+    r_gbdt = LightGBM.predict(regressor_gbdt, X_test, verbosity = -1)
     r_dart = LightGBM.predict(regressor_dart, X_test, verbosity = -1)
+    r_goss = LightGBM.predict(regressor_goss, X_test, verbosity = -1)
 
     # checking the models are sufficiently different by making sure
     # that the distance between the vectors is relatively large
     @test norm(p_dart .- p_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(p_goss .- p_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(p_dart .- p_goss) >= sqrt(NSAMPLES_TEST) * 1e-5
     # Check also for regression
-    @test norm(r_dart .- r_gdbt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(r_dart .- r_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(r_goss .- r_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(r_dart .- r_goss) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
 
@@ -121,6 +131,57 @@ end
     @test norm(r_dart_default .- r_dart_xdm) >= sqrt(NSAMPLES_TEST) * 1e-10
     @test_broken norm(r_dart_default .- r_dart_uniform_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(r_dart_default .- r_dart_drop_seed) >= sqrt(NSAMPLES_TEST) * 1e-5
+
+end
+
+@testset "parameters -- goss classifcation" begin
+
+    # the scheme is to set up a goss classifier and show that changing each one of
+    # the parameters individually results in a difference to the model
+
+    goss_default = LightGBM.LGBMClassification(boosting = "goss")
+    goss_top_rate = LightGBM.LGBMClassification(boosting = "goss", top_rate = 0.9)
+    goss_other_rate = LightGBM.LGBMClassification(boosting = "goss", other_rate = 0.8)
+
+
+    LightGBM.fit!(goss_default, X_train, y_train_binary, verbosity = -1)
+    LightGBM.fit!(goss_top_rate, X_train, y_train_binary, verbosity = -1)
+    LightGBM.fit!(goss_other_rate, X_train, y_train_binary, verbosity = -1)
+
+
+    p_goss_default = LightGBM.predict(goss_default, X_test, verbosity = -1)
+    p_goss_top_rate = LightGBM.predict(goss_top_rate, X_test, verbosity = -1)
+    p_goss_other_rate = LightGBM.predict(goss_other_rate, X_test, verbosity = -1)
+
+
+    @test norm(p_goss_default .- p_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(p_goss_default .- p_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+
+end
+
+
+@testset "parameters -- goss regression" begin
+
+    # the scheme is to set up a goss regressor and show that changing each one of
+    # the parameters individually results in a difference to the model
+
+    goss_default = LightGBM.LGBMRegression(boosting = "goss")
+    goss_top_rate = LightGBM.LGBMRegression(boosting = "goss", top_rate = 0.9)
+    goss_other_rate = LightGBM.LGBMRegression(boosting = "goss", other_rate = 0.8)
+
+
+    LightGBM.fit!(goss_default, X_train, y_train_regression, verbosity = -1)
+    LightGBM.fit!(goss_top_rate, X_train, y_train_regression, verbosity = -1)
+    LightGBM.fit!(goss_other_rate, X_train, y_train_regression, verbosity = -1)
+
+
+    r_goss_default = LightGBM.predict(goss_default, X_test, verbosity = -1)
+    r_goss_top_rate = LightGBM.predict(goss_top_rate, X_test, verbosity = -1)
+    r_goss_other_rate = LightGBM.predict(goss_other_rate, X_test, verbosity = -1)
+
+
+    @test norm(r_goss_default .- r_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(r_goss_default .- r_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
 
