@@ -249,6 +249,7 @@ for split importance computations
 ```julia
 LGBMRegression(;
     objective = "regression",
+    boosting = "gbdt",
     num_iterations = 10,
     learning_rate = .1,
     num_leaves = 127,
@@ -299,6 +300,7 @@ Return an LGBMRegression estimator.
 ```julia
 LGBMClassification(;
     objective = "multiclass",
+    boosting = "gbdt",
     num_iterations = 10,
     learning_rate = .1,
     num_leaves = 127,
