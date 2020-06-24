@@ -18,8 +18,8 @@ parameters = Dict(
     :other_rate => 0.2,
 )
 
-# The tests for regressor and classifier is to check if
-# the parameters are present or not after we fit them
+# The tests for regressor and classifier is to check
+# if the MLJ parameters are present in the LGBMEstimators 
 
 @testset "MLJ parameters -- regressor" begin
 
