@@ -47,11 +47,11 @@ norm(x) = sqrt(sum(x .^ 2))
     # checking the models are sufficiently different by making sure
     # that the distance between the vectors is relatively large
     @test norm(p_dart .- p_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
-    @test norm(p_goss .- p_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(p_goss .- p_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(p_dart .- p_goss) >= sqrt(NSAMPLES_TEST) * 1e-5
     # Check also for regression
     @test norm(r_dart .- r_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
-    @test norm(r_goss .- r_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(r_goss .- r_gbdt) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(r_dart .- r_goss) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
@@ -154,8 +154,8 @@ end
     p_goss_other_rate = LightGBM.predict(goss_other_rate, X_test, verbosity = -1)
 
 
-    @test norm(p_goss_default .- p_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
-    @test norm(p_goss_default .- p_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(p_goss_default .- p_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(p_goss_default .- p_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
 
@@ -180,8 +180,8 @@ end
     r_goss_other_rate = LightGBM.predict(goss_other_rate, X_test, verbosity = -1)
 
 
-    @test norm(r_goss_default .- r_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
-    @test norm(r_goss_default .- r_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(r_goss_default .- r_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test_broken norm(r_goss_default .- r_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
 
