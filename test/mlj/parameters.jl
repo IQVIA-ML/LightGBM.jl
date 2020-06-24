@@ -18,11 +18,17 @@ parameters = Dict(
     :other_rate => 0.2,
 )
 
+# The tests for regressor and classifier is to check if
+# the parameters are present or not after we fit them
 
 @testset "MLJ parameters -- regressor" begin
 
     X, y = @MLJBase.load_boston;
+    
+    # Passed the dictionary of parameters to the regressor model 
     model = LightGBM.MLJInterface.LGBMRegressor(;parameters...)
+
+    # Extract the estimator
     fit_result, _, _ = MLJBase.fit(model, 0, X, y)
     estimator, _, _ = fit_result
 
