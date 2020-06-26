@@ -1,12 +1,14 @@
 const DATASETPARAMS = [:is_sparse, :max_bin, :data_random_seed, :categorical_feature]
 
-const BOOSTERPARAMS = [:application, :learning_rate, :num_leaves, :max_depth, :tree_learner,
-                       :num_threads, :histogram_pool_size, :min_data_in_leaf,
-                       :min_sum_hessian_in_leaf, :lambda_l1, :lambda_l2, :min_gain_to_split,
-                       :feature_fraction, :feature_fraction_seed, :bagging_fraction,
-                       :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
-                       :is_unbalance, :metric, :is_training_metric, :ndcg_at, :num_machines,
-                       :local_listen_port, :time_out, :machine_list_file, :num_class, :device_type]
+const BOOSTERPARAMS = [
+    :application, :boosting, :learning_rate, :num_leaves, :max_depth, :tree_learner,
+    :num_threads, :histogram_pool_size, :min_data_in_leaf, :min_sum_hessian_in_leaf,
+    :lambda_l1, :lambda_l2, :min_gain_to_split, :feature_fraction, :feature_fraction_seed,
+    :bagging_fraction, :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
+    :is_unbalance, :drop_rate, :max_drop, :skip_drop, :xgboost_dart_mode, :uniform_drop,
+    :drop_seed, :top_rate, :other_rate, :metric, :is_training_metric, :ndcg_at, :num_machines,
+    :local_listen_port, :time_out, :machine_list_file, :num_class, :device_type,
+]
 
 const INDEXPARAMS = [:categorical_feature]
 

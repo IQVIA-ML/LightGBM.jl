@@ -26,6 +26,7 @@ const REGRESSION_OBJECTIVES = (
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
@@ -45,6 +46,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     early_stopping_round::Int = 0
     max_bin::Int = 255::(_ > 1)
     init_score::String = ""
+    drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    max_drop::Int = 50 
+    skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
+    xgboost_dart_mode::Bool
+    uniform_drop::Bool
+    drop_seed::Int = 4
+    top_rate::Float64 = 0.2 :: (0.0 <= _ <= 1.0)
+    other_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
 
     # Model properties
     objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
@@ -74,6 +83,7 @@ end
 MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
@@ -93,6 +103,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     early_stopping_round::Int = 0
     max_bin::Int = 255::(_ > 1)
     init_score::String = ""
+    drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    max_drop::Int = 50 
+    skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
+    xgboost_dart_mode::Bool
+    uniform_drop::Bool
+    drop_seed::Int = 4
+    top_rate::Float64 = 0.2 :: (0.0 <= _ <= 1.0)
+    other_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
 
     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
     # Not included above because this is only present for the binary model in the FFI wrapper, hence commented out

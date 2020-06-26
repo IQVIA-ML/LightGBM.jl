@@ -20,6 +20,10 @@ end
 
 @testset "MLJ interface tests" begin
 
+    @testset "Parameters" begin
+        include(joinpath("mlj", "parameters.jl"))
+    end
+
     @testset "Binary LightGBM" begin
         include(joinpath("mlj", "binary_classifier.jl"))
     end
@@ -39,9 +43,17 @@ end
 end
 
 
+@testset "Basic tests" begin
+
+    @testset "Estimator parameters" begin
+        include(joinpath("basic", "parameters.jl"))
+    end
+
+end
+
 @testset "Integration tests" begin
 
-    @testset "Basic Tests" begin
+    @testset "(OLD) Basic Tests" begin
         include("basic_tests.jl")
     end
 
