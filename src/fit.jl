@@ -91,16 +91,23 @@ function train!(
 
     start_iter = get_iter_number(estimator) + 1
     end_iter = start_iter + num_iterations - 1
+    total_metrics_evals = sum((((start_iter:end_iter) .- 1) .% estimator.metric_freq) .== 0)
 
     for iter in start_iter:end_iter
+
         is_finished = LGBM_BoosterUpdateOneIter(estimator.booster)
-        log_debug(verbosity, Dates.CompoundPeriod(now() - start_time),
-                  " elapsed, finished iteration ", iter, "\n")
+
+        log_debug(verbosity, Dates.CompoundPeriod(now() - start_time), " elapsed, finished iteration ", iter, "\n")
+
+        metric_idx = sum((((start_iter:iter) .- 1) .% estimator.metric_freq) .== 0)
+
         if is_finished == 0
-            is_finished = eval_metrics!(results, estimator, tests_names, iter, n_metrics,
-                                        verbosity, bigger_is_better, best_score, best_iter, metrics)
+            is_finished = eval_metrics!(
+                results, estimator, tests_names, iter, metric_idx, total_metrics_evals, n_metrics,
+                verbosity, bigger_is_better, best_score, best_iter, metrics,
+            )
         else
-            shrinkresults!(results, iter - 1)
+            shrinkresults!(results, metric_idx)
             log_info(verbosity, "Stopped training because there are no more leaves that meet the ",
                      "split requirements.")
         end
@@ -122,15 +129,25 @@ function train!(
 end
 
 
-function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
-                       estimator::LGBMEstimator, tests_names::Vector{String}, iter::Integer,
-                       n_metrics::Integer, verbosity::Integer,
-                       bigger_is_better::Vector{Float64}, best_score::Matrix{Float64},
-                       best_iter::Matrix{Int}, metrics::Vector{String})
+function eval_metrics!(
+    results::Dict{String,Dict{String,Vector{Float64}}},
+    estimator::LGBMEstimator,
+    tests_names::Vector{String},
+    iter::Integer,
+    metric_idx::Integer,
+    total_metrics_evals::Integer,
+    n_metrics::Integer,
+    verbosity::Integer,
+    bigger_is_better::Vector{Float64},
+    best_score::Matrix{Float64},
+    best_iter::Matrix{Int},
+    metrics::Vector{String},
+)
+
     if (iter - 1) % estimator.metric_freq == 0
         if estimator.is_training_metric
             scores = LGBM_BoosterGetEval(estimator.booster, 0)
-            store_scores!(results, estimator, iter, "training", scores, metrics)
+            store_scores!(results, estimator, metric_idx, total_metrics_evals, "training", scores, metrics)
             print_scores(estimator, iter, "training", n_metrics, scores, metrics, verbosity)
         end
     end
@@ -141,7 +158,7 @@ function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
             scores = LGBM_BoosterGetEval(estimator.booster, test_idx)
             # Check if progress should be stored and/or printed
             if (iter - 1) % estimator.metric_freq == 0
-                store_scores!(results, estimator, iter, test_name, scores, metrics)
+                store_scores!(results, estimator, metric_idx, total_metrics_evals, test_name, scores, metrics)
                 print_scores(estimator, iter, test_name, n_metrics, scores, metrics, verbosity)
             end
 
@@ -165,20 +182,24 @@ function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
 end
 
 
-function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
-                       estimator::LGBMEstimator, iter::Integer, evalname::String,
-                       scores::Vector{Cdouble}, metrics::Vector{String})
+function store_scores!(
+    results::Dict{String,Dict{String,Vector{Float64}}},
+    estimator::LGBMEstimator,
+    store_idx::Integer,
+    num_evals::Integer,
+    evalname::String,
+    scores::Vector{Cdouble},
+    metrics::Vector{String},
+)
+
     for (metric_idx, metric_name) in enumerate(metrics)
         if !haskey(results, evalname)
-            num_evals = cld(estimator.num_iterations, estimator.metric_freq)
             results[evalname] = Dict{String,Vector{Float64}}()
             results[evalname][metric_name] = Array{Float64}(undef,num_evals)
         elseif !haskey(results[evalname], metric_name)
-            num_evals = cld(estimator.num_iterations, estimator.metric_freq)
             results[evalname][metric_name] = Array{Float64}(undef,num_evals)
         end
-        eval_idx = cld(iter, estimator.metric_freq)
-        results[evalname][metric_name][eval_idx] = scores[metric_idx]
+        results[evalname][metric_name][store_idx] = scores[metric_idx]
     end
 
     return nothing

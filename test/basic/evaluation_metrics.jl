@@ -61,4 +61,27 @@ using LightGBM
 
 end
 
+
+@testset "empty merge_scores" begin
+
+    # basically this test is just to make sure it works properly even when metrics is empty
+
+    a = Dict{String, Vector{Float64}}()
+    b = Dict{String, Vector{Float64}}()
+
+    c = LightGBM.merge_scores(a, b)
+
+    @test typeof(c) == typeof(a)
+    @test isempty(c)
+
+    d1 = Dict{String, typeof(a)}()
+    d2 = Dict{String, typeof(a)}()
+
+    d3 = LightGBM.merge_scores(d1, d2)
+
+    @test typeof(d3) == typeof(d1)
+    @test isempty(d3)
+
+end
+
 end # module

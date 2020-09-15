@@ -44,7 +44,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 @test cache isa NamedTuple
 @test cache.num_boostings_done == [100]
 
-@test isa(report, Tuple)
+@test isa(report, NamedTuple)
 
 expected_return_type = Tuple{
     LightGBM.LGBMClassification,
