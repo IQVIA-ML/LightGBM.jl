@@ -135,10 +135,10 @@ function eval_metrics!(results::Dict{String,Dict{String,Vector{Float64}}},
         end
     end
 
+    # Metrics for test sets
     if (iter - 1) % estimator.metric_freq == 0 || estimator.early_stopping_round > 0
         for (test_idx, test_name) in enumerate(tests_names)
             scores = LGBM_BoosterGetEval(estimator.booster, test_idx)
-
             # Check if progress should be stored and/or printed
             if (iter - 1) % estimator.metric_freq == 0
                 store_scores!(results, estimator, iter, test_name, scores, metrics)
@@ -183,6 +183,41 @@ function store_scores!(results::Dict{String,Dict{String,Vector{Float64}}},
 
     return nothing
 end
+
+
+function merge_scores(
+    old_scores::Dict{String,Dict{String,Vector{Float64}}},
+    additional_scores::Dict{String,Dict{String,Vector{Float64}}},
+)
+
+    if keys(old_scores) != keys(additional_scores)
+        throw(ErrorException("Tried to merge metrics with different data sets:\n    a=> $(keys(old_scores))\n    b=> $(keys(additional_scores))"))
+    end
+
+    new_scores = Dict{String,Dict{String,Vector{Float64}}}()
+    for (key, oldvals) in old_scores
+        new_scores[key] = merge_scores(old_scores[key], additional_scores[key])
+    end
+
+    return new_scores
+end
+function merge_scores(
+    old_scores::Dict{String,Vector{Float64}},
+    additional_scores::Dict{String,Vector{Float64}},
+)
+
+    if keys(old_scores) != keys(additional_scores)
+        throw(ErrorException("Tried to merge metrics with different metrics:\n    a=> $(keys(old_scores))\n    b=> $(keys(additional_scores))"))
+    end
+
+    new_scores = Dict{String,Vector{Float64}}()
+    for (key, oldvals) in old_scores
+        new_scores[key] = cat(oldvals, additional_scores[key]; dims=1)
+    end
+
+    return new_scores
+end
+
 
 
 function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_metrics::Integer,

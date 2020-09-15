@@ -61,6 +61,7 @@ end
 
 end
 
+
 @testset "MLJ update less iterations triggers refit" begin
     m.model.num_iterations -= 1
     MLJBase.fit!(m; verbosity=0)
