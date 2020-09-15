@@ -134,8 +134,8 @@ function eval_metrics!(
     estimator::LGBMEstimator,
     tests_names::Vector{String},
     iter::Integer,
-    metric_idx::Integer,
-    total_metrics_evals::Integer,
+    metrics_store_idx::Integer,
+    metrics_stored_count::Integer,
     n_metrics::Integer,
     verbosity::Integer,
     bigger_is_better::Vector{Float64},
@@ -147,7 +147,7 @@ function eval_metrics!(
     if (iter - 1) % estimator.metric_freq == 0
         if estimator.is_training_metric
             scores = LGBM_BoosterGetEval(estimator.booster, 0)
-            store_scores!(results, estimator, metric_idx, total_metrics_evals, "training", scores, metrics)
+            store_scores!(results, estimator, metrics_store_idx, metrics_stored_count, "training", scores, metrics)
             print_scores(estimator, iter, "training", n_metrics, scores, metrics, verbosity)
         end
     end
@@ -158,7 +158,7 @@ function eval_metrics!(
             scores = LGBM_BoosterGetEval(estimator.booster, test_idx)
             # Check if progress should be stored and/or printed
             if (iter - 1) % estimator.metric_freq == 0
-                store_scores!(results, estimator, metric_idx, total_metrics_evals, test_name, scores, metrics)
+                store_scores!(results, estimator, metrics_store_idx, metrics_stored_count, test_name, scores, metrics)
                 print_scores(estimator, iter, test_name, n_metrics, scores, metrics, verbosity)
             end
 
@@ -169,7 +169,9 @@ function eval_metrics!(
                     best_score[metric_idx, test_idx] = maximize_score
                     best_iter[metric_idx, test_idx] = iter
                 elseif iter - best_iter[metric_idx, test_idx] >= estimator.early_stopping_round
-                    shrinkresults!(results, best_iter[metric_idx, test_idx])
+                    # need to fix this, its clearly broken in light of latest updates
+                    # This will shrink it up to the current stored metric
+                    shrinkresults!(results, metrics_store_idx)
                     log_info(verbosity, "Early stopping at iteration ", iter,
                              ", the best iteration round is ", best_iter[metric_idx, test_idx], "\n")
                     return 1
