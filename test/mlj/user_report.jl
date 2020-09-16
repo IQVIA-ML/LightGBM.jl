@@ -47,6 +47,18 @@ y = randn(nrows)
     @test length(new_report.importance.split) == nfeatures
     @test length(new_report.training_metrics["training"]["l2"]) == 3
 
+
+    # check metrics are right when freq is just 1
+    new_estimator = LightGBM.LGBMRegression(;num_iterations=3, is_training_metric=true, metric=["l2"], metric_freq=1)
+    freq_metrics = LightGBM.fit!(new_estimator, x, y; verbosity=-1)
+
+    report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics)
+    @test length(report.training_metrics["training"]["l2"]) == 3
+
+    new_freq_metrics = LightGBM.train!(new_estimator, 7, String[], -1, LightGBM.Dates.now())
+    new_report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics, new_freq_metrics)
+    @test length(new_report.training_metrics["training"]["l2"]) == 10
+
 end
 
 

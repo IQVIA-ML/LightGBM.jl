@@ -91,15 +91,18 @@ function train!(
 
     start_iter = get_iter_number(estimator) + 1
     end_iter = start_iter + num_iterations - 1
-    total_metrics_evals = sum((((start_iter:end_iter) .- 1) .% estimator.metric_freq) .== 0)
 
-    for iter in start_iter:end_iter
+    metrics_idx_sequence = (((start_iter:end_iter) .- 1) .% estimator.metric_freq) .== 0
+    total_metrics_evals = sum(metrics_idx_sequence)
+    metric_idx = 0
+
+    for (idx, iter) in enumerate(start_iter:end_iter)
 
         is_finished = LGBM_BoosterUpdateOneIter(estimator.booster)
 
         log_debug(verbosity, Dates.CompoundPeriod(now() - start_time), " elapsed, finished iteration ", iter, "\n")
 
-        metric_idx = sum((((start_iter:iter) .- 1) .% estimator.metric_freq) .== 0)
+        metric_idx = metric_idx + metrics_idx_sequence[idx]
 
         if is_finished == 0
             is_finished = eval_metrics!(
@@ -169,7 +172,6 @@ function eval_metrics!(
                     best_score[metric_idx, test_idx] = maximize_score
                     best_iter[metric_idx, test_idx] = iter
                 elseif iter - best_iter[metric_idx, test_idx] >= estimator.early_stopping_round
-                    # need to fix this, its clearly broken in light of latest updates
                     # This will shrink it up to the current stored metric
                     shrinkresults!(results, metrics_store_idx)
                     log_info(verbosity, "Early stopping at iteration ", iter,
