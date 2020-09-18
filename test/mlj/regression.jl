@@ -39,7 +39,7 @@ rmse_weights             = calc_rmse(y[test], yhat_with_weights)
 @test cache isa NamedTuple
 @test cache.num_boostings_done == [100]
 
-@test isa(report, Tuple)
+@test isa(report, NamedTuple)
 
 expected_return_type = Tuple{
     LightGBM.LGBMRegression,

@@ -40,6 +40,10 @@ end
         include(joinpath("mlj", "update.jl"))
     end
 
+    @testset "MLJ update interface" begin
+        include(joinpath("mlj", "user_report.jl"))
+    end
+
 end
 
 
@@ -47,6 +51,10 @@ end
 
     @testset "Estimator parameters" begin
         include(joinpath("basic", "parameters.jl"))
+    end
+
+    @testset "Estimator parameters" begin
+        include(joinpath("basic", "evaluation_metrics.jl"))
     end
 
 end

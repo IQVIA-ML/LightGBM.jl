@@ -153,6 +153,7 @@ function mlj_to_kwargs(model::LGBMRegressor)
 
 end
 
+
 function mlj_to_kwargs(model::LGBMClassifier, classes)
 
     num_class = length(classes)
@@ -174,6 +175,7 @@ function mlj_to_kwargs(model::LGBMClassifier, classes)
 
 end
 
+
 # X and y and w must be untyped per MLJ docs
 function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
@@ -186,15 +188,18 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
-    report = LightGBM.fit!(model, X, y_lgbm; verbosity=verbosity, weights=w)
+    train_metrics = LightGBM.fit!(model, X, y_lgbm; verbosity=verbosity, weights=w)
 
     fitresult = (model, classes, deepcopy(mlj_model))
-    cache = (num_boostings_done=[LightGBM.get_iter_number(model)], )
-    report = (report,)
+    # because update needs access to the older version of training metrics we keep them in the cache
+    # so the update can merge old and additional metrics as necessary.
+    cache = (num_boostings_done=[LightGBM.get_iter_number(model)], training_metrics=train_metrics)
+    report = user_fitreport(model, train_metrics)
 
     return (fitresult, cache, report)
 
 end
+
 
 function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w=AbstractFloat[])
 
@@ -228,17 +233,16 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model.num_iterations = num_iterations + additional_iterations
 
     # eh this is ugly, possibly prompts a need for some refactoring
-    report = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
-
-    # should probably dump report too, its just an empty dict...
+    train_metrics = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
     fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
 
     final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
     iteration_history = deepcopy(cache.num_boostings_done)
     push!(iteration_history, final_num_iter - num_iterations)
-    newcache = (num_boostings_done=iteration_history, )
+    report = user_fitreport(old_lgbm_model, cache.training_metrics, train_metrics)
+    newcache = (num_boostings_done=iteration_history, training_metrics=report.training_metrics)
 
-    return (fitresult, newcache, (report,))
+    return (fitresult, newcache, report)
 
 end
 
@@ -270,10 +274,27 @@ function predict_classifier((fitted_model, classes, _), Xnew)
 
 end
 
+
 function predict_regression((fitted_model, classes, _), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
     return dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
+
+end
+
+# This function returns a user accessible report and therefore needs to not be a source of breaking changes
+# Keep all of the functinality required to generate this into a single function so that it can be
+# kept under control via tests and so on. It's not a lot for now but is likely to grow.
+function user_fitreport(estimator::LightGBM.LGBMEstimator, eval_metrics::Dict)
+
+    importance = (gain = LightGBM.gain_importance(estimator), split = LightGBM.split_importance(estimator))
+    return (training_metrics = deepcopy(eval_metrics), importance = importance)
+
+end
+function user_fitreport(estimator::LightGBM.LGBMEstimator, eval_metrics::Dict, new_eval_metrics::Dict)
+
+    metrics = LightGBM.merge_scores(eval_metrics, new_eval_metrics)
+    return user_fitreport(estimator, metrics)
 
 end
 
