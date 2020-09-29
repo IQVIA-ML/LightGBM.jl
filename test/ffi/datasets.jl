@@ -108,15 +108,16 @@ end
     @test LightGBM.LGBM_DatasetGetFeatureNames(created_dataset) == fieldnames
 
     # This stuff makes it segfault so leaving it alone...
-#     # test string overlengths
-#     name_1 = randstring(3000)
-#     name_2 = randstring(3000)
-#
-#     @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, [name_1, name_2]) == nothing
-#     retrieved = LightGBM.LGBM_DatasetGetFeatureNames(created_dataset)
-#
-#     @test retrieved[1] == name_1#[1:256]
-#     @test retrieved[2] == name_2#[1:256]
+    # test string overlengths
+    name_1 = randstring(3000)
+    name_2 = randstring(3000)
+
+    @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, [name_1, name_2]) == nothing
+    retrieved = LightGBM.LGBM_DatasetGetFeatureNames(created_dataset)
+
+    @test retrieved[1] == name_1#[1:256]
+    @test retrieved[2] == name_2#[1:256]
+
 
 end
 

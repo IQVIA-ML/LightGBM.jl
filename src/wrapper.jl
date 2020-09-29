@@ -60,7 +60,7 @@ function Base.deepcopy_internal(x::Booster, stackdict::IdDict)
         return Booster()
     end
 
-    serialised = LGBM_BoosterSaveModelToString(x, 0, 0)
+    serialised = LGBM_BoosterSaveModelToString(x, 0, 0, 0)
     y = LGBM_BoosterLoadModelFromString(serialised)
 
     return y
@@ -135,7 +135,7 @@ end
 
 function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
                                                               reference::Dataset,
-                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64} 
+                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
@@ -189,13 +189,35 @@ function LGBM_DatasetSetFeatureNames(ds::Dataset, feature_names::Vector{String})
 end
 
 function LGBM_DatasetGetFeatureNames(ds::Dataset)
-    n_features = LGBM_DatasetGetNumFeature(ds)
-    feature_names = [Vector{UInt8}(undef,256) for i in 1:n_features]
+    len = Cint(2)
+    buffer_len = Csize_t(2)
+    feature_names = [Vector{UInt8}(undef, buffer_len) for i in 1:len]
+
+   # setting these so that the first C API call informs us of their allocations
     num_feature_names = Ref{Cint}()
+    out_buffer_len = Ref{Csize_t}()
+
+
     @lightgbm(:LGBM_DatasetGetFeatureNames,
               ds.handle => DatasetHandle,
-              feature_names => Ref{Ptr{UInt8}},
-              num_feature_names => Ref{Cint})
+              len => Cint,
+              num_feature_names => Ref{Cint},
+              buffer_len => Csize_t,
+              out_buffer_len => Ref{Csize_t},
+              feature_names => Ref{Ptr{UInt8}})
+
+    # allocating memory
+    new_len = num_feature_names[]
+    new_buffer_len = out_buffer_len[]
+    feature_names = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
+
+    @lightgbm(:LGBM_DatasetGetFeatureNames,
+                ds.handle => DatasetHandle,
+                new_len => Cint,
+                num_feature_names => Ref{Cint},
+                new_buffer_len => Csize_t,
+                out_buffer_len => Ref{Csize_t},
+                feature_names => Ref{Ptr{UInt8}})
 
     return [unsafe_string(pointer(feature_name)) for feature_name in feature_names[1:num_feature_names[]]]
 end
@@ -398,25 +420,69 @@ function LGBM_BoosterGetEvalCounts(bst::Booster)
 end
 
 function LGBM_BoosterGetEvalNames(bst::Booster)
+    len = Cint(2)
+    buffer_len = Csize_t(2)
+    out_strs = [Vector{UInt8}(undef, buffer_len) for i in 1:len]
+
+    # setting these so that the first C API call informs us of their allocations
     out_len = Ref{Cint}()
-    n_metrics = LGBM_BoosterGetEvalCounts(bst)
-    out_strs = [Vector{UInt8}(undef, 256) for i in 1:n_metrics]
+    out_buffer_len = Ref{Csize_t}()
+
     @lightgbm(:LGBM_BoosterGetEvalNames,
               bst.handle => BoosterHandle,
+              len => Cint,
               out_len => Ref{Cint},
+              buffer_len => Csize_t,
+              out_buffer_len => Ref{Csize_t},
               out_strs => Ref{Ptr{UInt8}})
+
+    # allocating memory
+    new_len = out_len[]
+    new_buffer_len = out_buffer_len[]
+    out_strs = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
+
+    @lightgbm(:LGBM_BoosterGetEvalNames,
+              bst.handle => BoosterHandle,
+              new_len => Cint,
+              out_len => Ref{Cint},
+              new_buffer_len => Csize_t,
+              out_buffer_len => Ref{Csize_t},
+              out_strs => Ref{Ptr{UInt8}})
+
     jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
     return jl_out_strs
 end
 
 function LGBM_BoosterGetFeatureNames(bst::Booster)
+    len = Cint(2)
+    buffer_len = Csize_t(2)
+    out_strs = [Vector{UInt8}(undef, buffer_len) for i in 1:len]
+
+    # setting these so that the first C API call informs us of their allocations
     out_len = Ref{Cint}()
-    n_features = LGBM_BoosterGetNumFeature(bst)
-    out_strs = [Vector{UInt8}(undef, 256) for i in 1:n_features]
+    out_buffer_len = Ref{Csize_t}()
+
     @lightgbm(:LGBM_BoosterGetFeatureNames,
               bst.handle => BoosterHandle,
+              len => Cint,
               out_len => Ref{Cint},
+              buffer_len => Csize_t,
+              out_buffer_len => Ref{Csize_t},
               out_strs => Ref{Ptr{UInt8}})
+
+    # allocating memory
+    new_len = out_len[]
+    new_buffer_len = out_buffer_len[]
+    out_strs = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
+
+    @lightgbm(:LGBM_BoosterGetEvalNames,
+              bst.handle => BoosterHandle,
+              new_len => Cint,
+              out_len => Ref{Cint},
+              new_buffer_len => Csize_t,
+              out_buffer_len => Ref{Csize_t},
+              out_strs => Ref{Ptr{UInt8}})
+
     jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
     return jl_out_strs
 end
@@ -468,12 +534,16 @@ end
 function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer,
                                     num_iteration::Int)
     out_len = Ref{Int64}()
+    start_iteration = Cint(1)
+
     @lightgbm(:LGBM_BoosterCalcNumPredict,
               bst.handle => BoosterHandle,
               num_row => Cint,
               predict_type => Cint,
+              start_iteration => Cint,
               num_iteration => Cint,
               out_len => Ref{Int64})
+
     return out_len[]
 end
 
@@ -522,8 +592,7 @@ function LGBM_BoosterSaveModel(bst::Booster, start_iteration::Integer, num_itera
     return nothing
 end
 
-function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, num_iteration::Integer)::String
-
+function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, num_iteration::Integer, feature_importance_type::Integer)::String
     # places for the call to write to
     out_len = Ref{Int64}()
     out_str = Vector{UInt8}(undef, 2)
@@ -534,6 +603,7 @@ function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, n
               bst.handle => BoosterHandle,
               start_iteration => Cint,
               num_iteration => Cint,
+              feature_importance_type => Cint,
               buffer_len => Int64,
               out_len => Ref{Int64},
               out_str => Ref{UInt8})
@@ -546,6 +616,7 @@ function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, n
               bst.handle => BoosterHandle,
               start_iteration => Cint,
               num_iteration => Cint,
+              feature_importance_type  => Cint,
               buffer_len => Int64,
               out_len => Ref{Int64},
               out_str => Ref{UInt8})

@@ -120,7 +120,7 @@ function train!(
     end
 
     # save the model in serialised form, in case we should be deepcopied or serialised elsewhere
-    estimator.model = LGBM_BoosterSaveModelToString(estimator.booster, 0, 0)
+    estimator.model = LGBM_BoosterSaveModelToString(estimator.booster, 0, 0, 0)
 
     return results
 end
