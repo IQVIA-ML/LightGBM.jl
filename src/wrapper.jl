@@ -475,7 +475,7 @@ function LGBM_BoosterGetFeatureNames(bst::Booster)
     new_buffer_len = out_buffer_len[]
     out_strs = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
 
-    @lightgbm(:LGBM_BoosterGetEvalNames,
+    @lightgbm(:LGBM_BoosterGetFeatureNames,
               bst.handle => BoosterHandle,
               new_len => Cint,
               out_len => Ref{Cint},
