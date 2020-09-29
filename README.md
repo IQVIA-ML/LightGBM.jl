@@ -26,7 +26,6 @@ All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia 
 # Table of Contents
 1. [Installation](#installation)
 1. [Example](#a-simple-example-using-lightgbm-example-files)
-1. [Exports](#exports)
 1. [MLJ](#mlj-support)
 
 # Installation
@@ -112,13 +111,6 @@ filename = pwd() * "/finished.model"
 savemodel(estimator, filename)
 loadmodel(estimator, filename)
 ```
-
-# Exports
-
-Note that a lot of parameters used within this module and in the code and examples are
-exact matches with those from [LightGBM.](https://lightgbm.readthedocs.io/en/latest/Parameters.html)
-Not all of these are necessarily supported but see the guide for detailed explanations of what these
-parameters do and their valid values.
 
 # MLJ Support
 
