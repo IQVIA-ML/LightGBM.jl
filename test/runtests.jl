@@ -61,9 +61,9 @@ end
 
 @testset "Integration tests" begin
 
-    # @testset "(OLD) Basic Tests" begin
-    #     include("basic_tests.jl")
-    # end
+    @testset "(OLD) Basic Tests" begin
+        include("basic_tests.jl")
+    end
 
     @testset "Weights Test" begin
         include("weightsTest.jl")
