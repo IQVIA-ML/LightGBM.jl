@@ -530,10 +530,9 @@ end
 
 # function LGBM_BoosterPredictForFile()
 
-function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer,
+function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer, start_iteration::Integer,
                                     num_iteration::Int)
     out_len = Ref{Int64}()
-    start_iteration = Cint(1)
 
     @lightgbm(:LGBM_BoosterCalcNumPredict,
               bst.handle => BoosterHandle,
@@ -551,13 +550,14 @@ end
 
 function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
                                                               predict_type::Integer,
+                                                              start_iteration::Integer,
                                                               num_iteration::Integer,
                                                               is_row_major::Bool = false) where T<:Union{Float32,Float64}
     num_class = LGBM_BoosterGetNumClasses(bst)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
-    alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, num_iteration)
+    alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, start_iteration, num_iteration)
     out_result = Array{Cdouble}(undef, alloc_len)
 
     parameter = ""  # full prediction, no early stopping
@@ -569,6 +569,7 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
               ncol => Int32,
               is_row_major => Cint,
               predict_type => Cint,
+              start_iteration => Cint,
               num_iteration => Cint,
               parameter => Cstring,
               out_len => Ref{Int64},

@@ -301,7 +301,7 @@ end
     @test occursin("version=v3", string_repr)
     @test occursin("num_leaves=1", string_repr)
     @test occursin("end of trees", string_repr)
-    @test occursin("feature_importances", string_repr)
+    @test occursin("feature_importances:", string_repr)
     @test occursin("parameters:", string_repr)
     @test occursin("[convert_model: gbdt_prediction.cpp]", string_repr)
     @test occursin("Tree=0", string_repr)
