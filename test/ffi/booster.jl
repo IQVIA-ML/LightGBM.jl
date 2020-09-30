@@ -218,8 +218,10 @@ end
 
 @testset "LGBM_BoosterGetEvalNames" begin
 
-    # This is likely to get a segfaulty code too (must prealloc memory)
-    @test_broken false
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "metric=binary_logloss $(verbosity)")
+    @test LightGBM.LGBM_BoosterGetEvalNames(booster) |> first == "binary_logloss"
 
 end
 
@@ -286,8 +288,11 @@ end
 
 @testset "LGBM_BoosterSaveModel" begin
 
-    # Needs implementing
-    @test_broken false
+    booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
+    model_path = joinpath(@__DIR__, "data", "test_model.txt")
+    LightGBM.LGBM_BoosterSaveModel(booster, 0, 0, 0, model_path )
+    @test isfile(model_path)
+    rm(model_path; force = true)
 
 end
 
