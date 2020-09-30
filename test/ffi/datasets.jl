@@ -107,7 +107,6 @@ end
     @test LightGBM.LGBM_DatasetSetFeatureNames(created_dataset, fieldnames) == nothing
     @test LightGBM.LGBM_DatasetGetFeatureNames(created_dataset) == fieldnames
 
-    # This stuff makes it segfault so leaving it alone...
     # test string overlengths
     name_1 = randstring(3000)
     name_2 = randstring(3000)
