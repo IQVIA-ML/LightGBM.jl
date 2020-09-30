@@ -197,7 +197,6 @@ function LGBM_DatasetGetFeatureNames(ds::Dataset)
     num_feature_names = Ref{Cint}()
     out_buffer_len = Ref{Csize_t}()
 
-
     @lightgbm(:LGBM_DatasetGetFeatureNames,
               ds.handle => DatasetHandle,
               len => Cint,
