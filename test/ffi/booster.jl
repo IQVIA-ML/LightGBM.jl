@@ -228,8 +228,12 @@ end
 
 @testset "LGBM_BoosterGetFeatureNames" begin
 
-    # This is likely to get a segfaulty code too (must prealloc memory)
-    @test_broken false
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    randfeatures = [randstring(2000), randstring(3000)]
+    LightGBM.LGBM_DatasetSetFeatureNames(dataset, randfeatures)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+    @test LightGBM.LGBM_BoosterGetFeatureNames(booster) == randfeatures
 
 end
 
@@ -238,9 +242,7 @@ end
 
     mymat = [1. 2.; 3. 4.; 5. 6.]
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
-
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
-
     @test LightGBM.LGBM_BoosterGetNumFeature(booster) == 2
 
 end

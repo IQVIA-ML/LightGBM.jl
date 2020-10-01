@@ -217,7 +217,7 @@ function LGBM_DatasetGetFeatureNames(ds::Dataset)
                 new_buffer_len => Csize_t,
                 out_buffer_len => Ref{Csize_t},
                 feature_names => Ref{Ptr{UInt8}})
-
+  
     return [unsafe_string(pointer(feature_name)) for feature_name in feature_names[1:num_feature_names[]]]
 end
 
