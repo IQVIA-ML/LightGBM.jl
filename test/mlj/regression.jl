@@ -35,6 +35,7 @@ rmse_weights             = calc_rmse(y[test], yhat_with_weights)
 @test rmse < 0.05
 @test !isapprox(rmse, rmse_weights, rtol=0.1) # check that they differ by at least around 10% with/without weights
 
+# checking that fitting with and without weight outputs are non-identical
 @test yhat_with_weights != yhat
 
 # Cache contains iterations counts history
