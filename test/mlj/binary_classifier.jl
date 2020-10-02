@@ -30,7 +30,6 @@ yhat                     = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBa
 # fit again with weights
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train], weights[train])
 yhat_with_weights        = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test)))
-
 misclassification_rate   = sum(yhat .!= y[test])/length(test)
 
 # Well, although XGBoost gets misclassification below 0.01, LightGBM can't do it with the default settings ...
@@ -38,7 +37,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 @test misclassification_rate < 0.015
 
 # All we can really say about fitting with/without weights for this example is that the solutions shouldn't be identical
-# @test yhat_with_weights != yhat
+@test_broken yhat_with_weights != yhat
 
 # Cache contains iterations counts history
 @test cache isa NamedTuple
