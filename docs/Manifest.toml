@@ -18,10 +18,6 @@ version = "0.17.6"
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
-[[DelimitedFiles]]
-deps = ["Mmap"]
-uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -49,10 +45,17 @@ uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.0"
 
 [[LibGit2]]
+deps = ["Printf"]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 
 [[Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+
+[[LightGBM]]
+deps = ["Dates", "Libdl", "MLJModelInterface", "StatsBase"]
+path = "/home/bigdata/.julia/dev/LightGBM.jl-1"
+uuid = "7acf609c-83a4-11e9-1ffb-b912bcd3b04a"
+version = "0.3.1"
 
 [[LinearAlgebra]]
 deps = ["Libdl"]
@@ -60,6 +63,12 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
+[[MLJModelInterface]]
+deps = ["Random", "ScientificTypes"]
+git-tree-sha1 = "6d719b5831d2dffc579895e8070b65aa70322609"
+uuid = "e80e1ace-859a-464e-9ed9-23947d8ae3ea"
+version = "0.3.5"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -87,7 +96,7 @@ uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 version = "0.3.10"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Printf]]
@@ -104,6 +113,11 @@ uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+
+[[ScientificTypes]]
+git-tree-sha1 = "3c88d3db0ffed7dabc94aa3d09798f97f1d7316f"
+uuid = "321657f4-b219-11e9-178b-2701a2544e81"
+version = "1.0.0"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
