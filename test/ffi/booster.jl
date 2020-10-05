@@ -294,6 +294,7 @@ end
     model_path = joinpath(@__DIR__, "data", "test_model.txt")
     if isfile(model_path)
         rm(model_path, force = true)
+    end
     LightGBM.LGBM_BoosterSaveModel(booster, 0, 0, 0, model_path )
     @test isfile(model_path)
     rm(model_path; force = true)
