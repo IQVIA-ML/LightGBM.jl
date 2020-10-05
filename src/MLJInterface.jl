@@ -6,7 +6,7 @@ import LightGBM
 
 const LGBM_METRICS = (
     "None", "l1", "l2", "rmse", "quantile", "mape", "huber", "fair", "poisson", "gamma", "gamma_deviance",
-    "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "binary_logloss", "binary",
+    "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "average_precision", "binary_logloss", "binary",
     "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss",
     "multiclass", "softmax", "multiclassova", "multiclass_ova", "ova", "ovr", "cross_entropy_lambda",
     "xentlambda", "kullback_leibler", "kldiv",
@@ -47,7 +47,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_bin::Int = 255::(_ > 1)
     init_score::String = ""
     drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
-    max_drop::Int = 50 
+    max_drop::Int = 50
     skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
@@ -104,7 +104,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_bin::Int = 255::(_ > 1)
     init_score::String = ""
     drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
-    max_drop::Int = 50 
+    max_drop::Int = 50
     skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
