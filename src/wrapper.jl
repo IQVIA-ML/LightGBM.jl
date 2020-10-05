@@ -112,20 +112,26 @@ end
 # function LGBM_DatasetCreateFromCSR()
 # function LGBM_DatasetCreateFromCSC()
 
-function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
-                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
+function LGBM_DatasetCreateFromMat(
+    data::Matrix{T},
+    parameters::String,
+    is_row_major::Bool = false
+) where T<:Union{Float32,Float64}
+
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
-    @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ptr{Nothing},
-              lgbm_data_type => Cint,
-              nrow => Int32,
-              ncol => Int32,
-              is_row_major => Cint,
-              parameters => Cstring,
-              C_NULL => Ptr{Nothing},
-              out => Ref{DatasetHandle})
+    @lightgbm(
+        :LGBM_DatasetCreateFromMat,
+        data => Ptr{Nothing},
+        lgbm_data_type => Cint,
+        nrow => Int32,
+        ncol => Int32,
+        is_row_major => Cint,
+        parameters => Cstring,
+        C_NULL => Ptr{Nothing},
+        out => Ref{DatasetHandle}
+    )
     return Dataset(out[])
 end
 
@@ -133,21 +139,27 @@ function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String, is_row_m
     return LGBM_DatasetCreateFromMat(convert(Matrix{Float64}, data), parameters, is_row_major)
 end
 
-function LGBM_DatasetCreateFromMat(data::Matrix{T}, parameters::String,
-                                                              reference::Dataset,
-                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
+function LGBM_DatasetCreateFromMat(
+    data::Matrix{T},
+    parameters::String,
+    reference::Dataset,
+    is_row_major::Bool = false
+) where T<:Union{Float32,Float64}
+
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out = Ref{DatasetHandle}()
-    @lightgbm(:LGBM_DatasetCreateFromMat,
-              data => Ptr{Nothing},
-              lgbm_data_type => Cint,
-              nrow => Int32,
-              ncol => Int32,
-              is_row_major => Cint,
-              parameters => Cstring,
-              reference.handle => DatasetHandle,
-              out => Ref{DatasetHandle})
+    @lightgbm(
+        :LGBM_DatasetCreateFromMat,
+        data => Ptr{Nothing},
+        lgbm_data_type => Cint,
+        nrow => Int32,
+        ncol => Int32,
+        is_row_major => Cint,
+        parameters => Cstring,
+        reference.handle => DatasetHandle,
+        out => Ref{DatasetHandle}
+    )
     return Dataset(out[])
 end
 
@@ -197,26 +209,30 @@ function LGBM_DatasetGetFeatureNames(ds::Dataset)
     num_feature_names = Ref{Cint}()
     out_buffer_len = Ref{Csize_t}()
 
-    @lightgbm(:LGBM_DatasetGetFeatureNames,
-              ds.handle => DatasetHandle,
-              len => Cint,
-              num_feature_names => Ref{Cint},
-              buffer_len => Csize_t,
-              out_buffer_len => Ref{Csize_t},
-              feature_names => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_DatasetGetFeatureNames,
+        ds.handle => DatasetHandle,
+        len => Cint,
+        num_feature_names => Ref{Cint},
+        buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        feature_names => Ref{Ptr{UInt8}}
+    )
 
     # allocating memory
     new_len = num_feature_names[]
     new_buffer_len = out_buffer_len[]
     feature_names = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
 
-    @lightgbm(:LGBM_DatasetGetFeatureNames,
-                ds.handle => DatasetHandle,
-                new_len => Cint,
-                num_feature_names => Ref{Cint},
-                new_buffer_len => Csize_t,
-                out_buffer_len => Ref{Csize_t},
-                feature_names => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_DatasetGetFeatureNames,
+        ds.handle => DatasetHandle,
+        new_len => Cint,
+        num_feature_names => Ref{Cint},
+        new_buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        feature_names => Ref{Ptr{UInt8}}
+    )
 
     return [unsafe_string(pointer(feature_name)) for feature_name in feature_names[1:num_feature_names[]]]
 end
@@ -239,12 +255,14 @@ function _LGBM_DatasetSetField(ds::Dataset, field_name::String,
                                                         field_data::Vector{T}) where T <:Union{Float32,Float64,Int32}
     data_type = jltype_to_lgbmid(T)
     num_element = length(field_data)
-    @lightgbm(:LGBM_DatasetSetField,
-              ds.handle => DatasetHandle,
-              field_name => Cstring,
-              field_data => Ptr{Nothing},
-              num_element => Cint,
-              data_type => Cint)
+    @lightgbm(
+        :LGBM_DatasetSetField,
+        ds.handle => DatasetHandle,
+        field_name => Cstring,
+        field_data => Ptr{Nothing},
+        num_element => Cint,
+        data_type => Cint
+    )
     return nothing
 end
 
@@ -281,12 +299,14 @@ function LGBM_DatasetGetField(ds::Dataset, field_name::String)
     out_len = Ref{Cint}()
     out_ptr = Ref{Ptr{Nothing}}()
     out_type = Ref{Cint}()
-    @lightgbm(:LGBM_DatasetGetField,
-              ds.handle => DatasetHandle,
-              field_name => Cstring,
-              out_len => Ref{Cint},
-              out_ptr => Ref{Ptr{Nothing}},
-              out_type => Ref{Cint})
+    @lightgbm(
+        :LGBM_DatasetGetField,
+        ds.handle => DatasetHandle,
+        field_name => Cstring,
+        out_len => Ref{Cint},
+        out_ptr => Ref{Ptr{Nothing}},
+        out_type => Ref{Cint}
+    )
     jl_out_type = lgbmid_to_jltype(out_type[])
     jl_out_ptr = convert(Ptr{jl_out_type}, out_ptr[])
     return copy(unsafe_wrap(Vector{jl_out_type}, jl_out_ptr, out_len[], own=false))
@@ -427,26 +447,30 @@ function LGBM_BoosterGetEvalNames(bst::Booster)
     out_len = Ref{Cint}()
     out_buffer_len = Ref{Csize_t}()
 
-    @lightgbm(:LGBM_BoosterGetEvalNames,
-              bst.handle => BoosterHandle,
-              len => Cint,
-              out_len => Ref{Cint},
-              buffer_len => Csize_t,
-              out_buffer_len => Ref{Csize_t},
-              out_strs => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_BoosterGetEvalNames,
+        bst.handle => BoosterHandle,
+        len => Cint,
+        out_len => Ref{Cint},
+        buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        out_strs => Ref{Ptr{UInt8}}
+    )
 
     # allocating memory
     new_len = out_len[]
     new_buffer_len = out_buffer_len[]
     out_strs = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
 
-    @lightgbm(:LGBM_BoosterGetEvalNames,
-              bst.handle => BoosterHandle,
-              new_len => Cint,
-              out_len => Ref{Cint},
-              new_buffer_len => Csize_t,
-              out_buffer_len => Ref{Csize_t},
-              out_strs => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_BoosterGetEvalNames,
+        bst.handle => BoosterHandle,
+        new_len => Cint,
+        out_len => Ref{Cint},
+        new_buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        out_strs => Ref{Ptr{UInt8}}
+    )
 
     jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
     return jl_out_strs
@@ -461,26 +485,30 @@ function LGBM_BoosterGetFeatureNames(bst::Booster)
     out_len = Ref{Cint}()
     out_buffer_len = Ref{Csize_t}()
 
-    @lightgbm(:LGBM_BoosterGetFeatureNames,
-              bst.handle => BoosterHandle,
-              len => Cint,
-              out_len => Ref{Cint},
-              buffer_len => Csize_t,
-              out_buffer_len => Ref{Csize_t},
-              out_strs => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_BoosterGetFeatureNames,
+        bst.handle => BoosterHandle,
+        len => Cint,
+        out_len => Ref{Cint},
+        buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        out_strs => Ref{Ptr{UInt8}}
+    )
 
     # allocating memory
     new_len = out_len[]
     new_buffer_len = out_buffer_len[]
     out_strs = [Vector{UInt8}(undef, new_buffer_len) for i in 1:new_len]
 
-    @lightgbm(:LGBM_BoosterGetFeatureNames,
-              bst.handle => BoosterHandle,
-              new_len => Cint,
-              out_len => Ref{Cint},
-              new_buffer_len => Csize_t,
-              out_buffer_len => Ref{Csize_t},
-              out_strs => Ref{Ptr{UInt8}})
+    @lightgbm(
+        :LGBM_BoosterGetFeatureNames,
+        bst.handle => BoosterHandle,
+        new_len => Cint,
+        out_len => Ref{Cint},
+        new_buffer_len => Csize_t,
+        out_buffer_len => Ref{Csize_t},
+        out_strs => Ref{Ptr{UInt8}}
+    )
 
     jl_out_strs = [unsafe_string(pointer(out_str)) for out_str in out_strs[1:out_len[]]]
     return jl_out_strs
@@ -548,11 +576,15 @@ end
 # function LGBM_BoosterPredictForCSR()
 # function LGBM_BoosterPredictForCSC()
 
-function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
-                                                              predict_type::Integer,
-                                                              start_iteration::Integer,
-                                                              num_iteration::Integer,
-                                                              is_row_major::Bool = false) where T<:Union{Float32,Float64}
+function LGBM_BoosterPredictForMat(
+    bst::Booster,
+    data::Matrix{T},
+    predict_type::Integer,
+    start_iteration::Integer,
+    num_iteration::Integer,
+    is_row_major::Bool = false
+) where T<:Union{Float32,Float64}
+
     num_class = LGBM_BoosterGetNumClasses(bst)
     data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
@@ -561,19 +593,22 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T},
     out_result = Array{Cdouble}(undef, alloc_len)
 
     parameter = ""  # full prediction, no early stopping
-    @lightgbm(:LGBM_BoosterPredictForMat,
-              bst.handle => BoosterHandle,
-              data => Ptr{Nothing},
-              data_type => Cint,
-              nrow => Int32,
-              ncol => Int32,
-              is_row_major => Cint,
-              predict_type => Cint,
-              start_iteration => Cint,
-              num_iteration => Cint,
-              parameter => Cstring,
-              out_len => Ref{Int64},
-              out_result => Ref{Cdouble})
+    @lightgbm(
+        :LGBM_BoosterPredictForMat,
+        bst.handle => BoosterHandle,
+        data => Ptr{Nothing},
+        data_type => Cint,
+        nrow => Int32,
+        ncol => Int32,
+        is_row_major => Cint,
+        predict_type => Cint,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        parameter => Cstring,
+        out_len => Ref{Int64},
+        out_result => Ref{Cdouble}
+    )
+
     return out_result[1:out_len[]]
 end
 
@@ -583,44 +618,62 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::
                                      num_iteration)
 end
 
-function LGBM_BoosterSaveModel(bst::Booster, start_iteration::Integer, num_iteration::Integer, feature_importance_type::Integer, filename::String)
-    @lightgbm(:LGBM_BoosterSaveModel,
-              bst.handle => BoosterHandle,
-              start_iteration => Cint,
-              num_iteration => Cint,
-              feature_importance_type => Cint,
-              filename => Cstring)
+function LGBM_BoosterSaveModel(
+    bst::Booster,
+    start_iteration::Integer,
+    num_iteration::Integer,
+    feature_importance_type::Integer,
+    filename::String
+)
+    @lightgbm(
+        :LGBM_BoosterSaveModel,
+        bst.handle => BoosterHandle,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        feature_importance_type => Cint,
+        filename => Cstring
+    )
     return nothing
 end
 
-function LGBM_BoosterSaveModelToString(bst::Booster, start_iteration::Integer, num_iteration::Integer, feature_importance_type::Integer)::String
+function LGBM_BoosterSaveModelToString(
+    bst::Booster,
+    start_iteration::Integer,
+    num_iteration::Integer,
+    feature_importance_type::Integer
+)::String
+
     # places for the call to write to
     out_len = Ref{Int64}()
     out_str = Vector{UInt8}(undef, 2)
     buffer_len = Int64(1)
 
     # first time will not work, we calling it to be told out_len
-    @lightgbm(:LGBM_BoosterSaveModelToString,
-              bst.handle => BoosterHandle,
-              start_iteration => Cint,
-              num_iteration => Cint,
-              feature_importance_type => Cint,
-              buffer_len => Int64,
-              out_len => Ref{Int64},
-              out_str => Ref{UInt8})
+    @lightgbm(
+        :LGBM_BoosterSaveModelToString,
+        bst.handle => BoosterHandle,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        feature_importance_type => Cint,
+        buffer_len => Int64,
+        out_len => Ref{Int64},
+        out_str => Ref{UInt8}
+    )
 
     out_str = Vector{UInt8}(undef, out_len[] + 1)
     buffer_len = out_len[]
 
     # now it works, and we have our serialised model in out_str, in c-memory
-    @lightgbm(:LGBM_BoosterSaveModelToString,
-              bst.handle => BoosterHandle,
-              start_iteration => Cint,
-              num_iteration => Cint,
-              feature_importance_type  => Cint,
-              buffer_len => Int64,
-              out_len => Ref{Int64},
-              out_str => Ref{UInt8})
+    @lightgbm(
+        :LGBM_BoosterSaveModelToString,
+        bst.handle => BoosterHandle,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        feature_importance_type  => Cint,
+        buffer_len => Int64,
+        out_len => Ref{Int64},
+        out_str => Ref{UInt8}
+    )
 
     jl_out_str = unsafe_string(pointer(out_str))
     return jl_out_str

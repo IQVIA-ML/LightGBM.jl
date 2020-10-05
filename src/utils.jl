@@ -42,8 +42,17 @@ Save the fitted model in `estimator` as `filename`.
 * `filename::String`: the name of the file to save the model in.
 * `num_iteration::Integer`: keyword argument that sets the number of iterations of the model that
     should be saved. `< 0` for all iterations.
+* `start_iteration` : : Start index of the iteration that should be saved.
+* `feature_importance_type` : Type of feature importance,
+    can be C_API_FEATURE_IMPORTANCE_SPLIT or C_API_FEATURE_IMPORTANCE_GAIN
 """
-function savemodel(estimator::LGBMEstimator, filename::String; num_iteration::Integer=-1, start_iteration::Integer=0, feature_importance_type::Integer=0)
+function savemodel(
+    estimator::LGBMEstimator,
+    filename::String;
+    num_iteration::Integer=-1,
+    start_iteration::Integer=0,
+    feature_importance_type::Integer=0
+)
     @assert(estimator.booster.handle != C_NULL, "Estimator does not contain a fitted model.")
     LGBM_BoosterSaveModel(estimator.booster, start_iteration, num_iteration, feature_importance_type, filename)
     return nothing
