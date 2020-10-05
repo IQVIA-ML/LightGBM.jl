@@ -586,7 +586,7 @@ function LGBM_BoosterPredictForMat(
 ) where T<:Union{Float32,Float64}
 
     num_class = LGBM_BoosterGetNumClasses(bst)
-    data_type = jltype_to_lgbmid(T)
+    lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, start_iteration, num_iteration)
@@ -597,7 +597,7 @@ function LGBM_BoosterPredictForMat(
         :LGBM_BoosterPredictForMat,
         bst.handle => BoosterHandle,
         data => Ptr{Nothing},
-        data_type => Cint,
+        lgbm_data_type => Cint,
         nrow => Int32,
         ncol => Int32,
         is_row_major => Cint,
