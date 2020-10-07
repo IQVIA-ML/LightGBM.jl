@@ -11,11 +11,11 @@ LightGBM.jl
 [LightGBM](https://lightgbm.readthedocs.io/en/latest/).
 
 The package adds a couple of convenience features:
-* Automated cross-validation 
+* Automated cross-validation
 * Exhaustive grid search search procedure
 * Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl) (which also provides the above via different interfaces)
 
-Additionally, the package automatically converts all LightGBM parameters that refer to indices 
+Additionally, the package automatically converts all LightGBM parameters that refer to indices
 (e.g. `categorical_feature`) from Julia's one-based indices to C's zero-based indices.
 
 A majority of the C-interfaces are implemented. A few are known to be missing and are
@@ -51,7 +51,7 @@ Pkg.test("LightGBM")
 
 # A simple example using LightGBM example files
 
-First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip) 
+First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
 and untar it somewhere.
 
 ```bash
@@ -128,3 +128,7 @@ And these have the same interface parameters as the [estimators](#estimators)
 The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
 and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/MLJTutorials/end-to-end/boston-lgbm/)
 
+## Contributors ✨
+
+The list of our Contributors can be found [here](https://github.com/IQVIA-ML/LightGBM.jl/blob/master/contributorsAcknowledgment.md).
+Please don't hesitate to add yourself when you contribute.
