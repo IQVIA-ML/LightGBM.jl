@@ -1,6 +1,6 @@
 ## Contributors ✨
 
-Thanks goes to our Amazing :star: Contributors:
+Thank you to our Amazing :star: Contributors:
 
 <table>
   <tr>
@@ -11,7 +11,9 @@ Thanks goes to our Amazing :star: Contributors:
     <td align="center"><a href="https://github.com/kd-iqvia"><img src="https://avatars0.githubusercontent.com/u/59925069?s=460&u=c64a9704e27c013b257dfe5238c471dd0b163140&v=4" width="100px;" alt=""/><br /><sub><b>kd-iqvia</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/sbeura"><img src="https://avatars0.githubusercontent.com/u/60133213?s=460&v=4" width="100px;" alt=""/><br /><sub><b>sbeura</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/cbecker"><img src="https://avatars3.githubusercontent.com/u/26833?s=460&u=b1db6023439bc76b15d1a202e77b05c6c6bbe7aa&v=4" width="100px;" alt=""/><br /><sub><b>cbecker</b></sub></a><br /></td>
-    <td align="center"><br /><sub><b>iqml</b></sub></a><br /></td>
+  <tr>
+    <td align="center"><img src="  https://camo.githubusercontent.com/dbdb923713c096216ea4624c1097e3eb477ed0ff/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f30623562353731386265333862663136613036326433613833616335323031613f643d68747470732533412532462532466769746875622e6769746875626173736574732e636f6d253246696d6167657325324667726176617461727325324667726176617461722d757365722d3432302e706e6726723d6726733d3634" width="100px;" alt=""/><br /><sub><b>iqml</b></sub></a><br /></td>
+  </tr>
 
   </tr>
 
