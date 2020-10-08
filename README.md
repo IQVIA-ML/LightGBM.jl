@@ -130,5 +130,5 @@ and integrated as part of a larger MLJ pipeline. [An example is provided](https:
 
 ## Contributors ✨
 
-The list of our Contributors can be found [here](https://github.com/IQVIA-ML/LightGBM.jl/blob/master/contributorsAcknowledgment.md).
+The list of our Contributors can be found [here](CONTRIBUTORS.md).
 Please don't hesitate to add yourself when you contribute.
