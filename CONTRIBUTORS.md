@@ -13,7 +13,7 @@ Thank you to our Amazing :star: Contributors:
     <td align="center"><a href="https://github.com/cbecker"><img src="https://avatars3.githubusercontent.com/u/26833?s=460&u=b1db6023439bc76b15d1a202e77b05c6c6bbe7aa&v=4" width="100px;" alt=""/><br /><sub><b>cbecker</b></sub></a><br /></td>
   </tr>
   <tr>
-    <td align="center"><img src="img src="https://avatars2.githubusercontent.com/u/10137?s=460&u=b1951d34a583cf12ec0d3b0781ba19be97726318&v=4" width="100px;" alt=""/><br /><sub><b>iqml</b></sub></a><br /></td>
+    <td align="center"><img src="https://avatars2.githubusercontent.com/u/10137?s=460&u=b1951d34a583cf12ec0d3b0781ba19be97726318&v=4" width="100px;" alt=""/><br /><sub><b>iqml</b></sub></a><br /></td>
   </tr>
 
 </table>
