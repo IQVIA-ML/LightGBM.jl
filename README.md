@@ -126,7 +126,7 @@ LightGBM.MLJInterface.LGBMRegressor
 And these have the same interface parameters as the [estimators](#estimators)
 
 The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
-and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/MLJTutorials/end-to-end/boston-lgbm/)
+and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/DataScienceTutorials.jl/end-to-end/boston-lgbm/)
 
 ## Contributors ✨
 
