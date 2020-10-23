@@ -57,6 +57,9 @@ end
         include(joinpath("basic", "evaluation_metrics.jl"))
     end
 
+    @testset "Utils" begin
+        include(joinpath("basic", "utils.jl"))
+    end
 end
 
 @testset "Integration tests" begin
