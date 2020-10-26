@@ -14,7 +14,7 @@ Thank you to our Amazing :star: Contributors:
   </tr>
   <tr>
     <td align="center"><img src="https://avatars2.githubusercontent.com/u/10137?s=460&u=b1951d34a583cf12ec0d3b0781ba19be97726318&v=4" width="100px;" alt=""/><br /><sub><b>iqml</b></sub></a><br /></td>
-    <td align="center"><img src="https://avatars3.githubusercontent.com/u/31726040" width="100px;" alt=""/><br /><sub><b>msekino</b></sub></a><br /></td>
+     <td align="center"><a href="https://github.com/msekino"><img src="https://avatars3.githubusercontent.com/u/31726040" width="100px;" alt=""/><br /><sub><b>cbecker</b></sub></a><br /></td>
   </tr>
 
 </table>
