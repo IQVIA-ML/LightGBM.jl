@@ -3,17 +3,19 @@ This package was originally authored by [Allardvm](https://github.com/Allardvm) 
 LightGBM.jl
 ![CI](https://github.com/IQVIA-ML/LightGBM.jl/workflows/CI/badge.svg)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://IQVIA-ML.github.io/LightGBM.jl/stable)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://IQVIA-ML.github.io/LightGBM.jl/dev)
 ========
 
 **LightGBM.jl** provides a high-performance Julia interface for Microsoft's
 [LightGBM](https://lightgbm.readthedocs.io/en/latest/).
 
 The package adds a couple of convenience features:
-* Automated cross-validation 
+* Automated cross-validation
 * Exhaustive grid search search procedure
 * Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl) (which also provides the above via different interfaces)
 
-Additionally, the package automatically converts all LightGBM parameters that refer to indices 
+Additionally, the package automatically converts all LightGBM parameters that refer to indices
 (e.g. `categorical_feature`) from Julia's one-based indices to C's zero-based indices.
 
 A majority of the C-interfaces are implemented. A few are known to be missing and are
@@ -24,7 +26,6 @@ All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia 
 # Table of Contents
 1. [Installation](#installation)
 1. [Example](#a-simple-example-using-lightgbm-example-files)
-1. [Exports](#exports)
 1. [MLJ](#mlj-support)
 
 # Installation
@@ -50,7 +51,7 @@ Pkg.test("LightGBM")
 
 # A simple example using LightGBM example files
 
-First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip) 
+First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
 and untar it somewhere.
 
 ```bash
@@ -111,243 +112,6 @@ savemodel(estimator, filename)
 loadmodel(estimator, filename)
 ```
 
-# Exports
-
-Note that a lot of parameters used within this module and in the code and examples are
-exact matches with those from [LightGBM.](https://lightgbm.readthedocs.io/en/latest/Parameters.html)
-Not all of these are necessarily supported but see the guide for detailed explanations of what these
-parameters do and their valid values.
-
-## Functions
-
-### `fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])`
-Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
-validation sets.
-
-Return a dictionary with an entry for each validation set. Each entry of the dictionary is another
-dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
-array that holds the validation metric's value at each evaluation of the metric.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Matrix{TX<:Real}`: the features data.
-* `y::Vector{Ty<:Real}`: the labels.
-* `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
-    the same types as `X` and `y` that should be used as validation sets.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
-* `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
-    indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
-* `weights::Vector{Tw<:Real}`: the training weights.
-* `init_score::Vector{Ti<:Real}`: the init scores.
-
-### `predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false])`
-Return an array with outputs
-* Probabilities for binary or multiclass (with output being 2-d if multiclass)
-* Regression predictions
-
-### `predict_classes(multiclass_estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1, is_row_major = false, binary_threshold = 0.5])`
-A convenience method for obtaining predicted classes from the `LGBMClassification` estimator.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `X::Matrix{T<:Real}`: the features data.
-* `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
-    scores with transform (if needed), `1` for raw scores, `2` for leaf indices.
-* `num_iterations::Integer`: keyword argument that sets the number of iterations of the model to
-    use in the prediction. `< 0` for all iterations.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
-* `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
-    indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
-* `binary_threshold::Real`: The decision threshold to use for a binary classification
-    (when using `binary` objective only, otherwise argmax decision)
-
-### `cv(estimator, X, y, splits; [verbosity = 1])` (Experimental—interface may change)
-Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
-vectors of indices for the training dataset. The remaining indices are used to create the
-validation dataset.
-
-Return a dictionary with an entry for the validation dataset and, if the parameter
-`is_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
-the dictionary is another dictionary with an entry for each validation metric in the `estimator`.
-Each of these entries is an array that holds the validation metric's value for each dataset, at the
-last valid iteration.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Matrix{TX<:Real}`: the features data.
-* `y::Vector{Ty<:Real}`: the labels.
-* `splits`: the iterable providing arrays of indices for the training dataset.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
-
-### `search_cv(estimator, X, y, splits, params; [verbosity = 1])` (Experimental—interface may change)
-Exhaustive search over the specified sets of parameter values for the `estimator` with features
-data `X` and label `y`. The iterable `splits` provides vectors of indices for the training dataset.
-The remaining indices are used to create the validation dataset.
-
-Return an array with a tuple for each set of parameters value, where the first entry is a set of
-parameter values and the second entry the cross-validation outcome of those values. This outcome is
-a dictionary with an entry for the validation dataset and, if the parameter `is_training_metric` is
-set in the `estimator`, an entry for the training dataset. Each entry of the dictionary is
-another dictionary with an entry for each validation metric in the `estimator`. Each of these
-entries is an array that holds the validation metric's value for each dataset, at the last valid
-iteration.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Matrix{TX<:Real}`: the features data.
-* `y::Vector{Ty<:Real}`: the labels.
-* `splits`: the iterable providing arrays of indices for the training dataset.
-* `params`: the iterable providing dictionaries of pairs of parameters (Symbols) and values to
-    configure the `estimator` with.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
-
-### `savemodel(estimator, filename; [num_iteration = -1])`
-Save the fitted model in `estimator` as `filename`.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `filename::String`: the name of the file to save the model in.
-* `num_iteration::Integer`: keyword argument that sets the number of iterations of the model that
-    should be saved. `< 0` for all iterations.
-
-### `loadmodel(estimator, filename)`
-Load the fitted model `filename` into `estimator`. Note that this only loads the fitted model—not
-the parameters or data of the estimator whose model was saved as `filename`.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `filename::String`: the name of the file that contains the model.
-
-### `gain_importance(estimator, num_iterations)`
-Returns the importance of a fitted booster in terms of information gain across
-all boostings, or up to `num_iteration` boostings. If `num_iterations` is not provided
-all iterations will be used.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `num_iteration::Integer`: sets the number of iterations of the model that should be used
-for gain computations
-
-### `split_importance(estimator, num_iterations)`
-Returns the importance of a fitted booster in terms of number of times feature was
-used in a split across all boostings, or up to `num_iteration` boostings. If `num_iterations`
-is not provided all iterations will be used.
-
-#### Arguments
-* `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `num_iteration::Integer`: sets the number of iterations of the model that should be used
-for split importance computations
-
-
-## Estimators
-
-### `LGBMRegression <: LGBMEstimator`
-```julia
-LGBMRegression(;
-    objective = "regression",
-    boosting = "gbdt",
-    num_iterations = 10,
-    learning_rate = .1,
-    num_leaves = 127,
-    max_depth = -1,
-    tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
-    histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
-    min_sum_hessian_in_leaf = 10.,
-    lambda_l1 = 0.,
-    lambda_l2 = 0.,
-    min_gain_to_split = 0.,
-    feature_fraction = 1.,
-    feature_fraction_seed = 2,
-    bagging_fraction = 1.,
-    bagging_freq = 0,
-    bagging_seed = 3,
-    early_stopping_round = 0,
-    max_bin = 255,
-    data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
-    save_binary = false,
-    categorical_feature = Int[],
-    is_unbalance = false,
-    drop_rate = 0.1,
-    max_drop = 50,
-    skip_drop = 0.5,
-    xgboost_dart_mode = false,
-    uniform_drop = false,
-    drop_seed = 4,
-    top_rate = 0.2,
-    other_rate = 0.1,
-    metric = ["l2"],
-    metric_freq = 1,
-    is_training_metric = false,
-    ndcg_at = Int[],
-    num_machines = 1,
-    local_listen_port = 12400,
-    time_out = 120,
-    machine_list_file = "",
-    device_type="cpu",
-)
-```
-Return an LGBMRegression estimator.
-
-### `LGBMClassification <: LGBMEstimator`
-```julia
-LGBMClassification(;
-    objective = "multiclass",
-    boosting = "gbdt",
-    num_iterations = 10,
-    learning_rate = .1,
-    num_leaves = 127,
-    max_depth = -1,
-    tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
-    histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
-    min_sum_hessian_in_leaf = 10.,
-    lambda_l1 = 0.,
-    lambda_l2 = 0.,
-    min_gain_to_split = 0.,
-    feature_fraction = 1.,
-    feature_fraction_seed = 2,
-    bagging_fraction = 1.,
-    bagging_freq = 0,
-    bagging_seed = 3,
-    early_stopping_round = 0,
-    max_bin = 255,
-    data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
-    save_binary = false,
-    categorical_feature = Int[],
-    is_unbalance = false,
-    drop_rate = 0.1,
-    max_drop = 50,
-    skip_drop = 0.5,
-    xgboost_dart_mode = false,
-    uniform_drop = false,
-    drop_seed = 4,
-    top_rate = 0.2,
-    other_rate = 0.1,
-    metric = ["multi_logloss"],
-    metric_freq = 1,
-    is_training_metric = false,
-    ndcg_at = Int[],
-    num_machines = 1,
-    local_listen_port = 12400,
-    time_out = 120,
-    machine_list_file = "",
-    num_class = 2,
-    device_type="cpu",
-)
-```
-Return an LGBMClassification estimator.
-
 # MLJ Support
 
 This package has an interface to [MLJ](https://github.com/alan-turing-institute/MLJ.jl).
@@ -362,5 +126,9 @@ LightGBM.MLJInterface.LGBMRegressor
 And these have the same interface parameters as the [estimators](#estimators)
 
 The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
-and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/MLJTutorials/end-to-end/boston-lgbm/)
+and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/DataScienceTutorials.jl/end-to-end/boston-lgbm/)
 
+## Contributors ✨
+
+The list of our Contributors can be found [here](CONTRIBUTORS.md).
+Please don't hesitate to add yourself when you contribute.

@@ -266,7 +266,7 @@ function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
             if !isempty(param_value)
                 # Convert parameters that contain indices to C's zero-based indices.
                 if in(param_name, INDEXPARAMS)
-                    param_value -= 1
+                    param_value .-= 1
                 end
 
                 if typeof(param_value) <: Array
