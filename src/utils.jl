@@ -12,7 +12,7 @@ const BOOSTERPARAMS = [
 
 const INDEXPARAMS = [:categorical_feature]
 
-const MAXIMIZE_METRICS = ["auc", "ndcg"]
+const MAXIMIZE_METRICS = ["auc", "ndcg", "average_precision"]
 
 # LOGGING Funcs
 function log_fatal(verbosity::Integer, msg...)
