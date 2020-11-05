@@ -317,26 +317,32 @@ end
     @test occursin("Tree=0", string_repr)
     @test occursin("end of parameters", string_repr)
 
-    # this is an additional test to check the presence and corectness of split and gain after saving model to string
-    # due to LGBM v3.0.0 changing the LGBM_BoosterSaveModelToString API that includes now either split or gain parameters
-    # this test generates a model, gets the split and gain,
-    # saves model to string using case with split and gain parameters accordingly with the updated API call
-    # loads the models saved with these params and checks the split and gain values are as expected
+    # this is an additional test to check the presence and correctness of split and gain after saving model to string
+    # due to LGBM v3.0.0 changing the LGBM_BoosterSaveModelToString API that now includes either split or gain parameters
+    # this test is to show that the correct split and gain can be computed regardless of which
+    # `feature_importance_type` parameter is used to save model
+
+    # load a model from file
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "gain_test_booster"))
+    # compute both its gain and split importance
     split_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 0)
     gain_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 1)
-    split_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 0)
-    gain_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 1)
-    split_load = LightGBM.LGBM_BoosterLoadModelFromString(split_save)
-    gain_load = LightGBM.LGBM_BoosterLoadModelFromString(gain_save)
-    split_importance_loaded = LightGBM.LGBM_BoosterFeatureImportance(split_load, 0, 0)
-    gain_importance_loaded = LightGBM.LGBM_BoosterFeatureImportance(gain_load, 0, 1)
-    expected_gain = [89.73980999, 65.49232054, 112.80447054, 107.81817985, 124.81229973]
-    expected_split = [17, 11, 19, 20, 23]
-    @test isapprox(gain_importance, expected_gain, atol=1e-4)
-    @test split_importance == expected_split
-    @test isapprox(gain_importance_loaded, expected_gain, atol=1e-4)
-    @test split_importance_loaded == expected_split
+    # save the model twice, once with each of those gain and split parameters
+    split_model_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 0)
+    gain_model_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 1)
+    # load each of the saved models to a new model
+    split_load_model = LightGBM.LGBM_BoosterLoadModelFromString(split_model_save)
+    gain_load_model = LightGBM.LGBM_BoosterLoadModelFromString(gain_model_save)
+    # for EACH model, compute gain and split importances
+    split_importance_from_split_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(split_load_model, 0, 0)
+    gain_importance_from_split_loaded_model= LightGBM.LGBM_BoosterFeatureImportance(split_load_model, 0, 1)
+    gain_importance_from_gain_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(gain_load_model, 0, 1)
+    split_importance_from_gain_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(gain_load_model, 0, 0)
+    # and show that both values are the same as the originals for both models
+    @test split_importance == split_importance_from_split_loaded_model
+    @test split_importance == split_importance_from_gain_loaded_model
+    @test gain_importance == gain_importance_from_split_loaded_model
+    @test gain_importance == gain_importance_from_gain_loaded_model
 
 end
 
