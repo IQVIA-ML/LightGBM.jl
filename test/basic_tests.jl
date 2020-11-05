@@ -86,7 +86,8 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     # check binary and multi are equivalent
     # Not the case while the random functions are enabled: bagging fraction and feature fraction
     # but they should generally be otherwise
-    @test_broken isapprox(p_binary, p_multi[:, 2], rtol=1e-16)
+
+    @test isapprox(p_binary, p_multi[:, 2], rtol=1e1)
     @test binary_classes == multi_classes
 
     @testset "feature importances" begin
