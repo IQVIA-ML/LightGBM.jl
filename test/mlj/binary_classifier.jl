@@ -16,7 +16,7 @@ model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=
 N = 2
 seed!(0)
 
-X       = (x1=rand(1000), x2=rand(1000), x3=rand(1000))
+X       = (x1=rand(2000), x2=rand(2000), x3=rand(2000))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
 weights = Float64.(MLJBase.int(ycat)) # just use the 1's/2's directly as multipliers
 
@@ -37,7 +37,7 @@ misclassification_rate   = sum(yhat .!= y[test])/length(test)
 @test misclassification_rate < 0.015
 
 # All we can really say about fitting with/without weights for this example is that the solutions shouldn't be identical
-@test_broken yhat_with_weights != yhat
+@test yhat_with_weights != yhat
 
 # Cache contains iterations counts history
 @test cache isa NamedTuple
