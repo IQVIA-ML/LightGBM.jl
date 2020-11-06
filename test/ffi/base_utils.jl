@@ -10,7 +10,7 @@ using Test
 
     @test b != bb
     @test b !== bb
-    @test LightGBM.LGBM_BoosterSaveModelToString(b, 0, 0, 0) == LightGBM.LGBM_BoosterSaveModelToString(bb, 0, 0, 0)
+    @test LightGBM.LGBM_BoosterSaveModelToString(b) == LightGBM.LGBM_BoosterSaveModelToString(bb)
 
     # test for empty boosters too
     b_empty = LightGBM.Booster()

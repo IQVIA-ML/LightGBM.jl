@@ -60,7 +60,7 @@ function Base.deepcopy_internal(x::Booster, stackdict::IdDict)
         return Booster()
     end
 
-    serialised = LGBM_BoosterSaveModelToString(x, 0, 0, 0)
+    serialised = LGBM_BoosterSaveModelToString(x)
     y = LGBM_BoosterLoadModelFromString(serialised)
 
     return y
@@ -638,9 +638,9 @@ end
 
 function LGBM_BoosterSaveModelToString(
     bst::Booster,
-    start_iteration::Integer,
-    num_iteration::Integer,
-    feature_importance_type::Integer
+    start_iteration::Integer=0,
+    num_iteration::Integer=0,
+    feature_importance_type::Integer=0
 )::String
 
     # places for the call to write to
@@ -679,6 +679,7 @@ function LGBM_BoosterSaveModelToString(
     return jl_out_str
 
 end
+
 
 function LGBM_BoosterFeatureImportance(bst::Booster, num_iteration::Integer, importance_type::Integer)::Vector{Float64}
 

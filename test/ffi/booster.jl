@@ -305,7 +305,7 @@ end
 @testset "LGBM_BoosterSaveModelToString" begin
 
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
-    string_repr = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 0)
+    string_repr = LightGBM.LGBM_BoosterSaveModelToString(booster)
     # so it turns out that the string save and file save aren't necesarily the same so..
     # check a bunch of expected substrings, etc
     @test occursin("version=v3", string_repr)
