@@ -16,7 +16,7 @@ model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=
 N = 2
 seed!(0)
 
-X       = (x1=rand(2000), x2=rand(2000), x3=rand(2000))
+X       = (x1=rand(1002), x2=rand(1002), x3=rand(1002))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
 weights = Float64.(MLJBase.int(ycat)) # just use the 1's/2's directly as multipliers
 
