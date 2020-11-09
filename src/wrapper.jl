@@ -562,13 +562,15 @@ function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type
                                     num_iteration::Int)
     out_len = Ref{Int64}()
 
-    @lightgbm(:LGBM_BoosterCalcNumPredict,
-              bst.handle => BoosterHandle,
-              num_row => Cint,
-              predict_type => Cint,
-              start_iteration => Cint,
-              num_iteration => Cint,
-              out_len => Ref{Int64})
+    @lightgbm(
+        :LGBM_BoosterCalcNumPredict,
+        bst.handle => BoosterHandle,
+        num_row => Cint,
+        predict_type => Cint,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        out_len => Ref{Int64}
+    )
 
     return out_len[]
 end

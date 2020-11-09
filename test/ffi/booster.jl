@@ -318,8 +318,9 @@ end
     @test occursin("end of parameters", string_repr)
 
     # this is an additional test to check the presence and correctness of split and gain after saving model to string
-    # due to LGBM v3.0.0 changing the LGBM_BoosterSaveModelToString API that now includes either split or gain parameters
-    # this test is to show that the correct split and gain can be computed regardless of which
+    # due to LGBM v3.0.0 changing the LGBM_BoosterSaveModelToString API that now includes an additional parameter
+    # for either split or gain parameters
+    # this test is to show that the correct split and gain can be computed regardless of whether 0(split) or 1(gain)
     # `feature_importance_type` parameter is used to save model
 
     # load a model from file
