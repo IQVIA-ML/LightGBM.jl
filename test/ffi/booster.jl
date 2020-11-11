@@ -218,16 +218,22 @@ end
 
 @testset "LGBM_BoosterGetEvalNames" begin
 
-    # This is likely to get a segfaulty code too (must prealloc memory)
-    @test_broken false
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "metric=binary_logloss $(verbosity)")
+    @test LightGBM.LGBM_BoosterGetEvalNames(booster) |> first == "binary_logloss"
 
 end
 
 
 @testset "LGBM_BoosterGetFeatureNames" begin
 
-    # This is likely to get a segfaulty code too (must prealloc memory)
-    @test_broken false
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    randfeatures = [randstring(2000), randstring(3000)]
+    LightGBM.LGBM_DatasetSetFeatureNames(dataset, randfeatures)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+    @test LightGBM.LGBM_BoosterGetFeatureNames(booster) == randfeatures
 
 end
 
@@ -236,9 +242,7 @@ end
 
     mymat = [1. 2.; 3. 4.; 5. 6.]
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
-
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
-
     @test LightGBM.LGBM_BoosterGetNumFeature(booster) == 2
 
 end
@@ -286,8 +290,14 @@ end
 
 @testset "LGBM_BoosterSaveModel" begin
 
-    # Needs implementing
-    @test_broken false
+    booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
+    model_path = joinpath(@__DIR__, "data", "test_model.txt")
+    if isfile(model_path)
+        rm(model_path, force = true)
+    end
+    LightGBM.LGBM_BoosterSaveModel(booster, 0, 0, 0, model_path )
+    @test isfile(model_path)
+    rm(model_path; force = true)
 
 end
 
@@ -295,18 +305,45 @@ end
 @testset "LGBM_BoosterSaveModelToString" begin
 
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
-    string_repr = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0)
+    string_repr = LightGBM.LGBM_BoosterSaveModelToString(booster)
     # so it turns out that the string save and file save aren't necesarily the same so..
     # check a bunch of expected substrings, etc
     @test occursin("version=v3", string_repr)
     @test occursin("num_leaves=1", string_repr)
     @test occursin("end of trees", string_repr)
-    @test occursin("feature importances:", string_repr)
+    @test occursin("feature_importances:", string_repr)
     @test occursin("parameters:", string_repr)
     @test occursin("[convert_model: gbdt_prediction.cpp]", string_repr)
     @test occursin("Tree=0", string_repr)
     @test occursin("end of parameters", string_repr)
 
+    # this is an additional test to check the presence and correctness of split and gain after saving model to string
+    # due to LGBM v3.0.0 changing the LGBM_BoosterSaveModelToString API that now includes an additional parameter
+    # for either split or gain parameters
+    # this test is to show that the correct split and gain can be computed regardless of whether 0(split) or 1(gain)
+    # `feature_importance_type` parameter is used to save model
+
+    # load a model from file
+    booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "gain_test_booster"))
+    # compute both its gain and split importance
+    split_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 0)
+    gain_importance = LightGBM.LGBM_BoosterFeatureImportance(booster, 0, 1)
+    # save the model twice, once with each of those gain and split parameters
+    split_model_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 0)
+    gain_model_save = LightGBM.LGBM_BoosterSaveModelToString(booster, 0, 0, 1)
+    # load each of the saved models to a new model
+    split_load_model = LightGBM.LGBM_BoosterLoadModelFromString(split_model_save)
+    gain_load_model = LightGBM.LGBM_BoosterLoadModelFromString(gain_model_save)
+    # for EACH model, compute gain and split importances
+    split_importance_from_split_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(split_load_model, 0, 0)
+    gain_importance_from_split_loaded_model= LightGBM.LGBM_BoosterFeatureImportance(split_load_model, 0, 1)
+    gain_importance_from_gain_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(gain_load_model, 0, 1)
+    split_importance_from_gain_loaded_model = LightGBM.LGBM_BoosterFeatureImportance(gain_load_model, 0, 0)
+    # and show that both values are the same as the originals for both models
+    @test split_importance == split_importance_from_split_loaded_model
+    @test split_importance == split_importance_from_gain_loaded_model
+    @test gain_importance == gain_importance_from_split_loaded_model
+    @test gain_importance == gain_importance_from_gain_loaded_model
 
 end
 

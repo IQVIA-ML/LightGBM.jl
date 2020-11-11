@@ -23,7 +23,7 @@ One can obtain some form of feature importances by averaging SHAP contributions 
 """
 function predict(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
-    num_iterations::Integer = -1, verbosity::Integer = 1,
+    start_iteration::Integer = 0, num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false,
 )::Matrix{Float64} where TX <:Real
 
@@ -32,7 +32,7 @@ function predict(
     log_debug(verbosity, "Started predicting\n")
 
     prediction = LGBM_BoosterPredictForMat(
-        estimator.booster, X, predict_type, num_iterations, is_row_major
+        estimator.booster, X, predict_type, start_iteration, num_iterations, is_row_major
     )
 
     # This works the same one way or another because when n=1, (regression) reshaping is basically no-op
@@ -64,4 +64,3 @@ function predict_classes(
     return getindex.(argmax(predicted_probabilities, dims=2), 2) .- 1
 
 end
-

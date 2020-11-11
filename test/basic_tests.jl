@@ -83,11 +83,8 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     @test length(size(binary_classes)) == 2
     @test length(size(multi_classes)) == 2
 
-    # check binary and multi are equivalent
-    # Not the case while the random functions are enabled: bagging fraction and feature fraction
-    # but they should generally be otherwise
-    @test_broken isapprox(p_binary, p_multi[:, 2], rtol=1e-16)
-    @test_broken binary_classes == multi_classes
+    # probabilities can't match for multiclassova but predictions do for binary and multiclass (with 2 classes)
+    @test binary_classes == multi_classes
 
     @testset "feature importances" begin
     # This is kinda lazy .... tests start to need more refactoring

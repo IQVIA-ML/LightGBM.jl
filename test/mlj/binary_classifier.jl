@@ -16,7 +16,7 @@ model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=
 N = 2
 seed!(0)
 
-X       = (x1=rand(1000), x2=rand(1000), x3=rand(1000))
+X       = (x1=rand(1010), x2=rand(1010), x3=rand(1010))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
 weights = Float64.(MLJBase.int(ycat)) # just use the 1's/2's directly as multipliers
 
@@ -30,7 +30,6 @@ yhat                     = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBa
 # fit again with weights
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train], weights[train])
 yhat_with_weights        = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test)))
-
 misclassification_rate   = sum(yhat .!= y[test])/length(test)
 
 # Well, although XGBoost gets misclassification below 0.01, LightGBM can't do it with the default settings ...
