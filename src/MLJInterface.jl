@@ -44,6 +44,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
     max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
     drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
     max_drop::Int = 50
@@ -60,6 +61,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
+    boost_from_average::Bool = true
+    use_missing::Bool = true
 
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -101,6 +104,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
     max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
     drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
     max_drop::Int = 50
@@ -121,6 +125,9 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
+    boost_from_average::Bool = true
+    scale_pos_weight = 1.0
+    use_missing::Bool = true
 
     # Metrics
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))

@@ -28,13 +28,16 @@ mutable struct LGBMRegression <: LGBMEstimator
     early_stopping_round::Int
 
     max_bin::Int
+    bin_construct_sample_cnt::Int
     data_random_seed::Int
     init_score::String
     is_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
+    use_missing::Bool
 
     is_unbalance::Bool
+    boost_from_average::Bool
 
     drop_rate::Float64
     max_drop::Int
@@ -82,12 +85,15 @@ end
         bagging_seed = 3,
         early_stopping_round = 0,
         max_bin = 255,
+        bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
         init_score = \"\",
         is_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
+        use_missing = true,
         is_unbalance = false,
+        boost_from_average = true,
         drop_rate = 0.1,
         max_drop = 50,
         skip_drop = 0.5,
@@ -131,12 +137,15 @@ function LGBMRegression(;
     bagging_seed = 3,
     early_stopping_round = 0,
     max_bin = 255,
+    bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
     init_score = "",
     is_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
+    use_missing = true,
     is_unbalance = false,
+    boost_from_average = true,
     drop_rate = 0.1,
     max_drop = 50,
     skip_drop = 0.5,
@@ -162,11 +171,10 @@ function LGBMRegression(;
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-        max_bin, data_random_seed, init_score,
-        is_sparse, save_binary, categorical_feature,
-        is_unbalance, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate,
-        metric, metric_freq,
+        max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
+        is_sparse, save_binary, categorical_feature, use_missing,
+        is_unbalance, boost_from_average, drop_rate, max_drop, skip_drop,
+        xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, metric, metric_freq,
         is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, 1, device_type
     )
@@ -200,13 +208,17 @@ mutable struct LGBMClassification <: LGBMEstimator
     early_stopping_round::Int
 
     max_bin::Int
+    bin_construct_sample_cnt::Int
     data_random_seed::Int
     init_score::String
     is_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
+    use_missing::Bool
 
     is_unbalance::Bool
+    boost_from_average::Bool
+    scale_pos_weight::Float64
 
     drop_rate::Float64
     max_drop::Int
@@ -255,12 +267,16 @@ end
         bagging_seed = 3,
         early_stopping_round = 0,
         max_bin = 255,
+        bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
         init_score = \"\",
         is_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
+        use_missing = true,
         is_unbalance = false,
+        boost_from_average = true,
+        scale_pos_weight = 1.0,
         drop_rate = 0.1,
         max_drop = 50,
         skip_drop = 0.5,
@@ -305,12 +321,16 @@ function LGBMClassification(;
     bagging_seed = 3,
     early_stopping_round = 0,
     max_bin = 255,
+    bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
     init_score = "",
     is_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
+    use_missing = true,
     is_unbalance = false,
+    boost_from_average = true,
+    scale_pos_weight = 1.0,
     drop_rate = 0.1,
     max_drop = 50,
     skip_drop = 0.5,
@@ -337,9 +357,9 @@ function LGBMClassification(;
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-        max_bin, data_random_seed, init_score,
-        is_sparse, save_binary, categorical_feature,
-        is_unbalance, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
+        max_bin, bin_construct_sample_cnt, data_random_seed, init_score, is_sparse, save_binary,
+        categorical_feature, use_missing, is_unbalance, boost_from_average, scale_pos_weight,
+        drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, metric, metric_freq,
         is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, num_class, device_type,
