@@ -6,8 +6,9 @@ const DATASETPARAMS = [
 const BOOSTERPARAMS = [
     :application, :boosting, :learning_rate, :num_leaves, :max_depth, :tree_learner,
     :num_threads, :histogram_pool_size, :min_data_in_leaf, :min_sum_hessian_in_leaf,
-    :lambda_l1, :lambda_l2, :min_gain_to_split, :feature_fraction, :feature_fraction_seed,
-    :bagging_fraction, :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
+    :lambda_l1, :lambda_l2, :min_gain_to_split, :feature_fraction, :feature_fraction_bynode,
+    :feature_fraction_seed, :bagging_fraction, :pos_bagging_fraction, :neg_bagging_fraction,
+    :bagging_freq, :bagging_seed, :early_stopping_round, :extra_trees, :extra_seed, :sigmoid,
     :is_unbalance, :boost_from_average, :scale_pos_weight, :drop_rate, :max_drop, :skip_drop,
     :xgboost_dart_mode, :uniform_drop,:drop_seed, :top_rate, :other_rate, :metric,
     :is_training_metric, :ndcg_at, :num_machines,

@@ -21,11 +21,14 @@ mutable struct LGBMRegression <: LGBMEstimator
     lambda_l2::Float64
     min_gain_to_split::Float64
     feature_fraction::Float64
+    feature_fraction_bynode::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
     bagging_freq::Int
     bagging_seed::Int
     early_stopping_round::Int
+    extra_trees::Bool
+    extra_seed::Int
 
     max_bin::Int
     bin_construct_sample_cnt::Int
@@ -79,11 +82,14 @@ end
         lambda_l2 = 0.,
         min_gain_to_split = 0.,
         feature_fraction = 1.,
+        feature_fraction_bynode = 1.,
         feature_fraction_seed = 2,
         bagging_fraction = 1.,
         bagging_freq = 0,
         bagging_seed = 3,
         early_stopping_round = 0,
+        extra_trees = false
+        extra_seed = 6,
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
@@ -131,11 +137,14 @@ function LGBMRegression(;
     lambda_l2 = 0.,
     min_gain_to_split = 0.,
     feature_fraction = 1.,
+    feature_fraction_bynode = 1.,
     feature_fraction_seed = 2,
     bagging_fraction = 1.,
     bagging_freq = 0,
     bagging_seed = 3,
     early_stopping_round = 0,
+    extra_trees = false,
+    extra_seed = 6,
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
@@ -169,9 +178,9 @@ function LGBMRegression(;
         Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves,
         max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
-        min_gain_to_split, feature_fraction, feature_fraction_seed,
-        bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-        max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
+        min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
+        bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, extra_trees,
+        extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
         is_sparse, save_binary, categorical_feature, use_missing,
         is_unbalance, boost_from_average, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, metric, metric_freq,
@@ -201,11 +210,17 @@ mutable struct LGBMClassification <: LGBMEstimator
     lambda_l2::Float64
     min_gain_to_split::Float64
     feature_fraction::Float64
+    feature_fraction_bynode::Float64
     feature_fraction_seed::Int
     bagging_fraction::Float64
+    pos_bagging_fraction::Float64
+    neg_bagging_fraction::Float64
+
     bagging_freq::Int
     bagging_seed::Int
     early_stopping_round::Int
+    extra_trees::Bool
+    extra_seed::Int
 
     max_bin::Int
     bin_construct_sample_cnt::Int
@@ -261,11 +276,16 @@ end
         lambda_l2 = 0.,
         min_gain_to_split = 0.,
         feature_fraction = 1.,
+        feature_fraction_bynode = 1.,
         feature_fraction_seed = 2,
         bagging_fraction = 1.,
+        pos_bagging_fraction = 1.,
+        neg_bagging_fraction = 1.,
         bagging_freq = 0,
         bagging_seed = 3,
         early_stopping_round = 0,
+        extra_trees = false,
+        extra_seed = 6,
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
@@ -315,11 +335,16 @@ function LGBMClassification(;
     lambda_l2 = 0.,
     min_gain_to_split = 0.,
     feature_fraction = 1.,
+    feature_fraction_bynode = 1.,
     feature_fraction_seed = 2,
     bagging_fraction = 1.,
+    pos_bagging_fraction = 1.,
+    neg_bagging_fraction = 1.,
     bagging_freq = 0,
     bagging_seed = 3,
     early_stopping_round = 0,
+    extra_trees = false,
+    extra_seed = 6,
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
@@ -355,9 +380,10 @@ function LGBMClassification(;
         Booster(), "", objective, boosting, num_iterations, learning_rate,
         num_leaves, max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, lambda_l1, lambda_l2,
-        min_gain_to_split, feature_fraction, feature_fraction_seed,
-        bagging_fraction, bagging_freq, bagging_seed, early_stopping_round,
-        max_bin, bin_construct_sample_cnt, data_random_seed, init_score, is_sparse, save_binary,
+        min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
+        bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
+        bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
+        data_random_seed, init_score, is_sparse, save_binary,
         categorical_feature, use_missing, is_unbalance, boost_from_average, scale_pos_weight,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, metric, metric_freq,

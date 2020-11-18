@@ -38,11 +38,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
     feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
+    extra_trees::Bool = false
+    extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
     bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
@@ -98,11 +101,16 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
     feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    pos_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    neg_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
+    extra_trees::Bool = false
+    extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
     bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
