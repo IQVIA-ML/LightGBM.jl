@@ -1,13 +1,18 @@
-const DATASETPARAMS = [:is_sparse, :max_bin, :data_random_seed, :categorical_feature]
+const DATASETPARAMS = [
+    :is_sparse, :max_bin, :bin_construct_sample_cnt, :data_random_seed,
+    :categorical_feature, :use_missing,
+]
 
 const BOOSTERPARAMS = [
     :application, :boosting, :learning_rate, :num_leaves, :max_depth, :tree_learner,
-    :num_threads, :histogram_pool_size, :min_data_in_leaf, :min_sum_hessian_in_leaf,
-    :lambda_l1, :lambda_l2, :min_gain_to_split, :feature_fraction, :feature_fraction_seed,
-    :bagging_fraction, :bagging_freq, :bagging_seed, :early_stopping_round, :sigmoid,
-    :is_unbalance, :drop_rate, :max_drop, :skip_drop, :xgboost_dart_mode, :uniform_drop,
-    :drop_seed, :top_rate, :other_rate, :metric, :is_training_metric, :ndcg_at, :num_machines,
-    :local_listen_port, :time_out, :machine_list_file, :num_class, :device_type,
+    :num_threads, :histogram_pool_size, :min_data_in_leaf, :min_sum_hessian_in_leaf, :max_delta_step,
+    :lambda_l1, :lambda_l2, :min_gain_to_split, :feature_fraction, :feature_fraction_bynode,
+    :feature_fraction_seed, :bagging_fraction, :pos_bagging_fraction, :neg_bagging_fraction,
+    :bagging_freq, :bagging_seed, :early_stopping_round, :extra_trees, :extra_seed, :sigmoid,
+    :is_unbalance, :boost_from_average, :scale_pos_weight, :drop_rate, :max_drop, :skip_drop,
+    :xgboost_dart_mode, :uniform_drop,:drop_seed, :top_rate, :other_rate, :min_data_per_group, :max_cat_threshold, :cat_l2,
+    :cat_smooth, :metric, :is_training_metric, :ndcg_at, :num_machines, :local_listen_port, :time_out, :machine_list_file,
+    :num_class, :device_type, :force_col_wise, :force_row_wise,
 ]
 
 const INDEXPARAMS = [:categorical_feature]

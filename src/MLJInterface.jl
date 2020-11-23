@@ -34,25 +34,34 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
+    max_delta_step::Float64 = 0.0
     lambda_l1::Float64 = 0.0::(_ >= 0.0)
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
     feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
+    extra_trees::Bool = false
+    extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
-    drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
+    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
-    top_rate::Float64 = 0.2 :: (0.0 <= _ <= 1.0)
-    other_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)
+    other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
+    min_data_per_group::Int = 100::(_ > 0)
+    max_cat_threshold::Int = 32::(_ > 0)
+    cat_l2::Float64 = 10.0::(_ >= 0)
+    cat_smooth::Float64 = 10.0::(_ >= 0)
 
     # Model properties
     objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
@@ -60,6 +69,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
+    boost_from_average::Bool = true
+    use_missing::Bool = true
 
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -75,6 +86,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
 
 end
 
@@ -91,25 +104,36 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
+    max_delta_step::Float64 = 0.0
     lambda_l1::Float64 = 0.0::(_ >= 0.0)
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
     feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    pos_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    neg_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
     early_stopping_round::Int = 0
+    extra_trees::Bool = false
+    extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt = 200000::(_ > 0)
     init_score::String = ""
-    drop_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop:: Float64 = 0.5 :: (0.0 <= _ <= 1)
+    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
-    top_rate::Float64 = 0.2 :: (0.0 <= _ <= 1.0)
-    other_rate::Float64 = 0.1 :: (0.0 <= _ <= 1.0)
+    top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)
+    other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
+    min_data_per_group::Int = 100::(_ > 0)
+    max_cat_threshold::Int = 32::(_ > 0)
+    cat_l2::Float64 = 10.0::(_ >= 0)
+    cat_smooth::Float64 = 10.0::(_ >= 0)
 
     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
     # Not included above because this is only present for the binary model in the FFI wrapper, hence commented out
@@ -121,6 +145,9 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
+    boost_from_average::Bool = true
+    scale_pos_weight = 1.0
+    use_missing::Bool = true
 
     # Metrics
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -136,6 +163,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
 
 end
 
