@@ -1,6 +1,6 @@
 const DATASETPARAMS = [
     :is_sparse, :max_bin, :bin_construct_sample_cnt, :data_random_seed,
-    :categorical_feature, :use_missing
+    :categorical_feature, :use_missing,
 ]
 
 const BOOSTERPARAMS = [
