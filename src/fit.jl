@@ -1,9 +1,12 @@
 """
     fit!(estimator, num_iterations, X, y[, test...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
+    fit!(estimator, X, y, train_indices[, test_indices...]; [verbosity = 1, is_row_major = false])
+    fit!(estimator, train_dataset[, test_datasets...]; [verbosity = 1])
 
 Fit the `estimator` with features data `X` and label `y` using the X-y pairs in `test` as
 validation sets.
+Alternatively, Fit the `estimator` with `train_dataset` and `test_datasets` in the form of Dataset class(es)
 
 Return a dictionary with an entry for each validation set. Each entry of the dictionary is another
 dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
@@ -11,11 +14,12 @@ array that holds the validation metric's value at each iteration.
 
 # Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
-* `num_iterations::Int`: OPTIONAL -- defaults to estimator.num_iterations if not provided
 * `X::Matrix{TX<:Real}`: the features data.
 * `y::Vector{Ty<:Real}`: the labels.
 * `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
     the same types as `X` and `y` that should be used as validation sets.
+* `train_dataset::Dataset`: prepared train_dataset
+* `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
@@ -24,7 +28,7 @@ array that holds the validation metric's value at each iteration.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 """
 function fit!(
-    estimator::LGBMEstimator, num_iterations::Int, X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...;
+    estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...;
     verbosity::Integer = 1,
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
@@ -44,37 +48,43 @@ function fit!(
         LGBM_DatasetSetField(train_ds, "init_score", init_score)
     end
 
+    test_dss = []
+
+    for test_entry in test
+        test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
+        LGBM_DatasetSetField(test_ds, "label", test_entry[2])
+        push!(test_dss, test_ds)
+    end
+
+    return fit!(estimator, train_ds, test_dss..., verbosity=verbosity)
+end
+
+
+# Pass Dataset class directly. This will speed up the process if it is part of an iterative process and pre-constructed dataset(s) are available
+function fit!(
+    estimator::LGBMEstimator, 
+    train_dataset::Dataset, 
+    test_datasets::Dataset...;
+    verbosity::Integer = 1,
+)
+
+    start_time = now()
     log_debug(verbosity, "Started creating LGBM booster\n")
     bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
-    estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
+    estimator.booster = LGBM_BoosterCreate(train_dataset, bst_parameters)
 
-    n_tests = length(test)
+    n_tests = length(test_datasets)
     tests_names = Array{String}(undef,n_tests)
 
-    if n_tests > 0
-        log_debug(verbosity, "Started creating LGBM test datasets\n")
-        @inbounds for (test_idx, test_entry) in enumerate(test)
-            tests_names[test_idx] = "test_$(test_idx)"
-            test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
-            LGBM_DatasetSetField(test_ds, "label", test_entry[2])
-            LGBM_BoosterAddValidData(estimator.booster, test_ds)
-        end
+    for (testset_enum, test_dataset) in enumerate(test_datasets)
+        tests_names[testset_enum] = "test_$(testset_enum)"
+        LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     end
 
     log_debug(verbosity, "Started training...\n")
     results = train!(estimator, tests_names, verbosity, start_time)
 
     return results
-end
-# Old signature, pass through args
-function fit!(
-    estimator::LGBMEstimator,
-    X::Matrix{TX},
-    y::Vector{Ty},
-    test::Tuple{Matrix{TX},Vector{Ty}}...;
-    kwargs...
-)  where {TX<:Real,Ty<:Real}
-    return fit!(estimator, estimator.num_iterations, X, y, test...; kwargs...)
 end
 
 

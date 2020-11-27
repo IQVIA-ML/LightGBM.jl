@@ -60,6 +60,11 @@ end
     @testset "Utils" begin
         include(joinpath("basic", "utils.jl"))
     end
+
+    @testset "Fit" begin
+        include(joinpath("basic", "fit.jl"))
+    end
+
 end
 
 @testset "Integration tests" begin
