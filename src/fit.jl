@@ -50,13 +50,10 @@ function fit!(
 
     test_dss = []
 
-    if length(test) > 0
-        log_debug(verbosity, "Started creating LGBM test datasets\n")
-        for test_entry in test
-            test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
-            LGBM_DatasetSetField(test_ds, "label", test_entry[2])
-            push!(test_dss, test_ds)
-        end
+    for test_entry in test
+        test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
+        LGBM_DatasetSetField(test_ds, "label", test_entry[2])
+        push!(test_dss, test_ds)
     end
 
     return fit!(estimator, train_ds, test_dss..., verbosity=verbosity)
@@ -79,12 +76,9 @@ function fit!(
     n_tests = length(test_datasets)
     tests_names = Array{String}(undef,n_tests)
 
-    if n_tests > 0
-        log_debug(verbosity, "Started adding validate dataset for booster\n")
-        for (testset_enum, test_dataset) in enumerate(test_datasets)
-            tests_names[testset_enum] = "test_$(testset_enum)"
-            LGBM_BoosterAddValidData(estimator.booster, test_dataset)
-        end
+    for (testset_enum, test_dataset) in enumerate(test_datasets)
+        tests_names[testset_enum] = "test_$(testset_enum)"
+        LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     end
 
     log_debug(verbosity, "Started training...\n")
