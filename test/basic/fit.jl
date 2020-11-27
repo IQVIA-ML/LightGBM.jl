@@ -5,7 +5,7 @@ include("../../src/LightGBM.jl") # remove later
 using Test
 using LightGBM
 
-@testset "test fit with dataset as input type runs fine -- binary" begin
+@testset "test fit! with dataset -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
 
@@ -31,7 +31,7 @@ using LightGBM
     
 end
 
-@testset "test fit with dataset as input type runs fine without test set -- binary" begin
+@testset "test fit! with dataset without testset -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
 

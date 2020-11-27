@@ -60,7 +60,7 @@ function fit!(
 end
 
 
-# Pass Dataset class directly to speed up data loading
+# Pass Dataset class directly. This will speed up the process if it is part of an iterative process and pre-constructed dataset(s) are available
 function fit!(
     estimator::LGBMEstimator, 
     train_dataset::Dataset, 
