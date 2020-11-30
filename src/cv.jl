@@ -4,6 +4,8 @@
 Cross-validate the `estimator` with features data `X` and label `y`. The iterable `splits` provides
 vectors of indices for the training dataset. The remaining indices are used to create the
 validation dataset.
+Alternatively, cv can be called with an input Dataset class
+
 
 Return a dictionary with an entry for the validation dataset and, if the parameter
 `is_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
@@ -15,30 +17,38 @@ last valid iteration.
 * `estimator::LGBMEstimator`: the estimator to be fit.
 * `X::Matrix{TX<:Real}`: the features data.
 * `y::Vector{Ty<:Real}`: the labels.
+* `dataset::Dataset`: prepared dataset (either (X, y), or dataset needs to be specified as input)
 * `splits`: the iterable providing arrays of indices for the training dataset.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
 function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
                                verbosity::Integer = 1) where {TX<:Real,Ty<:Real}
-    start_time = now()
-    num_data = size(X)[1]
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
-    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
-
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
+
+    return cv(estimator, full_ds, splits, verbosity = verbosity)
+end
+
+# Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
+function cv(estimator::LGBMEstimator, dataset::Dataset, splits;
+    verbosity::Integer = 1)
+    start_time = now()
+    num_data = LGBM_DatasetGetNumData(dataset)
+    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
 
     split_scores = Dict{String,Dict{String,Vector{Float64}}}()
     for (split_idx, train_inds) in enumerate(splits)
         log_info(verbosity, "\nCross-validation: ", split_idx, "\n")
 
         log_debug(verbosity, "Started creating LGBM training dataset ", split_idx, "\n")
-        train_ds = LGBM_DatasetGetSubset(full_ds, train_inds, ds_parameters)
+        train_ds = LGBM_DatasetGetSubset(dataset, train_inds, ds_parameters)
 
         log_debug(verbosity, "Started creating LGBM test dataset ", split_idx, "\n")
         test_inds = setdiff(1:num_data, train_inds)
-        test_ds = LGBM_DatasetGetSubset(full_ds, test_inds, ds_parameters)
+        test_ds = LGBM_DatasetGetSubset(dataset, test_inds, ds_parameters)
 
         log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")
         estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
@@ -66,6 +76,7 @@ function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
 
     return split_scores
 end
+
 
 function cv_logsummary(cv_results::Dict{String,Dict{String,Vector{Float64}}}, verbosity::Integer)
     for dataset in keys(cv_results)
