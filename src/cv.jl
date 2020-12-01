@@ -32,11 +32,10 @@ function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
-function cv(estimator::LGBMEstimator, dataset::Dataset, splits;
-    verbosity::Integer = 1)
+function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = 1)
     start_time = now()
     num_data = LGBM_DatasetGetNumData(dataset)
-    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+    ds_parameters = stringifyparams(estimator, DATASETPARAMS) * " verbosity=$verbosity"
     bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
 
     split_scores = Dict{String,Dict{String,Vector{Float64}}}()

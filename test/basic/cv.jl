@@ -1,4 +1,4 @@
-module TestFit
+module TestCv
 
 include("../../src/LightGBM.jl")
 

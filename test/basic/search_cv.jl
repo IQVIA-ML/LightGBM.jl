@@ -1,4 +1,4 @@
-module TestFit
+module TestSearchCv
 
 include("../../src/LightGBM.jl")
 
@@ -54,7 +54,6 @@ end
     @test length(output[1][2]["validation"]["auc"]) == 5
     @test length(output[1][2]["training"]["auc"]) == 5
 end
-
 
 
 end # module
