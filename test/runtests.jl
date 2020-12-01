@@ -65,6 +65,14 @@ end
         include(joinpath("basic", "fit.jl"))
     end
 
+    @testset "CV" begin
+        include(joinpath("basic", "cv.jl"))
+    end
+
+    @testset "Search CV" begin
+        include(joinpath("basic", "search_cv.jl"))
+    end
+
 end
 
 @testset "Integration tests" begin
