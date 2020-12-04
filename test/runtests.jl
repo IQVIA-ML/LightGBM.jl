@@ -50,27 +50,27 @@ end
 @testset "Basic tests" begin
 
     @testset "Estimator parameters" begin
-        include(joinpath("basic", "parameters.jl"))
+        include(joinpath("basic", "test_parameters.jl"))
     end
 
     @testset "Estimator parameters" begin
-        include(joinpath("basic", "evaluation_metrics.jl"))
+        include(joinpath("basic", "test_evaluation_metrics.jl"))
     end
 
     @testset "Utils" begin
-        include(joinpath("basic", "utils.jl"))
+        include(joinpath("basic", "test_utils.jl"))
     end
 
     @testset "Fit" begin
-        include(joinpath("basic", "fit.jl"))
+        include(joinpath("basic", "test_fit.jl"))
     end
 
     @testset "CV" begin
-        include(joinpath("basic", "cv.jl"))
+        include(joinpath("basic", "test_cv.jl"))
     end
 
     @testset "Search CV" begin
-        include(joinpath("basic", "search_cv.jl"))
+        include(joinpath("basic", "test_search_cv.jl"))
     end
 
 end

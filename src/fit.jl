@@ -89,22 +89,33 @@ end
 
 
 function train!(
-    estimator::LGBMEstimator, num_iterations::Int, tests_names::Vector{String}, verbosity::Integer, start_time::DateTime
+    estimator::LGBMEstimator, 
+    num_iterations::Int, 
+    tests_names::Vector{String}, 
+    verbosity::Integer, 
+    start_time::DateTime
 )
     results = Dict{String,Dict{String,Vector{Float64}}}()
-    n_tests = length(tests_names)
     metrics = LGBM_BoosterGetEvalNames(estimator.booster)
-    n_metrics = length(metrics)
-    bigger_is_better = [ifelse(in(metric, MAXIMIZE_METRICS), 1., -1.) for metric in metrics]
-    best_score = fill(-Inf, (n_metrics, n_tests))
-    best_iter = fill(1, (n_metrics, n_tests))
+
+    bigger_is_better = Dict(metric => ifelse(in(metric, MAXIMIZE_METRICS), 1., -1.) for metric in metrics)
+    best_score = Dict{String,Dict{String,Real}}()
+    best_iter = Dict{String,Dict{String,Real}}()
+
+    for metric in metrics
+        best_score[metric] = Dict{String,Real}()
+        best_iter[metric] = Dict{String,Real}()
+        for tests_name in tests_names
+            best_score[metric][tests_name] = -Inf
+            best_iter[metric][tests_name] = 1
+        end
+    end
 
     start_iter = get_iter_number(estimator) + 1
     end_iter = start_iter + num_iterations - 1
 
     metrics_idx_sequence = (((start_iter:end_iter) .- 1) .% estimator.metric_freq) .== 0
     total_metrics_evals = sum(metrics_idx_sequence)
-    metric_idx = 0
 
     for (idx, iter) in enumerate(start_iter:end_iter)
 
@@ -112,18 +123,13 @@ function train!(
 
         log_debug(verbosity, Dates.CompoundPeriod(now() - start_time), " elapsed, finished iteration ", iter, "\n")
 
-        metric_idx = metric_idx + metrics_idx_sequence[idx]
-
         if is_finished == 0
             is_finished = eval_metrics!(
-                results, estimator, tests_names, iter, metric_idx, total_metrics_evals, n_metrics,
-                verbosity, bigger_is_better, best_score, best_iter, metrics,
+                results, estimator, tests_names, iter, verbosity, 
+                bigger_is_better, best_score, best_iter, metrics,
             )
-        else
-            shrinkresults!(results, metric_idx)
-            log_info(verbosity, "Stopped training because there are no more leaves that meet the ",
-                     "split requirements.")
         end
+
         if is_finished == 1
             break
         end
@@ -147,76 +153,72 @@ function eval_metrics!(
     estimator::LGBMEstimator,
     tests_names::Vector{String},
     iter::Integer,
-    metrics_store_idx::Integer,
-    metrics_stored_count::Integer,
-    n_metrics::Integer,
     verbosity::Integer,
-    bigger_is_better::Vector{Float64},
-    best_score::Matrix{Float64},
-    best_iter::Matrix{Int},
+    bigger_is_better::Dict{String,Float64},
+    best_score::Dict{String,Dict{String,Real}},
+    best_iter::Dict{String,Dict{String,Real}},
     metrics::Vector{String},
 )
+    now_scores = Dict{String,Vector{Float64}}()
 
     if (iter - 1) % estimator.metric_freq == 0
         if estimator.is_training_metric
-            scores = LGBM_BoosterGetEval(estimator.booster, 0)
-            store_scores!(results, estimator, metrics_store_idx, metrics_stored_count, "training", scores, metrics)
-            print_scores(estimator, iter, "training", n_metrics, scores, metrics, verbosity)
+            now_scores["training"] = LGBM_BoosterGetEval(estimator.booster, 0)
+        end
+        for (test_idx, tests_name) in enumerate(tests_names)
+            now_scores[tests_name] = LGBM_BoosterGetEval(estimator.booster, test_idx)
         end
     end
 
-    # Metrics for test sets
-    if (iter - 1) % estimator.metric_freq == 0 || estimator.early_stopping_round > 0
-        for (test_idx, test_name) in enumerate(tests_names)
-            scores = LGBM_BoosterGetEval(estimator.booster, test_idx)
-            # Check if progress should be stored and/or printed
-            if (iter - 1) % estimator.metric_freq == 0
-                store_scores!(results, estimator, metrics_store_idx, metrics_stored_count, test_name, scores, metrics)
-                print_scores(estimator, iter, test_name, n_metrics, scores, metrics, verbosity)
+    # check early stopping condition
+    if estimator.early_stopping_round > 0
+        for tests_name in tests_names
+            for (metric_idx, metric) in enumerate(metrics)
+                maximize_score = bigger_is_better[metric] * now_scores[tests_name][metric_idx]
+                # All good if maximize_score is better than previous best
+                if maximize_score > best_score[metric][tests_name]
+                    best_score[metric][tests_name] = maximize_score
+                    best_iter[metric][tests_name] = iter
+                    continue
+                # All good if difference between current and best iter is within early_stopping_round
+                elseif (iter - best_iter[metric][tests_name]) < estimator.early_stopping_round
+                    continue
+                end                
+                log_info(verbosity, "Early stopping at iteration ", iter, ", the best iteration round is ", best_iter[metric][tests_name], "\n")
+                return 1
             end
-
-            # Check if early stopping is called for
-            @inbounds for metric_idx in eachindex(metrics)
-                maximize_score = bigger_is_better[metric_idx] * scores[metric_idx]
-                if maximize_score > best_score[metric_idx, test_idx]
-                    best_score[metric_idx, test_idx] = maximize_score
-                    best_iter[metric_idx, test_idx] = iter
-                elseif iter - best_iter[metric_idx, test_idx] >= estimator.early_stopping_round
-                    # This will shrink it up to the current stored metric
-                    shrinkresults!(results, metrics_store_idx)
-                    log_info(verbosity, "Early stopping at iteration ", iter,
-                             ", the best iteration round is ", best_iter[metric_idx, test_idx], "\n")
-                    return 1
-                end
-            end
+        
         end
     end
 
+    for (metric_idx, metric_name) in enumerate(metrics)
+	    for dataset_key in keys(now_scores)
+            store_scores!(results, dataset_key, metric_name, now_scores[dataset_key][metric_idx])
+
+            # print scores
+            log_info(verbosity, "Iteration: ", iter, ", ", dataset_key, "'s ")
+            log_info(verbosity, metric_name, ": ", now_scores[dataset_key][metric_idx])
+                metric_idx < length(metrics) && log_info(verbosity, ", ")
+            log_info(verbosity, "\n")
+        
+        end
+    end
     return 0
 end
 
-
 function store_scores!(
     results::Dict{String,Dict{String,Vector{Float64}}},
-    estimator::LGBMEstimator,
-    store_idx::Integer,
-    num_evals::Integer,
-    evalname::String,
-    scores::Vector{Cdouble},
-    metrics::Vector{String},
+    dataset_key::String,
+    metric_name::String,
+    value_to_add::Real,
 )
-
-    for (metric_idx, metric_name) in enumerate(metrics)
-        if !haskey(results, evalname)
-            results[evalname] = Dict{String,Vector{Float64}}()
-            results[evalname][metric_name] = Array{Float64}(undef,num_evals)
-        elseif !haskey(results[evalname], metric_name)
-            results[evalname][metric_name] = Array{Float64}(undef,num_evals)
-        end
-        results[evalname][metric_name][store_idx] = scores[metric_idx]
+    if !haskey(results, dataset_key)
+        results[dataset_key] = Dict{String,Vector{Float64}}()
+        results[dataset_key][metric_name] = Vector{Float64}()
+    elseif !haskey(results[dataset_key], metric_name)
+        results[dataset_key][metric_name] = Vector{Float64}()
     end
-
-    return nothing
+    push!(results[dataset_key][metric_name], value_to_add)
 end
 
 
@@ -236,6 +238,8 @@ function merge_scores(
 
     return new_scores
 end
+
+
 function merge_scores(
     old_scores::Dict{String,Vector{Float64}},
     additional_scores::Dict{String,Vector{Float64}},
@@ -251,18 +255,6 @@ function merge_scores(
     end
 
     return new_scores
-end
-
-
-
-function print_scores(estimator::LGBMEstimator, iter::Integer, name::String, n_metrics::Integer,
-                      scores::Vector{Cdouble}, metrics::Vector{String}, verbosity::Integer)
-    log_info(verbosity, "Iteration: ", iter, ", ", name, "'s ")
-    for (metric_idx, metric_name) in enumerate(metrics)
-        log_info(verbosity, metric_name, ": ", scores[metric_idx])
-        metric_idx < n_metrics && log_info(verbosity, ", ")
-    end
-    log_info(verbosity, "\n")
 end
 
 
