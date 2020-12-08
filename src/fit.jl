@@ -93,7 +93,7 @@ function train!(
     num_iterations::Int, 
     tests_names::Vector{String}, 
     verbosity::Integer, 
-    start_time::DateTime
+    start_time::DateTime,
 )
     results = Dict{String,Dict{String,Vector{Float64}}}()
     metrics = LGBM_BoosterGetEvalNames(estimator.booster)
@@ -113,9 +113,6 @@ function train!(
 
     start_iter = get_iter_number(estimator) + 1
     end_iter = start_iter + num_iterations - 1
-
-    metrics_idx_sequence = (((start_iter:end_iter) .- 1) .% estimator.metric_freq) .== 0
-    total_metrics_evals = sum(metrics_idx_sequence)
 
     for (idx, iter) in enumerate(start_iter:end_iter)
 
@@ -210,13 +207,13 @@ function store_scores!(
     results::Dict{String,Dict{String,Vector{Float64}}},
     dataset_key::String,
     metric_name::String,
-    value_to_add::Real,
+    value_to_add::Float64,
 )
     if !haskey(results, dataset_key)
         results[dataset_key] = Dict{String,Vector{Float64}}()
-        results[dataset_key][metric_name] = Vector{Float64}()
+        results[dataset_key][metric_name] = Float64[]
     elseif !haskey(results[dataset_key], metric_name)
-        results[dataset_key][metric_name] = Vector{Float64}()
+        results[dataset_key][metric_name] = Float64[]
     end
     push!(results[dataset_key][metric_name], value_to_add)
 end
