@@ -79,17 +79,6 @@ function loadmodel(estimator::LGBMEstimator, filename::String)
 end
 
 
-function shrinkresults!(results, last_retained_iter::Integer)
-    for test_key in keys(results)
-        test = results[test_key]
-        for metric_key in keys(test)
-            test[metric_key] = test[metric_key][1:last_retained_iter]
-        end
-    end
-    return nothing
-end
-
-
 function tryload!(estimator::LGBMEstimator)
 
     if estimator.booster.handle == C_NULL
