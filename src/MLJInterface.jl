@@ -216,6 +216,7 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
+    # slice of y_lgbm required to converts it from a SubArray to a copy of an actual Array
     train_metrics = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w)
 
     fitresult = (model, classes, deepcopy(mlj_model))
