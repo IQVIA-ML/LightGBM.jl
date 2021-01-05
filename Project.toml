@@ -1,6 +1,6 @@
 name = "LightGBM"
 uuid = "7acf609c-83a4-11e9-1ffb-b912bcd3b04a"
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
