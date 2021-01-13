@@ -72,6 +72,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     boost_from_average::Bool = true
     use_missing::Bool = true
 
+    alpha::Float64 = 0.9::(_ > 0.0 )
+
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
