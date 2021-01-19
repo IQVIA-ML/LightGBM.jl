@@ -42,6 +42,7 @@ mutable struct LGBMRegression <: LGBMEstimator
 
     is_unbalance::Bool
     boost_from_average::Bool
+    alpha::Float64
 
     drop_rate::Float64
     max_drop::Int
@@ -108,6 +109,7 @@ end
         use_missing = true,
         is_unbalance = false,
         boost_from_average = true,
+        alpha = 0.9,
         drop_rate = 0.1,
         max_drop = 50,
         skip_drop = 0.5,
@@ -170,6 +172,7 @@ function LGBMRegression(;
     use_missing = true,
     is_unbalance = false,
     boost_from_average = true,
+    alpha = 0.9,
     drop_rate = 0.1,
     max_drop = 50,
     skip_drop = 0.5,
@@ -203,7 +206,7 @@ function LGBMRegression(;
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, extra_trees,
         extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
         is_sparse, save_binary, categorical_feature, use_missing,
-        is_unbalance, boost_from_average, drop_rate, max_drop, skip_drop,
+        is_unbalance, boost_from_average, alpha, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, 1, device_type, force_col_wise, force_row_wise,

@@ -72,6 +72,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     boost_from_average::Bool = true
     use_missing::Bool = true
 
+    alpha::Float64 = 0.9::(_ > 0.0 )
+
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
@@ -138,7 +140,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
     # Not included above because this is only present for the binary model in the FFI wrapper, hence commented out
     # sigmoid::Float64 = 1.0::(_ > 0.0 )
-
+    
     # Model properties
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
     categorical_feature::Vector{Int} = Vector{Int}();
