@@ -126,7 +126,7 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
     LightGBM.savemodel(estimator, test_filename)
 
     pre = LightGBM.predict(estimator, X_train, verbosity = -1)
-    LightGBM.loadmodel(estimator, test_filename);
+    LightGBM.loadmodel!(estimator, test_filename);
     post = LightGBM.predict(estimator, X_train, verbosity = -1)
 
     rm(test_filename)

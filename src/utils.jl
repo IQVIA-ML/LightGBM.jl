@@ -64,7 +64,7 @@ function savemodel(
 end
 
 """
-    loadmodel(estimator, filename)
+    loadmodel!(estimator, filename)
 
 Load the fitted model `filename` into `estimator`. Note that this only loads the fitted model—not
 the parameters or data of the estimator whose model was saved as `filename`.
@@ -73,8 +73,9 @@ the parameters or data of the estimator whose model was saved as `filename`.
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
 * `filename::String`: the name of the file that contains the model.
 """
-function loadmodel(estimator::LGBMEstimator, filename::String)
+function loadmodel!(estimator::LGBMEstimator, filename::String)
     estimator.booster = LGBM_BoosterCreateFromModelfile(filename)
+    estimator.num_class = LGBM_BoosterGetNumClasses(estimator.booster)
     return nothing
 end
 

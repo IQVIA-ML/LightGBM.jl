@@ -587,7 +587,6 @@ function LGBM_BoosterPredictForMat(
     is_row_major::Bool = false
 ) where T<:Union{Float32,Float64}
 
-    num_class = LGBM_BoosterGetNumClasses(bst)
     lgbm_data_type = jltype_to_lgbmid(T)
     nrow, ncol = ifelse(is_row_major, reverse(size(data)), size(data))
     out_len = Ref{Int64}()
