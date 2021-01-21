@@ -106,7 +106,7 @@ search_cv(estimator, X_train, y_train, splits, params)
 # Save and load the fitted model.
 filename = pwd() * "/finished.model"
 savemodel(estimator, filename)
-loadmodel(estimator, filename)
+loadmodel!(estimator, filename)
 ```
 
 # Parameters

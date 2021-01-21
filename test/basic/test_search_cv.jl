@@ -1,7 +1,5 @@
 module TestSearchCv
 
-include("../../src/LightGBM.jl")
-
 using Test
 using LightGBM
 
