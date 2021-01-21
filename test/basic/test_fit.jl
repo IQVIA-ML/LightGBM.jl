@@ -1,7 +1,5 @@
 module TestFit
 
-include("../../src/LightGBM.jl")
-
 using Test
 using Dates
 using LightGBM
