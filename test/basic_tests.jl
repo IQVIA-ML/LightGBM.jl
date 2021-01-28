@@ -188,7 +188,7 @@ end
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
-    @test scores["test_1"]["l2"][end] < .5
+    @test scores["metrics"]["test_1"]["l2"][end] < .5
 
 end
 
@@ -221,7 +221,7 @@ end
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
-    @test scores["test_1"]["multi_logloss"][end] < 1.4
+    @test scores["metrics"]["test_1"]["multi_logloss"][end] < 1.4
 
     # Test row major multiclass
     X_train = Matrix(multiclass_train[:, 2:end]')
@@ -245,7 +245,7 @@ end
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, is_row_major = true)
-    @test scores["test_1"]["multi_logloss"][end] < 1.4
+    @test scores["metrics"]["test_1"]["multi_logloss"][end] < 1.4
 
 end
 

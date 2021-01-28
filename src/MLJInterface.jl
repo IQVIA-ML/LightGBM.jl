@@ -219,13 +219,17 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
     # slice of y_lgbm required to converts it from a SubArray to a copy of an actual Array
-    train_metrics = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w)
+    train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w)
 
     fitresult = (model, classes, deepcopy(mlj_model))
     # because update needs access to the older version of training metrics we keep them in the cache
     # so the update can merge old and additional metrics as necessary.
-    cache = (num_boostings_done=[LightGBM.get_iter_number(model)], training_metrics=train_metrics)
-    report = user_fitreport(model, train_metrics)
+    cache = (
+        num_boostings_done=[LightGBM.get_iter_number(model)], 
+        training_metrics=train_results["metrics"], 
+        best_iter=train_results["best_iter"],
+    )
+    report = user_fitreport(model, train_results)
 
     return (fitresult, cache, report)
 
@@ -264,14 +268,19 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model.num_iterations = num_iterations + additional_iterations
 
     # eh this is ugly, possibly prompts a need for some refactoring
-    train_metrics = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
+    train_results = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
     fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
 
     final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
     iteration_history = deepcopy(cache.num_boostings_done)
     push!(iteration_history, final_num_iter - num_iterations)
-    report = user_fitreport(old_lgbm_model, cache.training_metrics, train_metrics)
-    newcache = (num_boostings_done=iteration_history, training_metrics=report.training_metrics)
+
+    report = user_fitreport(old_lgbm_model, cache.training_metrics, train_results)
+    newcache = (
+        num_boostings_done=iteration_history, 
+        training_metrics=report.training_metrics,
+        best_iter = report.best_iter,
+    )
 
     return (fitresult, newcache, report)
 
@@ -316,16 +325,22 @@ end
 # This function returns a user accessible report and therefore needs to not be a source of breaking changes
 # Keep all of the functinality required to generate this into a single function so that it can be
 # kept under control via tests and so on. It's not a lot for now but is likely to grow.
-function user_fitreport(estimator::LightGBM.LGBMEstimator, eval_metrics::Dict)
+function user_fitreport(estimator::LightGBM.LGBMEstimator, fit_metrics::Dict)
 
     importance = (gain = LightGBM.gain_importance(estimator), split = LightGBM.split_importance(estimator))
-    return (training_metrics = deepcopy(eval_metrics), importance = importance)
+    return (training_metrics = deepcopy(fit_metrics["metrics"]), importance = importance, best_iter = fit_metrics["best_iter"])
 
 end
-function user_fitreport(estimator::LightGBM.LGBMEstimator, eval_metrics::Dict, new_eval_metrics::Dict)
+function user_fitreport(estimator::LightGBM.LGBMEstimator, cached_training_metrics::Dict, new_fit_metrics::Dict)
 
-    metrics = LightGBM.merge_scores(eval_metrics, new_eval_metrics)
-    return user_fitreport(estimator, metrics)
+    metrics = LightGBM.merge_metrics(cached_training_metrics, new_fit_metrics["metrics"])
+
+    merged_fit_metrics = Dict(
+        "best_iter" => new_fit_metrics["best_iter"], 
+        "metrics" => metrics
+    )
+
+    return user_fitreport(estimator, merged_fit_metrics)
 
 end
 
