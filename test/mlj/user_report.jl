@@ -25,7 +25,7 @@ y = randn(nrows)
     report = LightGBM.MLJInterface.user_fitreport(estimator, metrics)
 
     # check types (loosely)
-    @test report isa NamedTuple{(:training_metrics, :importance)}
+    @test report isa NamedTuple{(:training_metrics, :importance, :best_iter)}
     @test report.training_metrics isa Dict
     @test report.importance isa NamedTuple{(:gain, :split)}
     # check value properties
@@ -34,12 +34,12 @@ y = randn(nrows)
     @test length(report.training_metrics["training"]["l2"]) == 2
 
     # continue for another 3 iterations, and check that the metrics lengths update properly
-    new_metrics = LightGBM.train!(estimator, 3, String[], -1, LightGBM.Dates.now())
+    new_results = LightGBM.train!(estimator, 3, String[], -1, LightGBM.Dates.now())
 
-    new_report = LightGBM.MLJInterface.user_fitreport(estimator, metrics, new_metrics)
+    new_report = LightGBM.MLJInterface.user_fitreport(estimator, metrics["metrics"], new_results)
 
     # repeat all same tests except training metrics is now 3, not 1
-    @test new_report isa NamedTuple{(:training_metrics, :importance)}
+    @test new_report isa NamedTuple{(:training_metrics, :importance, :best_iter)}
     @test new_report.training_metrics isa Dict
     @test new_report.importance isa NamedTuple{(:gain, :split)}
     # check value properties
@@ -56,7 +56,7 @@ y = randn(nrows)
     @test length(report.training_metrics["training"]["l2"]) == 3
 
     new_freq_metrics = LightGBM.train!(new_estimator, 7, String[], -1, LightGBM.Dates.now())
-    new_report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics, new_freq_metrics)
+    new_report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics["metrics"], new_freq_metrics)
     @test length(new_report.training_metrics["training"]["l2"]) == 10
 
 end

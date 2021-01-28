@@ -72,8 +72,8 @@ end
     results = LightGBM.train!(estimator, 10, ["test_set_with_whatever_label"], -1, DateTime(2020, 1, 11, 11, 00));
 
     # Assert
-    @test length(results["training"]["auc"]) > 0
-    @test length(results["test_set_with_whatever_label"]["auc"]) > 0
+    @test length(results["metrics"]["training"]["auc"]) > 0
+    @test length(results["metrics"]["test_set_with_whatever_label"]["auc"]) > 0
     
 end
 
@@ -100,12 +100,12 @@ end
     results = LightGBM.train!(estimator, 10, ["test_1", "test_2"], -1, DateTime(2020, 1, 11, 11, 00));
 
     # Assert
-    @test length(results["training"]["auc"]) > 0
-    @test length(results["training"]["l2"]) > 0
-    @test length(results["test_1"]["auc"]) > 0
-    @test length(results["test_1"]["l2"]) > 0
-    @test length(results["test_2"]["auc"]) > 0
-    @test length(results["test_2"]["l2"]) > 0
+    @test length(results["metrics"]["training"]["auc"]) > 0
+    @test length(results["metrics"]["training"]["l2"]) > 0
+    @test length(results["metrics"]["test_1"]["auc"]) > 0
+    @test length(results["metrics"]["test_1"]["l2"]) > 0
+    @test length(results["metrics"]["test_2"]["auc"]) > 0
+    @test length(results["metrics"]["test_2"]["l2"]) > 0
     
 end
 
@@ -133,19 +133,19 @@ end
     results = LightGBM.train!(estimator, 10, ["test_1", "test_2"], -1, DateTime(2020, 1, 11, 11, 00));
 
     # Assert
-    @test length(results["training"]["auc"]) > 0
-    @test length(results["training"]["l2"]) > 0
-    @test length(results["test_1"]["auc"]) > 0
-    @test length(results["test_1"]["l2"]) > 0
-    @test length(results["test_2"]["auc"]) > 0
-    @test length(results["test_2"]["l2"]) > 0
+    @test length(results["metrics"]["training"]["auc"]) > 0
+    @test length(results["metrics"]["training"]["l2"]) > 0
+    @test length(results["metrics"]["test_1"]["auc"]) > 0
+    @test length(results["metrics"]["test_1"]["l2"]) > 0
+    @test length(results["metrics"]["test_2"]["auc"]) > 0
+    @test length(results["metrics"]["test_2"]["l2"]) > 0
     
 end
 
 
 @testset "test store_scores! adds results" begin
     # Arrange
-    results_fixture = Dict{String,Dict{String,Vector{Float64}}}()
+    results_fixture = Dict("metrics" => Dict{String,Dict{String,Vector{Float64}}}())
 
     # Act
     LightGBM.store_scores!(results_fixture, "whatever_dataset","some_metric",0.5)
@@ -158,9 +158,9 @@ end
     LightGBM.store_scores!(results_fixture, "whatever_second_dataset","some_metric",0.75)
     
     # Assert
-    @test results_fixture["whatever_dataset"]["some_metric"] == [0.5, 0.55]
-    @test results_fixture["whatever_dataset"]["some_extra_metric"] == [0.6, 0.65]
-    @test results_fixture["whatever_second_dataset"]["some_metric"] == [0.7, 0.75]
+    @test results_fixture["metrics"]["whatever_dataset"]["some_metric"] == [0.5, 0.55]
+    @test results_fixture["metrics"]["whatever_dataset"]["some_extra_metric"] == [0.6, 0.65]
+    @test results_fixture["metrics"]["whatever_second_dataset"]["some_metric"] == [0.7, 0.75]
         
 end
 
@@ -168,7 +168,10 @@ end
 
 @testset "test eval_metrics! early stop disabled" begin
     # Arrange
-    results_fixture = Dict{String,Dict{String,Vector{Float64}}}()
+    results_fixture = Dict(
+        "best_iter" => 0,
+        "metrics" => Dict{String,Dict{String,Vector{Float64}}}(),
+    )
     estimator = LightGBM.LGBMClassification(
         num_iterations = 10, objective = "binary", num_class = 1, 
         is_training_metric = false, metric = ["auc"], 
@@ -182,15 +185,15 @@ end
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
     bigger_is_better = Dict{String,Float64}("auc" => 1.0)
-    best_score = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
-    best_iter = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+    best_scores = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+    best_iterations = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
 
     # Act and assert each round returns false (despite iter 1 have best score always)
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
             results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_score, best_iter, ["auc"]
+            bigger_is_better, best_scores, best_iterations, ["auc"]
         )
 
         @test output == false
@@ -207,7 +210,10 @@ Criteria: early_stopping should kick in on round 6
 =#
 @testset "test eval_metrics! stops correctly" begin
     # Arrange
-    results_fixture = Dict{String,Dict{String,Vector{Float64}}}()
+    results_fixture = Dict(
+        "best_iter" => 0,
+        "metrics" => Dict{String,Dict{String,Vector{Float64}}}(),
+    )
     estimator = LightGBM.LGBMClassification(
         num_iterations = 10, objective = "binary", num_class = 1, 
         is_training_metric = false, metric = ["auc"], 
@@ -221,20 +227,20 @@ Criteria: early_stopping should kick in on round 6
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
     bigger_is_better = Dict{String,Float64}("auc" => 1.0)
-    best_score = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
-    best_iter = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+    best_scores = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+    best_iterations = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
 
     # Act and assert each round returns expected output
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
             results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_score, best_iter, ["auc"]
+            bigger_is_better, best_scores, best_iterations, ["auc"]
         )
         
         # reset scores to round 1 being best
-        best_score = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
-        best_iter = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+        best_scores = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
+        best_iterations = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
 
         if iter < 6
             @test output == false
@@ -243,5 +249,30 @@ Criteria: early_stopping should kick in on round 6
         end
     end
 end
+
+
+@testset "test truncate_model!" begin
+    # Arrange
+    estimator = LightGBM.LGBMClassification(num_iterations = 100)
+    verbosity = "verbose=-1"
+    mymat = randn(10000, 2)
+    labels = randn(10000)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)    
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    estimator.booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # update learning 100 times
+    for _ in [1:100;]
+        finished = LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
+    end
+    @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 100
+    
+    # Act
+    LightGBM.truncate_model!(estimator, 87)
+
+    # Assert
+    @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 87
+end
+
 
 end # module

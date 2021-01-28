@@ -163,8 +163,23 @@ end
 
 @testset "LGBM_BoosterRollbackOneIter" begin
 
-    # I don't know how to test this, needs thought
-    @test_broken false
+    # Arrange
+    mymat = randn(10000, 2)
+    labels = randn(10000)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)    
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # update learning 20 times
+    for _ in [1:20;]
+        finished = LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Act and Assert
+    for n in reverse([1:20;])
+        @test LightGBM.LGBM_BoosterGetCurrentIteration(booster) == n
+        LightGBM.LGBM_BoosterRollbackOneIter(booster)
+    end
 
 end
 
