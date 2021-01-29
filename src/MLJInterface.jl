@@ -90,6 +90,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
     force_col_wise::Bool = false
     force_row_wise::Bool = false
+    truncate_booster::Bool = true
 
 end
 
@@ -167,6 +168,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
     force_col_wise::Bool = false
     force_row_wise::Bool = false
+    truncate_booster::Bool = true
 
 end
 
@@ -174,11 +176,12 @@ end
 MODELS = Union{LGBMClassifier, LGBMRegressor}
 
 
-function mlj_to_kwargs(model::LGBMRegressor)
+function mlj_to_kwargs(model::MODELS)
 
     return Dict{Symbol, Any}(
         name => getfield(model, name)
         for name in fieldnames(typeof(model))
+        if name != :truncate_booster
     )
 
 end
@@ -195,11 +198,7 @@ function mlj_to_kwargs(model::LGBMClassifier, classes)
         num_class = 1
     end
 
-    retval = Dict{Symbol, Any}(
-        name => getfield(model, name)
-        for name in fieldnames(typeof(model))
-    )
-
+    retval = mlj_to_kwargs(model)
     retval[:num_class] = num_class
     return retval
 
@@ -219,7 +218,7 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
     # slice of y_lgbm required to converts it from a SubArray to a copy of an actual Array
-    train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w)
+    train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w, truncate_booster=mlj_model.truncate_booster)
 
     fitresult = (model, classes, deepcopy(mlj_model))
     # because update needs access to the older version of training metrics we keep them in the cache
@@ -268,7 +267,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model.num_iterations = num_iterations + additional_iterations
 
     # eh this is ugly, possibly prompts a need for some refactoring
-    train_results = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now())
+    train_results = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now(), truncate_booster=old_mlj_model.truncate_booster)
     fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
 
     final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
