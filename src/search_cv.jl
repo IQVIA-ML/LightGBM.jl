@@ -26,20 +26,28 @@ iteration.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
-function search_cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty},
-                                      splits, params; verbosity::Integer = 1) where {TX<:Real,Ty<:Real}
+function search_cv(
+    estimator::LGBMEstimator, 
+    X::Matrix{TX}, 
+    y::Vector{Ty},
+    splits, 
+    params; 
+    verbosity::Integer = 1, 
+    truncate_booster::Bool=true
+) where {TX<:Real,Ty<:Real}
 
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
                                                                     
-    return search_cv(estimator, full_ds, splits, params, verbosity = verbosity)
+    return search_cv(estimator, full_ds, splits, params, verbosity = verbosity, truncate_booster = truncate_booster)
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
 function search_cv(
     estimator::LGBMEstimator, dataset::Dataset, splits, params; 
-    verbosity::Integer = 1
+    verbosity::Integer = 1,
+    truncate_booster::Bool=true,
 )
     n_params = length(params)
     results = Array{Tuple{Dict{Symbol,Any},Dict{String,Dict{String,Vector{Float64}}}}}(undef,n_params)
@@ -48,8 +56,13 @@ function search_cv(
 
         search_estimator = deepcopy(estimator)
         foreach(param -> setfield!(search_estimator, param[1], param[2]), search_params)
-        search_results = cv(search_estimator, dataset, deepcopy(splits),
-        verbosity = ifelse(verbosity == 1, 0, verbosity))
+        search_results = cv(
+            search_estimator, 
+            dataset, 
+            deepcopy(splits),
+            verbosity = ifelse(verbosity == 1, 0, verbosity),
+            truncate_booster = truncate_booster,
+        )
 
         results[search_idx] = (search_params, search_results)
         cv_logsummary(search_results, verbosity)

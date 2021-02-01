@@ -4,7 +4,7 @@ using Test
 using LightGBM
 
 
-@testset "merge_scores" begin
+@testset "merge_metrics" begin
 
     a = Dict(
         "dataset_a" => Dict(
@@ -31,7 +31,7 @@ using LightGBM
     a_copy = deepcopy(a)
     b_copy = deepcopy(b)
 
-    c = LightGBM.merge_scores(a, b)
+    c = LightGBM.merge_metrics(a, b)
 
     # check no mutate
     @test a == a_copy
@@ -52,24 +52,24 @@ using LightGBM
     d1 = Dict("breakme" => Dict{String, Vector{Float64}}())
     d2 = Dict("breakme2" => Dict{String, Vector{Float64}}())
 
-    @test_throws ErrorException LightGBM.merge_scores(d1, d2)
+    @test_throws ErrorException LightGBM.merge_metrics(d1, d2)
 
     e1 = Dict("ametric" => [1., 1., 1.])
     e2 = Dict("bmetric" => [1., 1., 1.])
 
-    @test_throws ErrorException LightGBM.merge_scores(e1, e2)
+    @test_throws ErrorException LightGBM.merge_metrics(e1, e2)
 
 end
 
 
-@testset "empty merge_scores" begin
+@testset "empty merge_metrics" begin
 
     # basically this test is just to make sure it works properly even when metrics is empty
 
     a = Dict{String, Vector{Float64}}()
     b = Dict{String, Vector{Float64}}()
 
-    c = LightGBM.merge_scores(a, b)
+    c = LightGBM.merge_metrics(a, b)
 
     @test typeof(c) == typeof(a)
     @test isempty(c)
@@ -77,7 +77,7 @@ end
     d1 = Dict{String, typeof(a)}()
     d2 = Dict{String, typeof(a)}()
 
-    d3 = LightGBM.merge_scores(d1, d2)
+    d3 = LightGBM.merge_metrics(d1, d2)
 
     @test typeof(d3) == typeof(d1)
     @test isempty(d3)

@@ -163,8 +163,34 @@ end
 
 @testset "LGBM_BoosterRollbackOneIter" begin
 
-    # I don't know how to test this, needs thought
-    @test_broken false
+    # Arrange
+    mymat = randn(10000, 2)
+    labels = randn(10000)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)    
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # update learning 20 times
+    for _ in [1:20;]
+        finished = LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Act and Assert
+    for n in reverse([1:20;])
+        @test LightGBM.LGBM_BoosterGetCurrentIteration(booster) == n
+
+        model_string = LightGBM.LGBM_BoosterSaveModelToString(booster)
+        # pull out the line in the string on tree sizes (only one line should be return, so take the first element)
+        tree_sizes_in_string = match(r"\ntree_sizes=(.*)\n", model_string)[1]
+        # tree sizes are delimited by space, so we can count the number of trees easily
+        @test length(split(tree_sizes_in_string, " ")) == n
+
+        model_loaded_from_string = LightGBM.LGBM_BoosterLoadModelFromString(model_string)
+        @test LightGBM.LGBM_BoosterGetCurrentIteration(model_loaded_from_string) == n
+
+        LightGBM.LGBM_BoosterRollbackOneIter(booster)
+
+    end
 
 end
 

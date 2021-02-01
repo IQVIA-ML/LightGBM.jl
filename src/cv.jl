@@ -23,16 +23,16 @@ last valid iteration.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
 function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
-                               verbosity::Integer = 1) where {TX<:Real,Ty<:Real}
+                               verbosity::Integer = 1, truncate_booster::Bool = true) where {TX<:Real,Ty<:Real}
     ds_parameters = stringifyparams(estimator, DATASETPARAMS)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
 
-    return cv(estimator, full_ds, splits, verbosity = verbosity)
+    return cv(estimator, full_ds, splits, verbosity = verbosity, truncate_booster = truncate_booster)
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
-function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = 1)
+function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = 1, truncate_booster::Bool=true)
     start_time = now()
     num_data = LGBM_DatasetGetNumData(dataset)
     ds_parameters = stringifyparams(estimator, DATASETPARAMS) * " verbosity=$verbosity"
@@ -53,10 +53,10 @@ function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integ
         estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
         LGBM_BoosterAddValidData(estimator.booster, test_ds)
 
-        results = train!(estimator, ["validation"], verbosity, start_time)
+        results = train!(estimator, ["validation"], verbosity, start_time, truncate_booster=truncate_booster)
 
-        for dataset in keys(results)
-            dataset_results = results[dataset]
+        for dataset in keys(results["metrics"])
+            dataset_results = results["metrics"][dataset]
             if !haskey(split_scores, dataset)
                 split_scores[dataset] = Dict{String,Vector{Float64}}()
                 for metric in keys(dataset_results)

@@ -33,6 +33,7 @@ function fit!(
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
+    truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
     start_time = now()
@@ -56,7 +57,7 @@ function fit!(
         push!(test_dss, test_ds)
     end
 
-    return fit!(estimator, train_ds, test_dss..., verbosity=verbosity)
+    return fit!(estimator, train_ds, test_dss..., verbosity=verbosity, truncate_booster=truncate_booster)
 end
 
 
@@ -66,6 +67,7 @@ function fit!(
     train_dataset::Dataset, 
     test_datasets::Dataset...;
     verbosity::Integer = 1,
+    truncate_booster::Bool=true,
 )
 
     start_time = now()
@@ -82,7 +84,7 @@ function fit!(
     end
 
     log_debug(verbosity, "Started training...\n")
-    results = train!(estimator, tests_names, verbosity, start_time)
+    results = train!(estimator, tests_names, verbosity, start_time, truncate_booster=truncate_booster)
 
     return results
 end
@@ -93,21 +95,26 @@ function train!(
     num_iterations::Int, 
     tests_names::Vector{String}, 
     verbosity::Integer, 
-    start_time::DateTime,
+    start_time::DateTime;
+    truncate_booster::Bool=true,
 )
-    results = Dict{String,Dict{String,Vector{Float64}}}()
+    results = Dict(
+        "best_iter" => 0,
+        "metrics" => Dict{String,Dict{String,Vector{Float64}}}(),
+    )
     metrics = LGBM_BoosterGetEvalNames(estimator.booster)
 
     bigger_is_better = Dict(metric => ifelse(in(metric, MAXIMIZE_METRICS), 1., -1.) for metric in metrics)
-    best_score = Dict{String,Dict{String,Real}}()
-    best_iter = Dict{String,Dict{String,Real}}()
+    best_scores = Dict{String,Dict{String,Real}}()
+    best_iterations = Dict{String,Dict{String,Real}}()
+
 
     for metric in metrics
-        best_score[metric] = Dict{String,Real}()
-        best_iter[metric] = Dict{String,Real}()
+        best_scores[metric] = Dict{String,Real}()
+        best_iterations[metric] = Dict{String,Real}()
         for tests_name in tests_names
-            best_score[metric][tests_name] = -Inf
-            best_iter[metric][tests_name] = 1
+            best_scores[metric][tests_name] = -Inf
+            best_iterations[metric][tests_name] = 1
         end
     end
 
@@ -123,7 +130,7 @@ function train!(
         if is_finished == 0
             is_finished = eval_metrics!(
                 results, estimator, tests_names, iter, verbosity, 
-                bigger_is_better, best_score, best_iter, metrics,
+                bigger_is_better, best_scores, best_iterations, metrics,
             )
         end
 
@@ -132,28 +139,44 @@ function train!(
         end
     end
 
+    if truncate_booster && estimator.early_stopping_round > 0 && results["best_iter"] > 0 # truncate_booster flag on AND early_stopping enabled
+        truncate_model!(estimator, results["best_iter"])
+    end
+
     # save the model in serialised form, in case we should be deepcopied or serialised elsewhere
     estimator.model = LGBM_BoosterSaveModelToString(estimator.booster)
 
     return results
+
 end
 # Old signature, pass through args
 function train!(
-    estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer, start_time::DateTime
+    estimator::LGBMEstimator, tests_names::Vector{String}, verbosity::Integer, start_time::DateTime;
+    truncate_booster::Bool=true,
 )
-    return train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time)
+    return train!(estimator, estimator.num_iterations, tests_names, verbosity, start_time, truncate_booster=truncate_booster)
+end
+
+
+function truncate_model!(estimator::LGBMEstimator, best_iteration::Integer)
+    current_iteration = LGBM_BoosterGetCurrentIteration(estimator.booster)
+    times_to_rollback = current_iteration - best_iteration # current_iteration must be >= best_iteration
+    for _ in 1:times_to_rollback
+        LGBM_BoosterRollbackOneIter(estimator.booster)
+    end
+    return nothing
 end
 
 
 function eval_metrics!(
-    results::Dict{String,Dict{String,Vector{Float64}}},
+    results::Dict,
     estimator::LGBMEstimator,
     tests_names::Vector{String},
     iter::Integer,
     verbosity::Integer,
     bigger_is_better::Dict{String,Float64},
-    best_score::Dict{String,Dict{String,Real}},
-    best_iter::Dict{String,Dict{String,Real}},
+    best_scores::Dict{String,Dict{String,Real}},
+    best_iterations::Dict{String,Dict{String,Real}},
     metrics::Vector{String},
 )
     now_scores = Dict{String,Vector{Float64}}()
@@ -173,15 +196,15 @@ function eval_metrics!(
             for (metric_idx, metric) in enumerate(metrics)
                 maximize_score = bigger_is_better[metric] * now_scores[tests_name][metric_idx]
                 # All good if maximize_score is better than previous best
-                if maximize_score > best_score[metric][tests_name]
-                    best_score[metric][tests_name] = maximize_score
-                    best_iter[metric][tests_name] = iter
+                if maximize_score > best_scores[metric][tests_name]
+                    best_scores[metric][tests_name] = maximize_score
+                    best_iterations[metric][tests_name] = results["best_iter"] = iter
                     continue
                 # All good if difference between current and best iter is within early_stopping_round
-                elseif (iter - best_iter[metric][tests_name]) < estimator.early_stopping_round
+                elseif (iter - best_iterations[metric][tests_name]) < estimator.early_stopping_round
                     continue
                 end                
-                log_info(verbosity, "Early stopping at iteration ", iter, ", the best iteration round is ", best_iter[metric][tests_name], "\n")
+                log_info(verbosity, "Early stopping at iteration ", iter, ", the best iteration round is ", best_iterations[metric][tests_name], "\n")
                 return 1
             end
         
@@ -204,22 +227,22 @@ function eval_metrics!(
 end
 
 function store_scores!(
-    results::Dict{String,Dict{String,Vector{Float64}}},
+    results::Dict,
     dataset_key::String,
     metric_name::String,
     value_to_add::Float64,
 )
-    if !haskey(results, dataset_key)
-        results[dataset_key] = Dict{String,Vector{Float64}}()
-        results[dataset_key][metric_name] = Float64[]
-    elseif !haskey(results[dataset_key], metric_name)
-        results[dataset_key][metric_name] = Float64[]
+    if !haskey(results["metrics"], dataset_key)
+        results["metrics"][dataset_key] = Dict{String,Vector{Float64}}()
+        results["metrics"][dataset_key][metric_name] = Float64[]
+    elseif !haskey(results["metrics"][dataset_key], metric_name)
+        results["metrics"][dataset_key][metric_name] = Float64[]
     end
-    push!(results[dataset_key][metric_name], value_to_add)
+    push!(results["metrics"][dataset_key][metric_name], value_to_add)
 end
 
 
-function merge_scores(
+function merge_metrics(
     old_scores::Dict{String,Dict{String,Vector{Float64}}},
     additional_scores::Dict{String,Dict{String,Vector{Float64}}},
 )
@@ -230,14 +253,14 @@ function merge_scores(
 
     new_scores = Dict{String,Dict{String,Vector{Float64}}}()
     for (key, oldvals) in old_scores
-        new_scores[key] = merge_scores(old_scores[key], additional_scores[key])
+        new_scores[key] = merge_metrics(old_scores[key], additional_scores[key])
     end
 
     return new_scores
 end
 
 
-function merge_scores(
+function merge_metrics(
     old_scores::Dict{String,Vector{Float64}},
     additional_scores::Dict{String,Vector{Float64}},
 )
