@@ -178,7 +178,12 @@ end
     # Act and Assert
     for n in reverse([1:20;])
         @test LightGBM.LGBM_BoosterGetCurrentIteration(booster) == n
+        model_string = LightGBM.LGBM_BoosterSaveModelToString(booster)
+        model_loaded_from_string = LightGBM.LGBM_BoosterLoadModelFromString(model_string)
+        @test LightGBM.LGBM_BoosterGetCurrentIteration(model_loaded_from_string) == n
+
         LightGBM.LGBM_BoosterRollbackOneIter(booster)
+
     end
 
 end

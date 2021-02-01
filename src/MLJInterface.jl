@@ -21,6 +21,9 @@ const REGRESSION_OBJECTIVES = (
     "mean_absolute_percentage_error", "gamma", "tweedie",
 )
 
+const NON_LIGHTGBM_PARAMETERS = (
+    :truncate_booster,
+)
 
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
 
@@ -181,7 +184,7 @@ function mlj_to_kwargs(model::MODELS)
     return Dict{Symbol, Any}(
         name => getfield(model, name)
         for name in fieldnames(typeof(model))
-        if name != :truncate_booster
+        if !(name in NON_LIGHTGBM_PARAMETERS)
     )
 
 end
@@ -226,7 +229,6 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     cache = (
         num_boostings_done=[LightGBM.get_iter_number(model)], 
         training_metrics=train_results["metrics"], 
-        best_iter=train_results["best_iter"],
     )
     report = user_fitreport(model, train_results)
 
@@ -267,7 +269,14 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     old_lgbm_model.num_iterations = num_iterations + additional_iterations
 
     # eh this is ugly, possibly prompts a need for some refactoring
-    train_results = LightGBM.train!(old_lgbm_model, additional_iterations, String[], verbosity, LightGBM.Dates.now(), truncate_booster=old_mlj_model.truncate_booster)
+    train_results = LightGBM.train!(
+        old_lgbm_model, 
+        additional_iterations, 
+        String[], 
+        verbosity, 
+        LightGBM.Dates.now(); 
+        truncate_booster=old_mlj_model.truncate_booster
+    )
     fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
 
     final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
@@ -278,7 +287,6 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
     newcache = (
         num_boostings_done=iteration_history, 
         training_metrics=report.training_metrics,
-        best_iter = report.best_iter,
     )
 
     return (fitresult, newcache, report)

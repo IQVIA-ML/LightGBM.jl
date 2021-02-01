@@ -161,7 +161,7 @@ end
 function truncate_model!(estimator::LGBMEstimator, best_iteration::Integer)
     current_iteration = LGBM_BoosterGetCurrentIteration(estimator.booster)
     times_to_rollback = current_iteration - best_iteration # current_iteration must be >= best_iteration
-    for _ in [1:times_to_rollback;]
+    for _ in 1:times_to_rollback
         LGBM_BoosterRollbackOneIter(estimator.booster)
     end
     return nothing
