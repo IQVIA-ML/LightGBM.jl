@@ -178,7 +178,11 @@ end
     # Act and Assert
     for n in reverse([1:20;])
         @test LightGBM.LGBM_BoosterGetCurrentIteration(booster) == n
+
         model_string = LightGBM.LGBM_BoosterSaveModelToString(booster)
+        tree_sizes_in_string = match(r"\ntree_sizes=(.*)\n", model_string)[1]
+        @test length(split(tree_sizes_in_string, " ")) == n
+
         model_loaded_from_string = LightGBM.LGBM_BoosterLoadModelFromString(model_string)
         @test LightGBM.LGBM_BoosterGetCurrentIteration(model_loaded_from_string) == n
 
