@@ -180,7 +180,9 @@ end
         @test LightGBM.LGBM_BoosterGetCurrentIteration(booster) == n
 
         model_string = LightGBM.LGBM_BoosterSaveModelToString(booster)
+        # pull out the line in the string on tree sizes (only one line should be return, so take the first element)
         tree_sizes_in_string = match(r"\ntree_sizes=(.*)\n", model_string)[1]
+        # tree sizes are delimited by space, so we can count the number of trees easily
         @test length(split(tree_sizes_in_string, " ")) == n
 
         model_loaded_from_string = LightGBM.LGBM_BoosterLoadModelFromString(model_string)
