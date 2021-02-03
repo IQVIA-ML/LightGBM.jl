@@ -74,6 +74,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     use_missing::Bool = true
+    feature_pre_filter::Bool = true
 
     alpha::Float64 = 0.9::(_ > 0.0 )
 
@@ -144,7 +145,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
     # Not included above because this is only present for the binary model in the FFI wrapper, hence commented out
     # sigmoid::Float64 = 1.0::(_ > 0.0 )
-    
+
     # Model properties
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
     categorical_feature::Vector{Int} = Vector{Int}();
@@ -154,6 +155,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     boost_from_average::Bool = true
     scale_pos_weight = 1.0
     use_missing::Bool = true
+    feature_pre_filter::Bool = true
 
     # Metrics
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -227,8 +229,8 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
     # because update needs access to the older version of training metrics we keep them in the cache
     # so the update can merge old and additional metrics as necessary.
     cache = (
-        num_boostings_done=[LightGBM.get_iter_number(model)], 
-        training_metrics=train_results["metrics"], 
+        num_boostings_done=[LightGBM.get_iter_number(model)],
+        training_metrics=train_results["metrics"],
     )
     report = user_fitreport(model, train_results)
 
@@ -270,11 +272,11 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
 
     # eh this is ugly, possibly prompts a need for some refactoring
     train_results = LightGBM.train!(
-        old_lgbm_model, 
-        additional_iterations, 
-        String[], 
-        verbosity, 
-        LightGBM.Dates.now(); 
+        old_lgbm_model,
+        additional_iterations,
+        String[],
+        verbosity,
+        LightGBM.Dates.now();
         truncate_booster=old_mlj_model.truncate_booster
     )
     fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
@@ -285,7 +287,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
 
     report = user_fitreport(old_lgbm_model, cache.training_metrics, train_results)
     newcache = (
-        num_boostings_done=iteration_history, 
+        num_boostings_done=iteration_history,
         training_metrics=report.training_metrics,
     )
 
@@ -343,7 +345,7 @@ function user_fitreport(estimator::LightGBM.LGBMEstimator, cached_training_metri
     metrics = LightGBM.merge_metrics(cached_training_metrics, new_fit_metrics["metrics"])
 
     merged_fit_metrics = Dict(
-        "best_iter" => new_fit_metrics["best_iter"], 
+        "best_iter" => new_fit_metrics["best_iter"],
         "metrics" => metrics
     )
 

@@ -39,6 +39,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
+    feature_pre_filter::Bool
 
     is_unbalance::Bool
     boost_from_average::Bool
@@ -107,6 +108,7 @@ end
         save_binary = false,
         categorical_feature = Int[],
         use_missing = true,
+        feature_pre_filter = true,
         is_unbalance = false,
         boost_from_average = true,
         alpha = 0.9,
@@ -170,6 +172,7 @@ function LGBMRegression(;
     save_binary = false,
     categorical_feature = Int[],
     use_missing = true,
+    feature_pre_filter = true,
     is_unbalance = false,
     boost_from_average = true,
     alpha = 0.9,
@@ -205,7 +208,7 @@ function LGBMRegression(;
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, extra_trees,
         extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
-        is_sparse, save_binary, categorical_feature, use_missing,
+        is_sparse, save_binary, categorical_feature, use_missing, feature_pre_filter,
         is_unbalance, boost_from_average, alpha, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
@@ -255,6 +258,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
+    feature_pre_filter::Bool
 
     is_unbalance::Bool
     boost_from_average::Bool
@@ -394,6 +398,7 @@ function LGBMClassification(;
     save_binary = false,
     categorical_feature = Int[],
     use_missing = true,
+    feature_pre_filter = true,
     is_unbalance = false,
     boost_from_average = true,
     scale_pos_weight = 1.0,
@@ -432,7 +437,7 @@ function LGBMClassification(;
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
         data_random_seed, init_score, is_sparse, save_binary,
-        categorical_feature, use_missing, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
+        categorical_feature, use_missing, feature_pre_filter, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
