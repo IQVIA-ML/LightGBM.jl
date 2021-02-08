@@ -53,6 +53,8 @@ jobs:
           version: '1.4'
       - name: Build package
         run: julia --project -e 'using Pkg; Pkg.build(); Pkg.instantiate()'
+      - name: Instantiate docs
+        run: julia --project=docs/ -e 'using Pkg; Pkg.instantiate()'
       - name: Build docs and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
