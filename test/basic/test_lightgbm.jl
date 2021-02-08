@@ -13,7 +13,7 @@ function setup_env()
     if Sys.islinux()
         output["sample_lib"] = "libcrypt"
     elseif Sys.isunix()
-        output["sample_lib"] = "libevent"
+        output["sample_lib"] = "libpython"
     elseif Sys.iswindows()
         output["sample_lib"] = "netmsg"
     end
@@ -81,13 +81,15 @@ end
         teardown(settings)
     end
 
-    @testset "find_library throws error if cannot find lib" begin
+    @testset "find_library returns empty and logs error" begin
 
         # Arrange
         settings = setup_env()
 
         # Act and assert
-        @test_throws LightGBM.LibraryNotFoundError LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
+        @test (
+            @test_logs (:error,) match_mode=:any LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
+        ) == ""
 
         teardown(settings)
 
