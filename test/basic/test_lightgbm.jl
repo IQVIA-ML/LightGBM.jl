@@ -18,8 +18,12 @@ function setup_env()
         output["sample_lib"] = "netmsg"
     end
 
-    output["ref_path"] = joinpath(src_dir, "lib_lightgbm.$(Libdl.dlext)")
+    output["ref_lib_lightgbm_path"] = joinpath(src_dir, "lib_lightgbm.$(Libdl.dlext)")
+
+    # where to create a fixture library file (custom path) where such library exists in the syspath
     output["custom_fixture_path"] = joinpath(src_dir, "$(output["sample_lib"]).$(Libdl.dlext)")
+
+    # where to create a fixture library file (custom path) where such library does NOT exist in the syspath
     output["lib_not_on_sys_fixture_path"] = joinpath(src_dir, "lib_not_on_sys.$(Libdl.dlext)")
 
     return output
@@ -41,7 +45,7 @@ end
 
         # Arrange
         settings = setup_env()
-        cp(settings["ref_path"], settings["lib_not_on_sys_fixture_path"]) # fake file copied from lightgbm
+        cp(settings["ref_lib_lightgbm_path"], settings["lib_not_on_sys_fixture_path"]) # fake file copied from lightgbm
 
         # Act
         output = LightGBM.find_library("lib_not_on_sys", [src_dir])
@@ -56,7 +60,7 @@ end
 
         # Arrange
         settings = setup_env()
-        cp(settings["ref_path"], settings["custom_fixture_path"]) # fake file copied from lightgbm
+        cp(settings["ref_lib_lightgbm_path"], settings["custom_fixture_path"]) # fake file copied from lightgbm
 
         # Act
         output = LightGBM.find_library(settings["sample_lib"], [src_dir])
@@ -73,10 +77,10 @@ end
         settings = setup_env()
 
         # Act
-        output = LightGBM.find_library(settings["sample_lib"], [src_dir]) # sample_lib should only exist in syspath
+        output = LightGBM.find_library(settings["sample_lib"], [src_dir]) # library should only exist in syspath, not custom path
 
         # Assert
-        @test output == settings["sample_lib"]
+        @test output == settings["sample_lib"] # sys lib detected
 
         teardown(settings)
     end
@@ -87,9 +91,7 @@ end
         settings = setup_env()
 
         # Act and assert
-        @test (
-            @test_logs (:error,) match_mode=:any LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
-        ) == ""
+        @test_throws LightGBM.LibraryNotFoundError LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
 
         teardown(settings)
 

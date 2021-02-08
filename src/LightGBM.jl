@@ -1,11 +1,14 @@
 module LightGBM
 
 using Dates
-using Logging
 import Base
 import Libdl
 import StatsBase
 import Libdl
+
+struct LibraryNotFoundError <: Exception
+    msg::String
+end
 
 
 function find_library(library_name::String, custom_paths::Vector{String})
@@ -22,7 +25,7 @@ function find_library(library_name::String, custom_paths::Vector{String})
     end
 
     if output == ""
-        @error("$(library_name) not found. Please ensure this library is either in system dirs or the dedicated paths: $(custom_paths)")
+        throw(LibraryNotFoundError("$(library_name) not found. Please ensure this library is either in system dirs or the dedicated paths: $(custom_paths)"))
     end
 
     return output
