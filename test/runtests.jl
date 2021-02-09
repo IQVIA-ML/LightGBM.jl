@@ -73,6 +73,10 @@ end
         include(joinpath("basic", "test_search_cv.jl"))
     end
 
+    @testset "LightGBM" begin
+        include(joinpath("basic", "test_lightgbm.jl"))
+    end
+
 end
 
 @testset "Integration tests" begin
