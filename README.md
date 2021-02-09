@@ -129,12 +129,19 @@ The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
 and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/DataScienceTutorials.jl/end-to-end/boston-lgbm/)
 
 # Custom LightGBM binaries
-Though this package comes with a precompiled binary, a custom binary can be used with this package if it is detectable in the system directories (we use `Libdl.dlopen` to do this). In order to use your custom binary:
-- For linux/OSX, either:
-    - Specify the directory of your binary in the environment variable `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`, or
-	- Have the `lib_lightgbm.so`/`lib_lightgbm.dylib` file in the system search path, e.g. `/lib`, `/usr/lib`, or modify `/etc/ld.so.conf` to include the directory of the file
-- For windows:
-    - Extend your `PATH` env variable to include the directory that contains your own `lib_lightgbm.dll` file if this is not already in the existing `PATH` directories
+Though this package comes with a precompiled binary (`lib_lightgbm.so` for linux, `lib_lightgbm.dylib` for macos, `lib_lightgbm.dll` for windows), a custom binary can be used with this package (we use `Libdl.dlopen` to do this). In order to do so, either:
+
+  - Add the directory of your custom binary to the `Libdl.DL_LOAD_PATH` before calling `import LightGBM`, e.g.
+      ```
+      import Libdl
+      push!(Libdl.DL_LOAD_PATH, "/path/to/your/lib_lightgbm/directory")
+
+      import LightGBM
+      ...
+      ```
+  - Specify the directory of your custom binary in the environment variables `LD_LIBRARY_PATH` (for linux), `DYLD_LIBRARY_PATH` (macos), `PATH` (windows), or place the custom binary file in the system search path
+
+Note: `Libdl.DL_LOAD_PATH` will be first searched and used, then the system library paths. If no binaries are found, the programme will fallback to using the precompiled binary
 
 ## Contributors ✨
 
