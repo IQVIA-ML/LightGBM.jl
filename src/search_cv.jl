@@ -36,7 +36,7 @@ function search_cv(
     truncate_booster::Bool=true
 ) where {TX<:Real,Ty<:Real}
 
-    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
                                                                     

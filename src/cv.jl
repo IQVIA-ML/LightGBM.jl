@@ -22,9 +22,12 @@ last valid iteration.
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
-function cv(estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
-                               verbosity::Integer = 1, truncate_booster::Bool = true) where {TX<:Real,Ty<:Real}
-    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+function cv(
+    estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
+    verbosity::Integer = 1, truncate_booster::Bool = true,
+) where {TX<:Real,Ty<:Real}
+
+    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
 
@@ -33,24 +36,24 @@ end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
 function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = 1, truncate_booster::Bool=true)
+
     start_time = now()
     num_data = LGBM_DatasetGetNumData(dataset)
-    ds_parameters = stringifyparams(estimator, DATASETPARAMS) * " verbosity=$verbosity"
-    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
+    parameters = stringifyparams(estimator; verbosity=verbosity)
 
     split_scores = Dict{String,Dict{String,Vector{Float64}}}()
     for (split_idx, train_inds) in enumerate(splits)
         log_info(verbosity, "\nCross-validation: ", split_idx, "\n")
 
         log_debug(verbosity, "Started creating LGBM training dataset ", split_idx, "\n")
-        train_ds = LGBM_DatasetGetSubset(dataset, train_inds, ds_parameters)
+        train_ds = LGBM_DatasetGetSubset(dataset, train_inds, parameters)
 
         log_debug(verbosity, "Started creating LGBM test dataset ", split_idx, "\n")
         test_inds = setdiff(1:num_data, train_inds)
-        test_ds = LGBM_DatasetGetSubset(dataset, test_inds, ds_parameters)
+        test_ds = LGBM_DatasetGetSubset(dataset, test_inds, parameters)
 
         log_debug(verbosity, "Started creating LGBM booster ", split_idx, "\n")
-        estimator.booster = LGBM_BoosterCreate(train_ds, bst_parameters)
+        estimator.booster = LGBM_BoosterCreate(train_ds, parameters)
         LGBM_BoosterAddValidData(estimator.booster, test_ds)
 
         results = train!(estimator, ["validation"], verbosity, start_time, truncate_booster=truncate_booster)
