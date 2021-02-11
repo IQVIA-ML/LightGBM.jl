@@ -62,7 +62,7 @@ end
         metric = ["auc"],
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator, LightGBM.BOOSTERPARAMS) * " verbosity=-1"
+    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -85,7 +85,7 @@ end
         metric = ["auc", "l2"],
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator, LightGBM.BOOSTERPARAMS) * " verbosity=-1"
+    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test2_dataset)
@@ -114,7 +114,7 @@ end
         metric = ["auc", "l2"],
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator, LightGBM.BOOSTERPARAMS) * " verbosity=-1"
+    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test2_dataset)
@@ -168,7 +168,7 @@ end
         early_stopping_round = 0 # default value, but stating explicitly to test!
     )
     
-    bst_parameters = LightGBM.stringifyparams(estimator, LightGBM.BOOSTERPARAMS) * " verbosity=-1"
+    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -208,7 +208,7 @@ Criteria: early_stopping should kick in on round 6
         early_stopping_round = 5
     )
     
-    bst_parameters = LightGBM.stringifyparams(estimator, LightGBM.BOOSTERPARAMS) * " verbosity=-1"
+    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -269,7 +269,7 @@ end
     verbosity = "verbose=-1"
    
     # Act
-    output = LightGBM.fit!(estimator, train_dataset, test_dataset, truncate_booster=true)
+    output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
 
     # Assert
     eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 
@@ -290,7 +290,7 @@ end
     verbosity = "verbose=-1"
    
     # Act
-    output = LightGBM.fit!(estimator, train_dataset, test_dataset, truncate_booster=false)
+    output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=false, verbosity=-1)
 
     # Assert
     eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 
@@ -312,7 +312,7 @@ end
     verbosity = "verbose=-1"
    
     # Act
-    output = LightGBM.fit!(estimator, train_dataset, test_dataset, truncate_booster=true)
+    output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
 
     # Assert
     eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 

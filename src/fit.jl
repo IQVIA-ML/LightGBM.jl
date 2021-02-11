@@ -39,7 +39,7 @@ function fit!(
     start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
-    ds_parameters = stringifyparams(estimator, DATASETPARAMS)
+    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
     train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
     if length(weights) > 0
@@ -72,7 +72,7 @@ function fit!(
 
     start_time = now()
     log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = stringifyparams(estimator, BOOSTERPARAMS) * " verbosity=$verbosity"
+    bst_parameters = stringifyparams(estimator; verbosity=verbosity)
     estimator.booster = LGBM_BoosterCreate(train_dataset, bst_parameters)
 
     n_tests = length(test_datasets)
@@ -278,33 +278,36 @@ function merge_metrics(
 end
 
 
-function stringifyparams(estimator::LGBMEstimator, params::Vector{Symbol})
-    paramstring = ""
-    n_params = length(params)
-    valid_names = fieldnames(typeof(estimator))
-    for (param_idx, param_name) in enumerate(params)
-        if in(param_name, valid_names)
-            param_value = getfield(estimator, param_name)
-            if !isempty(param_value)
-                # Convert parameters that contain indices to C's zero-based indices.
-                if in(param_name, INDEXPARAMS)
-                    param_value .-= 1
-                end
+function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
 
-                if typeof(param_value) <: Array
-                    n_entries = length(param_value)
-                    if n_entries >= 1
-                        paramstring = string(paramstring, param_name, "=", param_value[1])
-                        for entry_idx in 2:n_entries
-                            paramstring = string(paramstring, ",", param_value[entry_idx])
-                        end
-                        paramstring = string(paramstring, " ")
+    paramstring = ""
+
+    params = setdiff(propertynames(estimator), (:booster, :model))
+
+    for (param_idx, param_name) in enumerate(params)
+
+        param_value = getfield(estimator, param_name)
+
+        if !isempty(param_value)
+            # Convert parameters that contain indices to C's zero-based indices.
+            if in(param_name, INDEXPARAMS)
+                param_value .-= 1
+            end
+
+            if typeof(param_value) <: Array
+                n_entries = length(param_value)
+                if n_entries >= 1
+                    paramstring = string(paramstring, param_name, "=", param_value[1])
+                    for entry_idx in 2:n_entries
+                        paramstring = string(paramstring, ",", param_value[entry_idx])
                     end
-                else
-                    paramstring = string(paramstring, param_name, "=", param_value, " ")
+                    paramstring = string(paramstring, " ")
                 end
+            else
+                paramstring = string(paramstring, param_name, "=", param_value, " ")
             end
         end
+
     end
-    return paramstring[1:end - 1]
+    return paramstring[1:end - 1] * " verbosity=$verbosity"
 end
