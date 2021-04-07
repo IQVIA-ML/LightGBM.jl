@@ -70,6 +70,10 @@ mutable struct LGBMRegression <: LGBMEstimator
 
     num_class::Int
     device_type::String
+    gpu_use_dp::Bool
+    gpu_platform_id::Int
+    gpu_device_id::Int
+    num_gpu::Int
     force_col_wise::Bool
     force_row_wise::Bool
 end
@@ -133,6 +137,10 @@ end
         time_out = 120,
         machine_list_file = \"\",
         device_type=\"cpu\",
+        gpu_use_dp = false,
+        gpu_platform_id = -1,
+        gpu_device_id = -1,
+        num_gpu = 1,
         force_col_wise = false
         force_row_wise = false
     ])
@@ -197,6 +205,10 @@ function LGBMRegression(;
     time_out = 120,
     machine_list_file = "",
     device_type="cpu",
+    gpu_use_dp = false,
+    gpu_platform_id = -1,
+    gpu_device_id = -1,
+    num_gpu = 1,
     force_col_wise = false,
     force_row_wise = false,
 )
@@ -212,7 +224,8 @@ function LGBMRegression(;
         is_unbalance, boost_from_average, alpha, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-        machine_list_file, 1, device_type, force_col_wise, force_row_wise,
+        machine_list_file, 1, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        force_col_wise, force_row_wise,
     )
 end
 
@@ -291,6 +304,10 @@ mutable struct LGBMClassification <: LGBMEstimator
     num_class::Int
 
     device_type::String
+    gpu_use_dp::Bool
+    gpu_platform_id::Int
+    gpu_device_id::Int
+    num_gpu::Int
     force_col_wise::Bool
     force_row_wise::Bool
 end
@@ -357,6 +374,10 @@ end
         machine_list_file = \"\",
         num_class = 1,
         device_type=\"cpu\",
+        gpu_use_dp = false,
+        gpu_platform_id = -1,
+        gpu_device_id = -1,
+        num_gpu = 1,
         force_col_wise = false,
         force_row_wise = false,
     ])
@@ -425,6 +446,10 @@ function LGBMClassification(;
     machine_list_file = "",
     num_class = 2,
     device_type="cpu",
+    gpu_use_dp = false,
+    gpu_platform_id = -1,
+    gpu_device_id = -1,
+    num_gpu = 1,
     force_col_wise = false,
     force_row_wise = false,
 )
@@ -441,6 +466,7 @@ function LGBMClassification(;
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
-        machine_list_file, num_class, device_type, force_col_wise, force_row_wise,
+        machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        force_col_wise, force_row_wise,
     )
 end
