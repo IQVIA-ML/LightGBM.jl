@@ -6,6 +6,10 @@ import Libdl
 import StatsBase
 import Libdl
 
+
+const LGBM_library = ""
+
+
 struct LibraryNotFoundError <: Exception
     msg::String
 end
@@ -32,7 +36,12 @@ function find_library(library_name::String, custom_paths::Vector{String})
 
 end
 
-const LGBM_library = find_library("lib_lightgbm", [@__DIR__])
+
+function __init__()
+    LGBM_library = find_library("lib_lightgbm", [@__DIR__])
+    return nothing
+end
+
 
 include("wrapper.jl")
 include("estimators.jl")
