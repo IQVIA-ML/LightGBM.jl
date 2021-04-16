@@ -32,13 +32,13 @@ function find_library(library_name::String, custom_paths::Vector{String})
         throw(LibraryNotFoundError("$(library_name) not found. Please ensure this library is either in system dirs or the dedicated paths: $(custom_paths)"))
     end
 
-    return Libdl.dlopen(libpath)
+    return libpath
 
 end
 
 
 function __init__()
-    LGBM_library[] = find_library("lib_lightgbm", [@__DIR__])
+    LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
     return nothing
 end
 
