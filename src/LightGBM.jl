@@ -6,6 +6,10 @@ import Libdl
 import StatsBase
 import Libdl
 
+
+const LGBM_library = Ref{Ptr{Cvoid}}(C_NULL)
+
+
 struct LibraryNotFoundError <: Exception
     msg::String
 end
@@ -14,25 +18,30 @@ end
 function find_library(library_name::String, custom_paths::Vector{String})
 
     # Search system filedirs first, returns empty string if not found
-    output = Libdl.find_library(library_name)
+    libpath = Libdl.find_library(library_name)
 
-    if output == ""
+    if libpath == ""
         # try specified paths
         @info("$(library_name) not found in system dirs, trying fallback")
-        output = Libdl.find_library(library_name, custom_paths)
+        libpath = Libdl.find_library(library_name, custom_paths)
     else
         @info("$(library_name) found in system dirs!")
     end
 
-    if output == ""
+    if libpath == ""
         throw(LibraryNotFoundError("$(library_name) not found. Please ensure this library is either in system dirs or the dedicated paths: $(custom_paths)"))
     end
 
-    return output
+    return libpath
 
 end
 
-const LGBM_library = find_library("lib_lightgbm", [@__DIR__])
+
+function __init__()
+    LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    return nothing
+end
+
 
 include("wrapper.jl")
 include("estimators.jl")

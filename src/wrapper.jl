@@ -98,11 +98,13 @@ end
 
 macro lightgbm(f, params...)
     return quote
-        err = ccall(($f, LGBM_library), Cint,
+        call_sym = Libdl.dlsym(LGBM_library[], $f)
+        err_sym = Libdl.dlsym(LGBM_library[], :LGBM_GetLastError)
+        err = ccall(call_sym, Cint,
                     ($((esc(i.args[end]) for i in params)...),),
                     $((esc(i.args[end - 1]) for i in params)...))
         if err != 0
-            msg = unsafe_string(ccall((:LGBM_GetLastError, LGBM_library), Cstring, ()))
+            msg = unsafe_string(ccall(err_sym, Cstring, ()))
             error("call to LightGBM's ", string($(esc(f))), " failed: ", msg)
         end
     end
