@@ -12,23 +12,28 @@ Return a dictionary with an entry for each validation set. Each entry of the dic
 dictionary with an entry for each validation metric in the `estimator`. Each of these entries is an
 array that holds the validation metric's value at each iteration.
 
-# Arguments
+## Positional Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
-* `X::Matrix{TX<:Real}`: the features data.
-* `y::Vector{Ty<:Real}`: the labels.
-* `test::Tuple{Matrix{TX},Vector{Ty}}...`: optionally contains one or more tuples of X-y pairs of
-    the same types as `X` and `y` that should be used as validation sets.
-* `train_dataset::Dataset`: prepared train_dataset
-* `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
+* and either
+    * `X::AbstractMatrix{TX<:Real}`: the features data. May be a `SparseArrays.SparseMatrixCSC`
+    * `y::Vector{Ty<:Real}`: the labels.
+    * `test::Tuple{AbstractMatrix{TX},Vector{Ty}}...`: (optional) contains one or more tuples of X-y pairs of
+        the same types as `X` and `y` that should be used as validation sets. May be a `SparseArrays.SparseMatrixCSC`
+        and can mix-and-match sparse/dense among these test and the train.
+* or
+    * `train_dataset::Dataset`: prepared train_dataset
+    * `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
+## Keyword Arguments
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
+    Should be consistent across train/test. Does not apply to `SparseArrays.SparseMatrixCSC` or `Dataset` constructors.
 * `weights::Vector{Tw<:Real}`: the training weights.
 * `init_score::Vector{Ti<:Real}`: the init scores.
 """
 function fit!(
-    estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, test::Tuple{Matrix{TX},Vector{Ty}}...;
+    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
     verbosity::Integer = 1,
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
@@ -40,7 +45,7 @@ function fit!(
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
     ds_parameters = stringifyparams(estimator; verbosity=verbosity)
-    train_ds = LGBM_DatasetCreateFromMat(X, ds_parameters, is_row_major)
+    train_ds = dataset_constructor(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
     if length(weights) > 0
         LGBM_DatasetSetField(train_ds, "weight", weights)
@@ -52,7 +57,7 @@ function fit!(
     test_dss = []
 
     for test_entry in test
-        test_ds = LGBM_DatasetCreateFromMat(test_entry[1], ds_parameters, train_ds, is_row_major)
+        test_ds = dataset_constructor(test_entry[1], ds_parameters, train_ds, is_row_major)
         LGBM_DatasetSetField(test_ds, "label", test_entry[2])
         push!(test_dss, test_ds)
     end
@@ -63,8 +68,8 @@ end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and pre-constructed dataset(s) are available
 function fit!(
-    estimator::LGBMEstimator, 
-    train_dataset::Dataset, 
+    estimator::LGBMEstimator,
+    train_dataset::Dataset,
     test_datasets::Dataset...;
     verbosity::Integer = 1,
     truncate_booster::Bool=true,
@@ -90,11 +95,19 @@ function fit!(
 end
 
 
+dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromMat(mat, params, ds, rm)
+dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
+dataset_constructor(mat::AbstractMatrix, p, r, d) = throw(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat)
+dataset_constructor(mat::AbstractMatrix, p, r) = throw(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat)
+
+
 function train!(
-    estimator::LGBMEstimator, 
-    num_iterations::Int, 
-    tests_names::Vector{String}, 
-    verbosity::Integer, 
+    estimator::LGBMEstimator,
+    num_iterations::Int,
+    tests_names::Vector{String},
+    verbosity::Integer,
     start_time::DateTime;
     truncate_booster::Bool=true,
 )
@@ -129,7 +142,7 @@ function train!(
 
         if is_finished == 0
             is_finished = eval_metrics!(
-                results, estimator, tests_names, iter, verbosity, 
+                results, estimator, tests_names, iter, verbosity,
                 bigger_is_better, best_scores, best_iterations, metrics,
             )
         end
@@ -203,11 +216,11 @@ function eval_metrics!(
                 # All good if difference between current and best iter is within early_stopping_round
                 elseif (iter - best_iterations[metric][tests_name]) < estimator.early_stopping_round
                     continue
-                end                
+                end
                 log_info(verbosity, "Early stopping at iteration ", iter, ", the best iteration round is ", best_iterations[metric][tests_name], "\n")
                 return 1
             end
-        
+
         end
     end
 
@@ -220,7 +233,7 @@ function eval_metrics!(
             log_info(verbosity, metric_name, ": ", now_scores[dataset_key][metric_idx])
                 metric_idx < length(metrics) && log_info(verbosity, ", ")
             log_info(verbosity, "\n")
-        
+
         end
     end
     return 0
