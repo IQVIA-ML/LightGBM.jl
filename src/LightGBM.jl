@@ -3,8 +3,9 @@ module LightGBM
 using Dates
 import Base
 import Libdl
+import SparseArrays
 import StatsBase
-import Libdl
+
 
 
 const LGBM_library = Ref{Ptr{Cvoid}}(C_NULL)
