@@ -3,9 +3,11 @@ module TestFit
 using Test
 using Dates
 using LightGBM
+using SparseArrays
 
 # test fixtures
 train_matrix = rand(5000,70) # create random dataset
+train_sparse = sparse(train_matrix)
 train_labels = rand([0, 1], 5000)
 train_dataset = LightGBM.LGBM_DatasetCreateFromMat(train_matrix, "")
 LightGBM.LGBM_DatasetSetField(train_dataset, "label", train_labels)
@@ -24,7 +26,7 @@ LightGBM.LGBM_DatasetSetField(test2_dataset, "label", test2_labels)
 @testset "test fit! with dataset -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
-    
+
     # Act
     LightGBM.fit!(estimator, train_dataset, test_dataset, verbosity = -1);
     p_binary = LightGBM.predict(estimator, train_matrix, verbosity = -1)
@@ -34,13 +36,13 @@ LightGBM.LGBM_DatasetSetField(test2_dataset, "label", test2_labels)
     # check also that binary outputs and classes are invariant in prediction output shapes, i.e. they're matrices
     @test length(size(p_binary)) == 2
     @test length(size(binary_classes)) == 2
-    
+
 end
 
 @testset "test fit! with dataset without testset -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
-    
+
     # Act
     LightGBM.fit!(estimator, train_dataset, verbosity = -1);
     p_binary = LightGBM.predict(estimator, train_matrix, verbosity = -1)
@@ -50,15 +52,30 @@ end
     # check also that binary outputs and classes are invariant in prediction output shapes, i.e. they're matrices
     @test length(size(p_binary)) == 2
     @test length(size(binary_classes)) == 2
-    
+
+end
+
+@testset "test fit! with sparse matches dense" begin
+
+    estimator_dense = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator_sparse = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+
+    LightGBM.fit!(estimator_dense, train_matrix, train_labels, verbosity = -1)
+    LightGBM.fit!(estimator_sparse, train_sparse, train_labels, verbosity = -1)
+
+    p_dense = LightGBM.predict(estimator_dense, test_matrix, verbosity = -1)
+    p_sparse = LightGBM.predict(estimator_sparse, test_matrix, verbosity = -1)
+
+    @test isapprox(p_dense, p_sparse, rtol=1e-16)
+
 end
 
 @testset "test train! single test set -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
-        objective = "binary", 
+        objective = "binary",
         num_class = 1,
-        is_training_metric = true, 
+        is_training_metric = true,
         metric = ["auc"],
     )
 
@@ -72,16 +89,16 @@ end
     # Assert
     @test length(results["metrics"]["training"]["auc"]) > 0
     @test length(results["metrics"]["test_set_with_whatever_label"]["auc"]) > 0
-    
+
 end
 
 
 @testset "test train! multiple test set multiple metrics -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
-        objective = "binary", 
+        objective = "binary",
         num_class = 1,
-        is_training_metric = true, 
+        is_training_metric = true,
         metric = ["auc", "l2"],
     )
 
@@ -100,7 +117,7 @@ end
     @test length(results["metrics"]["test_1"]["l2"]) > 0
     @test length(results["metrics"]["test_2"]["auc"]) > 0
     @test length(results["metrics"]["test_2"]["l2"]) > 0
-    
+
 end
 
 
@@ -108,9 +125,9 @@ end
 @testset "test train! multiple test set multiple metrics -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
-        objective = "binary", 
+        objective = "binary",
         num_class = 1,
-        is_training_metric = true, 
+        is_training_metric = true,
         metric = ["auc", "l2"],
     )
 
@@ -129,7 +146,7 @@ end
     @test length(results["metrics"]["test_1"]["l2"]) > 0
     @test length(results["metrics"]["test_2"]["auc"]) > 0
     @test length(results["metrics"]["test_2"]["l2"]) > 0
-    
+
 end
 
 
@@ -146,12 +163,12 @@ end
 
     LightGBM.store_scores!(results_fixture, "whatever_second_dataset","some_metric",0.7)
     LightGBM.store_scores!(results_fixture, "whatever_second_dataset","some_metric",0.75)
-    
+
     # Assert
     @test results_fixture["metrics"]["whatever_dataset"]["some_metric"] == [0.5, 0.55]
     @test results_fixture["metrics"]["whatever_dataset"]["some_extra_metric"] == [0.6, 0.65]
     @test results_fixture["metrics"]["whatever_second_dataset"]["some_metric"] == [0.7, 0.75]
-        
+
 end
 
 
@@ -163,11 +180,11 @@ end
         "metrics" => Dict{String,Dict{String,Vector{Float64}}}(),
     )
     estimator = LightGBM.LGBMClassification(
-        num_iterations = 10, objective = "binary", num_class = 1, 
-        is_training_metric = false, metric = ["auc"], 
+        num_iterations = 10, objective = "binary", num_class = 1,
+        is_training_metric = false, metric = ["auc"],
         early_stopping_round = 0 # default value, but stating explicitly to test!
     )
-    
+
     bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
@@ -203,11 +220,11 @@ Criteria: early_stopping should kick in on round 6
         "metrics" => Dict{String,Dict{String,Vector{Float64}}}(),
     )
     estimator = LightGBM.LGBMClassification(
-        num_iterations = 10, objective = "binary", num_class = 1, 
-        is_training_metric = false, metric = ["auc"], 
+        num_iterations = 10, objective = "binary", num_class = 1,
+        is_training_metric = false, metric = ["auc"],
         early_stopping_round = 5
     )
-    
+
     bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
@@ -223,7 +240,7 @@ Criteria: early_stopping should kick in on round 6
             results_fixture, estimator, ["test_bla"], iter, -1,
             bigger_is_better, best_scores, best_iterations, ["auc"]
         )
-        
+
         # reset scores to round 1 being best
         best_scores = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
         best_iterations = Dict{String,Dict{String,Real}}("auc" => Dict("test_bla" => 1))
@@ -241,7 +258,7 @@ end
     # Arrange
     estimator = LightGBM.LGBMClassification(num_iterations = 100)
     verbosity = "verbose=-1"
-    
+
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, verbosity)
 
     # update learning 100 times
@@ -249,7 +266,7 @@ end
         finished = LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
     end
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 100
-    
+
     # Act
     LightGBM.truncate_model!(estimator, 87)
 
@@ -257,7 +274,7 @@ end
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 87
 end
 
-@testset "test fit when truncate_booster" begin
+@testset "test fit! when truncate_booster" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
         num_class = 1,
@@ -267,18 +284,18 @@ end
         objective = "binary",
     )
     verbosity = "verbose=-1"
-   
+
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
 
     # Assert
-    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 
+    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"])
     @test eval_metrics_run_count >= 5 # at least this will be more than or equal to early_stopping_round
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == output["best_iter"] # test this matches as expected
 
 end
 
-@testset "test fit when NOT truncate_booster" begin
+@testset "test fit! when NOT truncate_booster" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
         num_class = 1,
@@ -288,19 +305,19 @@ end
         objective = "binary",
     )
     verbosity = "verbose=-1"
-   
+
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=false, verbosity=-1)
 
     # Assert
-    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 
+    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"])
     @test eval_metrics_run_count >= 5 # at least this will be more than or equal to early_stopping_round
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) >= 5 # given no truncation, this must be greater than early_stopping_round
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) > output["best_iter"] # unless this runs to the very last num_iterations this should pass...should buy the lottery if this fails
 
 end
 
-@testset "test fit when truncate_booster inactive when no early_stopping" begin
+@testset "test fit! when truncate_booster inactive when no early_stopping" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(
         num_class = 1,
@@ -310,12 +327,12 @@ end
         objective = "binary",
     )
     verbosity = "verbose=-1"
-   
+
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
 
     # Assert
-    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"]) 
+    eval_metrics_run_count = length(output["metrics"]["test_1"]["auc"])
     @test eval_metrics_run_count == 100
     @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == 100
     @test output["best_iter"] == 0
