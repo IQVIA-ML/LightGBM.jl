@@ -57,7 +57,7 @@ function fit!(
     test_dss = []
 
     for test_entry in test
-        test_ds = dataset_constructor(test_entry[1], ds_parameters, train_ds, is_row_major)
+        test_ds = dataset_constructor(test_entry[1], ds_parameters, is_row_major, train_ds)
         LGBM_DatasetSetField(test_ds, "label", test_entry[2])
         push!(test_dss, test_ds)
     end
@@ -99,8 +99,8 @@ dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_D
 dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
-dataset_constructor(mat::AbstractMatrix, p, r, d) = throw(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat)
-dataset_constructor(mat::AbstractMatrix, p, r) = throw(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat)
+dataset_constructor(mat::AbstractMatrix, p::String, r::Bool, d::Dataset) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
+dataset_constructor(mat::AbstractMatrix, p::String, r::Bool) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 
 
 function train!(
