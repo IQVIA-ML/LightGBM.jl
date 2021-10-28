@@ -5,6 +5,8 @@ const C_API_DTYPE_FLOAT32 = 0
 const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
 const C_API_DTYPE_INT64 = 3
+const C_API_MATRIX_TYPE_CSC = 1
+const C_API_MATRIX_TYPE_CSR = 0
 
 mutable struct Dataset
     handle::DatasetHandle
@@ -96,6 +98,22 @@ function lgbmid_to_jltype(id::Integer)
     end
 end
 
+# sparse helpers for getting the API enums
+sparsetypes(x::SparseArrays.SparseMatrixCSC) = sparseidxtype(x), sparsedatatype(x)
+
+
+sparseidxtype(x::SparseArrays.SparseMatrixCSC{<:Any, Int64}) = C_API_DTYPE_INT64
+sparseidxtype(x::SparseArrays.SparseMatrixCSC{<:Any, Int32}) = C_API_DTYPE_INT32
+
+
+sparsedatatype(x::SparseArrays.SparseMatrixCSC{Float32, <:Integer}) = C_API_DTYPE_FLOAT32
+sparsedatatype(x::SparseArrays.SparseMatrixCSC{Float64, <:Integer}) = C_API_DTYPE_FLOAT64
+sparsedatatype(x::SparseArrays.SparseMatrixCSC{<:Any, <:Integer}) = throw(TypeError(:sparsedatatype, AbstractFloat, one(eltype(x.nzval))))
+
+
+
+
+
 macro lightgbm(f, params...)
     return quote
         call_sym = Libdl.dlsym(LGBM_library[], $f)
@@ -110,9 +128,40 @@ macro lightgbm(f, params...)
     end
 end
 
+
 # function LGBM_DatasetCreateFromFile()
-# function LGBM_DatasetCreateFromCSR()
-# function LGBM_DatasetCreateFromCSC()
+
+
+function LGBM_DatasetCreateFromCSC(
+    data::SparseArrays.SparseMatrixCSC,
+    parameters::String,
+    reference::Dataset = Dataset(C_NULL),
+)
+
+    if data.m > typemax(Int32)
+        throw(DomainError(data.m, "Cannot accept CSC matrices with more than $(typemax(Int32)) rows"))
+    end
+
+    idx_type, data_type = sparsetypes(data)
+
+    out = Ref{DatasetHandle}()
+    @lightgbm(
+        :LGBM_DatasetCreateFromCSC,
+        data.colptr .- 1 => Ptr{Nothing},
+        idx_type => Cint,
+        Int32.(data.rowval .- 1) => Ptr{Cint},
+        data.nzval => Ptr{Nothing},
+        data_type => Cint,
+        data.n + 1 => Clonglong,
+        SparseArrays.nnz(data) => Clonglong,
+        data.m => Clonglong,
+        parameters => Cstring,
+        reference.handle => DatasetHandle,
+        out => Ref{DatasetHandle}
+    )
+    return Dataset(out[])
+
+end
 
 function LGBM_DatasetCreateFromMat(
     data::Matrix{T},

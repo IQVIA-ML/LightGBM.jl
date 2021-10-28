@@ -3,6 +3,7 @@ module TestFFIDatasets
 using LightGBM
 using Test
 using Random
+using SparseArrays
 
 # we don't want the LightGBM vom
 redirect_stderr()
@@ -74,6 +75,17 @@ end
 
 end
 
+
+@testset "LGBM_DatasetCreateFromCSC" begin
+
+    mymat = sparse([1. 2.; 3. 4.; 5. 6.])
+    created_dataset = LightGBM.LGBM_DatasetCreateFromCSC(mymat, verbosity)
+
+    @test created_dataset.handle != C_NULL
+    @test LightGBM.LGBM_DatasetGetNumData(created_dataset) == 3
+    @test LightGBM.LGBM_DatasetGetNumFeature(created_dataset) == 2
+
+end
 
 @testset "LGBM_DatasetGetSubset" begin
 
