@@ -111,7 +111,9 @@ sparsedatatype(x::SparseArrays.SparseMatrixCSC{Float64, <:Integer}) = C_API_DTYP
 sparsedatatype(x::SparseArrays.SparseMatrixCSC{<:Any, <:Integer}) = throw(TypeError(:sparsedatatype, AbstractFloat, one(eltype(x.nzval))))
 
 
-
+# Floating point conversion helpers
+tofloat32(x::Vector{<:AbstractFloat}) = Float32.(x)
+tofloat32(x::Vector{Float32}) = x
 
 
 macro lightgbm(f, params...)
@@ -465,7 +467,35 @@ function LGBM_BoosterUpdateOneIter(bst::Booster)
     return is_finished[]
 end
 
-# function LGBM_BoosterUpdateOneIterCustom()
+"""
+LGBM_BoosterUpdateOneIterCustom
+Pass grads and 2nd derivatives corresponding to some custom loss function
+grads and 2nd derivatives must be same cardinality as training data
+Also, trying to run this on a booster without data will fail.
+"""
+function LGBM_BoosterUpdateOneIterCustom(bst::Booster, grads::Vector{<:AbstractFloat}, hessian::Vector{<:AbstractFloat})
+
+    if length(bst.datasets) == 0
+        throw(ErrorException("Booster does not have any training data associated"))
+    end
+    numdata = LGBM_DatasetGetNumData(first(bst.datasets))
+
+    if !(numdata == length(grads) == length(hessian))
+        throw(ErrorException("Gradients sizes ($(length(grads)), $(length(hessian))) don't match training data size ($numdata)"))
+    end
+
+    grads = tofloat32(grads)
+    hessian = tofloat32(hessian)
+
+    is_finished = Ref{Cint}()
+    @lightgbm(:LGBM_BoosterUpdateOneIterCustom,
+              bst.handle => BoosterHandle,
+              grads => Ptr{Cfloat},
+              hessian => Ptr{Cfloat},
+              is_finished => Ref{Cint})
+    return is_finished[]
+
+end
 
 function LGBM_BoosterRollbackOneIter(bst::Booster)
     @lightgbm(:LGBM_BoosterRollbackOneIter,

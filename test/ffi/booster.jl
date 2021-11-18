@@ -161,6 +161,37 @@ end
 end
 
 
+@testset "LGBM_BoosterUpdateOneIterCustom" begin
+
+    mymat = randn(1000, 2)
+    labels = randn(1000)
+    numdata = length(labels)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata), rand(numdata))
+    pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # check both types of float work
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(rand(numdata)))
+    pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    @test !isapprox(pred1, pred2; rtol=1e-5) # show that the gradients caused an update
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(numdata), ones(numdata))
+    pred3 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    @test isapprox(pred2, pred3; rtol=1e-16) # show that the gradients did not cause an update
+
+    @test_throws ErrorException LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(1), zeros(1))
+
+    existing_booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
+
+    # can't exactly match the size if there is no size (no training data) to match
+    @test_throws ErrorException LightGBM.LGBM_BoosterUpdateOneIterCustom(existing_booster, zeros(1), zeros(1))
+
+end
+
+
 @testset "LGBM_BoosterRollbackOneIter" begin
 
     # Arrange
