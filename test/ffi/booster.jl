@@ -182,7 +182,7 @@ end
     pred3 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
     @test isapprox(pred2, pred3; rtol=1e-16) # show that the gradients did not cause an update
 
-    @test_throws ErrorException LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(1), zeros(1))
+    @test_throws DimensionMismatch LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(1), zeros(1))
 
     existing_booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
 
@@ -197,7 +197,7 @@ end
     # Arrange
     mymat = randn(10000, 2)
     labels = randn(10000)
-    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)    
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
 
@@ -429,6 +429,32 @@ end
 
     @test isapprox(gain_sub_importance, expected_sub_gain, atol=1e-4)
     @test split_sub_importance == expected_sub_split
+
+end
+
+
+@testset "LGBM_BoosterNumModelPerIteration" begin
+
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    v_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat .+ 1., verbosity)
+
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary $verbosity")
+
+    @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == 1
+
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=regression $verbosity")
+
+    @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == 1
+
+    for n in 2:20
+
+        booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$(n) $verbosity")
+
+        @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == n
+
+    end
 
 end
 

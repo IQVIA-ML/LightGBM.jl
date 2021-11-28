@@ -479,9 +479,12 @@ function LGBM_BoosterUpdateOneIterCustom(bst::Booster, grads::Vector{<:AbstractF
         throw(ErrorException("Booster does not have any training data associated"))
     end
     numdata = LGBM_DatasetGetNumData(first(bst.datasets))
+    nummodels = LGBM_BoosterNumModelPerIteration(bst)
 
-    if !(numdata == length(grads) == length(hessian))
-        throw(ErrorException("Gradients sizes ($(length(grads)), $(length(hessian))) don't match training data size ($numdata)"))
+    if !((numdata*nummodels) == length(grads) == length(hessian))
+        throw(DimensionMismatch(
+            "Gradients sizes ($(length(grads)), $(length(hessian))) don't match training data size ($numdata) * ($nummodels)"
+        ))
     end
 
     grads = tofloat32(grads)
@@ -782,3 +785,11 @@ end
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()
+
+function LGBM_BoosterNumModelPerIteration(bst::Booster)
+    out_models = Ref{Cint}()
+    @lightgbm(:LGBM_BoosterNumModelPerIteration,
+              bst.handle => BoosterHandle,
+              out_models => Ref{Cint})
+    return out_models[]
+end
