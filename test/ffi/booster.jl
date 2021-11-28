@@ -163,9 +163,9 @@ end
 
 @testset "LGBM_BoosterUpdateOneIterCustom" begin
 
-    mymat = randn(1000, 2)
-    labels = randn(1000)
-    numdata = length(labels)
+    numdata = 1000
+    mymat = randn(numdata, 2)
+    labels = randn(numdata)
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
@@ -188,6 +188,26 @@ end
 
     # can't exactly match the size if there is no size (no training data) to match
     @test_throws ErrorException LightGBM.LGBM_BoosterUpdateOneIterCustom(existing_booster, zeros(1), zeros(1))
+
+    # handle multiclass too
+    num_class = 3
+    mymat = randn(numdata, 2)
+    labels = rand((1:num_class) .- 1, numdata)
+
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$(num_class) $verbosity")
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
+    pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # check both types of float work
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
+    pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+
+    @test !isapprox(pred1, pred2; rtol=1e-5) # show that the gradients caused an update
+
+    # check the naive silly thing does in fact not get accepted
+    @test_throws DimensionMismatch LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(rand(numdata)))
 
 end
 
