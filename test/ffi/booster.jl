@@ -161,12 +161,63 @@ end
 end
 
 
+@testset "LGBM_BoosterUpdateOneIterCustom" begin
+
+    numdata = 1000
+    mymat = randn(numdata, 2)
+    labels = randn(numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata), rand(numdata))
+    pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # check both types of float work
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(rand(numdata)))
+    pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    @test !isapprox(pred1, pred2; rtol=1e-5) # show that the gradients caused an update
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(numdata), ones(numdata))
+    pred3 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    @test isapprox(pred2, pred3; rtol=1e-16) # show that the gradients did not cause an update
+
+    @test_throws DimensionMismatch LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, zeros(1), zeros(1))
+
+    existing_booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
+
+    # can't exactly match the size if there is no size (no training data) to match
+    @test_throws ErrorException LightGBM.LGBM_BoosterUpdateOneIterCustom(existing_booster, zeros(1), zeros(1))
+
+    # handle multiclass too
+    num_class = 3
+    mymat = randn(numdata, 2)
+    labels = rand((1:num_class) .- 1, numdata)
+
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=none num_class=$(num_class) $verbosity")
+
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
+    pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # check both types of float work
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
+    pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+
+    @test !isapprox(pred1, pred2; rtol=1e-5) # show that the gradients caused an update
+
+    # check the naive silly thing does in fact not get accepted
+    @test_throws DimensionMismatch LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(rand(numdata)))
+
+end
+
+
 @testset "LGBM_BoosterRollbackOneIter" begin
 
     # Arrange
     mymat = randn(10000, 2)
     labels = randn(10000)
-    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)    
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
 
@@ -398,6 +449,32 @@ end
 
     @test isapprox(gain_sub_importance, expected_sub_gain, atol=1e-4)
     @test split_sub_importance == expected_sub_split
+
+end
+
+
+@testset "LGBM_BoosterNumModelPerIteration" begin
+
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    v_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat .+ 1., verbosity)
+
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary $verbosity")
+
+    @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == 1
+
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=regression $verbosity")
+
+    @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == 1
+
+    for n in 2:20
+
+        booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$(n) $verbosity")
+
+        @test LightGBM.LGBM_BoosterNumModelPerIteration(booster) == n
+
+    end
 
 end
 
