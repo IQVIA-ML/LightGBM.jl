@@ -196,7 +196,7 @@ end
 
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
-    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$(num_class) $verbosity")
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=none num_class=$(num_class) $verbosity")
 
     finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
     pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
