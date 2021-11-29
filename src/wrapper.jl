@@ -470,7 +470,7 @@ end
 """
 LGBM_BoosterUpdateOneIterCustom
 Pass grads and 2nd derivatives corresponding to some custom loss function
-grads and 2nd derivatives must be same cardinality as training data
+grads and 2nd derivatives must be same cardinality as training data * number of models
 Also, trying to run this on a booster without data will fail.
 """
 function LGBM_BoosterUpdateOneIterCustom(bst::Booster, grads::Vector{<:AbstractFloat}, hessian::Vector{<:AbstractFloat})

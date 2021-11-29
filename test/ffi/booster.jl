@@ -200,7 +200,6 @@ end
 
     finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
     pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
-    # check both types of float work
     finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata*num_class), rand(numdata*num_class))
     pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
 
@@ -458,7 +457,6 @@ end
 
     mymat = [1. 2.; 3. 4.; 5. 6.]
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
-    v_dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat .+ 1., verbosity)
 
     booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary $verbosity")
 
