@@ -5,7 +5,6 @@ using Test
 using Random
 
 # we don't want the LightGBM vom
-redirect_stderr()
 
 verbosity = "verbose=-1"
 

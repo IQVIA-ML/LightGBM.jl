@@ -17,7 +17,7 @@ Nsamples = 3000
 
 X       = (x1=rand(Nsamples), x2=rand(Nsamples), x3=rand(Nsamples))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
-weights = Float64.(MLJBase.int(ycat)) # just use the 1's/2's directly as multipliers
+weights = rand(Nsamples) .^ 2
 
 y = MLJBase.identity.(ycat) # make plain Vector with categ. elements (actually not sure what this is doing)
 

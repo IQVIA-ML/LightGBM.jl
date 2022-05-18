@@ -6,7 +6,6 @@ using Random
 using SparseArrays
 
 # we don't want the LightGBM vom
-redirect_stderr()
 
 verbosity = "verbose=-1"
 
