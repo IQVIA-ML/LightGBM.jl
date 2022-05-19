@@ -25,13 +25,13 @@ y = MLJBase.identity.(ycat) # make plain Vector with categ. elements (actually n
 train, test              = MLJBase.partition(MLJBase.eachindex(y), 0.6)
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train];)
 yhat                     = MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test))
-yhatprob                 = MLJBase.pdf.(yhat, Ref("0"))
+yhatprob                 = MLJBase.pdf(yhat, MLJBase.levels(y))
 yhatpred                 = MLJBase.mode.(yhat)
 
 # fit again with weights
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train], weights[train])
 yhat_with_weights        = MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test))
-yhat_with_weights_prob   = MLJBase.pdf.(yhat_with_weights, Ref("0"))
+yhat_with_weights_prob   = MLJBase.pdf(yhat_with_weights, MLJBase.levels(y))
 yhat_with_weights_pred   = MLJBase.mode.(yhat_with_weights)
 
 misclassification_rate   = sum(yhatpred .!= y[test])/length(test)
