@@ -164,7 +164,7 @@ end
 
     numdata = 1000
     mymat = randn(numdata, 2)
-    labels = randn(numdata)
+    labels = randn(numdata) .+ sum(mymat .^2; dims=2)
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
