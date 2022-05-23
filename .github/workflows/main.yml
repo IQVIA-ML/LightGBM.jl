@@ -49,8 +49,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
-        with:
-          version: '1.4'
       - name: Build package to grab binary
         run: julia --project -e 'using Pkg; Pkg.build(); Pkg.instantiate()'
       - name: Instantiate docs
