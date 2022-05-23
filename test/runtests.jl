@@ -45,7 +45,7 @@ end
             include(joinpath("mlj", "update.jl"))
         end
 
-        @testset "MLJ update interface" begin
+        @testset "MLJ user report" begin
             include(joinpath("mlj", "user_report.jl"))
         end
 
