@@ -20,28 +20,35 @@ end
 
 @testset "MLJ interface tests" begin
 
-    @testset "Parameters" begin
-        include(joinpath("mlj", "parameters.jl"))
-    end
+    # Skippable for the CI purposes (and they can be slow)
+    # Specifically for CI older julia versions are a problem to get test deps
+    # to resolve properly. So we run a seperate set of tests with MLJ enabled for supported versions
+    if !("DISABLE_MLJ_TESTS" in keys(ENV))
 
-    @testset "Binary LightGBM" begin
-        include(joinpath("mlj", "binary_classifier.jl"))
-    end
+        @testset "Parameters" begin
+            include(joinpath("mlj", "parameters.jl"))
+        end
 
-    @testset "Multiclass LightGBM" begin
-        include(joinpath("mlj", "multiclass_classifier.jl"))
-    end
+        @testset "Binary LightGBM" begin
+            include(joinpath("mlj", "binary_classifier.jl"))
+        end
 
-    @testset "Regression LightGBM" begin
-        include(joinpath("mlj", "regression.jl"))
-    end
+        @testset "Multiclass LightGBM" begin
+            include(joinpath("mlj", "multiclass_classifier.jl"))
+        end
 
-    @testset "MLJ update interface" begin
-        include(joinpath("mlj", "update.jl"))
-    end
+        @testset "Regression LightGBM" begin
+            include(joinpath("mlj", "regression.jl"))
+        end
 
-    @testset "MLJ update interface" begin
-        include(joinpath("mlj", "user_report.jl"))
+        @testset "MLJ update interface" begin
+            include(joinpath("mlj", "update.jl"))
+        end
+
+        @testset "MLJ update interface" begin
+            include(joinpath("mlj", "user_report.jl"))
+        end
+
     end
 
 end

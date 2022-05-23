@@ -16,6 +16,8 @@ jobs:
         #os: [ubuntu-latest] # temporarily restrict to linux only
         arch:
           - x64
+    env:
+      DISABLE_MLJ_TESTS: 1
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
