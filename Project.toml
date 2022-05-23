@@ -17,7 +17,7 @@ julia = "1.0"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40""
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["DelimitedFiles", "Random", "Test", "Libdl"]
