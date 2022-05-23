@@ -13,7 +13,7 @@ LightGBM.jl
 The package adds a couple of convenience features:
 * Automated cross-validation
 * Exhaustive grid search search procedure
-* Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl) (which also provides the above via different interfaces)
+* Integration with [MLJ](https://github.com/alan-turing-institute/MLJ.jl), which also provides the above via different interfaces (verified only on Julia 1.6+)
 
 Additionally, the package automatically converts all LightGBM parameters that refer to indices
 (e.g. `categorical_feature`) from Julia's one-based indices to C's zero-based indices.
@@ -40,7 +40,7 @@ To add the package to Julia:
 ```julia
 Pkg.add("LightGBM")
 ```
-
+## Tests
 Running tests for the package requires the use of the LightGBM example files,
 download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
 and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
@@ -48,6 +48,8 @@ Then you can run the tests by simply doing
 ```julia
 Pkg.test("LightGBM")
 ```
+
+To skip MLJ testing when running tests, set the env var `DISABLE_MLJ_TESTS` to anything. (You might want to do this to get the tests to run faster)
 
 # A simple example using LightGBM example files
 
@@ -126,7 +128,9 @@ LightGBM.MLJInterface.LGBMRegressor
 And these have the same interface parameters as the [estimators](#estimators)
 
 The interface models are generally passed to `MLJBase.fit` or `MLJBase.machine`
-and integrated as part of a larger MLJ pipeline. [An example is provided](https://alan-turing-institute.github.io/DataScienceTutorials.jl/end-to-end/boston-lgbm/)
+and integrated as part of a larger MLJ pipeline. [An example is provided](https://juliaai.github.io/DataScienceTutorials.jl/end-to-end/boston-lgbm/)
+
+MLJ Is only officially supported on 1.6+ (because this is what MLJ supports). Using older versions of the MLJ package may work, but your mileage may vary.
 
 # Custom LightGBM binaries
 Though this package comes with a precompiled binary (`lib_lightgbm.so` for linux, `lib_lightgbm.dylib` for macos, `lib_lightgbm.dll` for windows, refer to [Microsoft's LightGBM release page](https://github.com/microsoft/LightGBM/releases)), a custom binary can be used with this package (we use `Libdl.dlopen` to do this). In order to do so, either:
