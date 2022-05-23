@@ -31,7 +31,7 @@ rmse                     = calc_rmse(y[test], yhat)
 rmse_weights             = calc_rmse(y[test], yhat_with_weights)
 
 @test rmse < 0.1
-@test !isapprox(rmse, rmse_weights, rtol=0.05) # check that they differ by at least around 5% with/without weights
+@test !isapprox(rmse, rmse_weights, rtol=0.01)
 
 # Cache contains iterations counts history
 @test cache isa NamedTuple
