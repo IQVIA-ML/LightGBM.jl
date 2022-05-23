@@ -89,15 +89,15 @@ end
 @testset "Integration tests" begin
 
     @testset "(OLD) Basic Tests" begin
-        include("basic_tests.jl")
+        include("integration/basic_tests.jl")
     end
 
     @testset "Weights Test" begin
-        include("weightsTest.jl")
+        include("integration/weightsTest.jl")
     end
 
     @testset "Init Score Test" begin
-        include("initScoreTest.jl")
+        include("integration/initScoreTest.jl")
     end
 
 end
