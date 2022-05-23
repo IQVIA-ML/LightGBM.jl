@@ -47,35 +47,18 @@ jobs:
           LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
   MLJ:
     name: MLJ Interface enabled -- Julia ${{ matrix.version }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         version: ['1.6', '1.7']
-        os: [ubuntu-latest]
-        arch:
-          - x64
-    env:
-      DISABLE_MLJ_TESTS: 1
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - name: Download LGBM examles
-        shell: python
-        run: |
-          from __future__ import print_function
-          import importlib
-          import sys
-          req = importlib.import_module("urllib") if sys.version_info < (3, ) else importlib.import_module("urllib.request")
-          req.urlretrieve("https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz", "lgbm.tar")
-      - run: tar -xvf lgbm.tar
-        shell: bash
-        name: Untar LGBM examples
+      - run: wget -O lgbm.tar https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz & tar -xvf lgbm.tar
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
-        continue-on-error: false
         env:
           LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
   docs:
