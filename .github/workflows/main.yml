@@ -41,6 +41,9 @@ jobs:
       - run: tar -xvf lgbm.tar
         shell: bash
         name: Untar LGBM examples
+      - name: v1.2 hackfix
+        if: matrix.version == '1.2'
+        run: rm test/Project.toml
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
         continue-on-error: false
         env:
