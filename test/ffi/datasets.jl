@@ -5,7 +5,6 @@ using Test
 using Random
 using SparseArrays
 
-# we don't want the LightGBM vom
 
 verbosity = "verbose=-1"
 

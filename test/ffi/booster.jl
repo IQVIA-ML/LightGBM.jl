@@ -4,7 +4,6 @@ using LightGBM
 using Test
 using Random
 
-# we don't want the LightGBM vom
 
 verbosity = "verbose=-1"
 

@@ -39,7 +39,7 @@ misclassification_rate   = sum(yhatpred .!= y[test])/length(test)
 @test misclassification_rate < 0.05
 
 # All we can really say about fitting with/without weights for this example is that the solutions shouldn't be identical
-@test yhat_with_weights != yhat
+@test yhat_with_weights_prob != yhatprob
 
 # Cache contains iterations counts history
 @test cache isa NamedTuple
