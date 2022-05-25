@@ -3,7 +3,6 @@ module TestBinaryLGBM
 
 using MLJBase
 using Test
-using Random: seed!
 
 import CategoricalArrays
 import LightGBM
@@ -14,30 +13,32 @@ model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=
 
 # test binary case:
 N = 2
-seed!(0)
+Nsamples = 3000
 
-X       = (x1=rand(1010), x2=rand(1010), x3=rand(1010))
+X       = (x1=rand(Nsamples), x2=rand(Nsamples), x3=rand(Nsamples))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
-weights = Float64.(MLJBase.int(ycat)) # just use the 1's/2's directly as multipliers
+weights = rand(Nsamples) .^ 2
 
 y = MLJBase.identity.(ycat) # make plain Vector with categ. elements (actually not sure what this is doing)
 
 # fit once, without weights
 train, test              = MLJBase.partition(MLJBase.eachindex(y), 0.6)
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train];)
-yhat                     = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test)))
+yhat                     = MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test))
+yhatprob                 = MLJBase.pdf(yhat, MLJBase.levels(y))
+yhatpred                 = MLJBase.mode.(yhat)
 
 # fit again with weights
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train], weights[train])
-yhat_with_weights        = MLJBase.mode.(MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test)))
-misclassification_rate   = sum(yhat .!= y[test])/length(test)
+yhat_with_weights        = MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test))
+yhat_with_weights_prob   = MLJBase.pdf(yhat_with_weights, MLJBase.levels(y))
 
-# Well, although XGBoost gets misclassification below 0.01, LightGBM can't do it with the default settings ...
-# It gets to exactly 0.01...
-@test misclassification_rate < 0.015
+misclassification_rate   = sum(yhatpred .!= y[test])/length(test)
+
+@test misclassification_rate < 0.05
 
 # All we can really say about fitting with/without weights for this example is that the solutions shouldn't be identical
-@test yhat_with_weights != yhat
+@test yhat_with_weights_prob != yhatprob
 
 # Cache contains iterations counts history
 @test cache isa NamedTuple
