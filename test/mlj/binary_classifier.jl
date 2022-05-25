@@ -32,7 +32,6 @@ yhatpred                 = MLJBase.mode.(yhat)
 fitresult, cache, report = MLJBase.fit(model, 0, MLJBase.selectrows(X, train), y[train], weights[train])
 yhat_with_weights        = MLJBase.predict(model, fitresult, MLJBase.selectrows(X, test))
 yhat_with_weights_prob   = MLJBase.pdf(yhat_with_weights, MLJBase.levels(y))
-yhat_with_weights_pred   = MLJBase.mode.(yhat_with_weights)
 
 misclassification_rate   = sum(yhatpred .!= y[test])/length(test)
 
