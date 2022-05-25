@@ -169,10 +169,10 @@ end
     # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
 
-    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata), rand(numdata))
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata), ones(numdata))
     pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
     # check both types of float work
-    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(rand(numdata)))
+    finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, Float32.(randn(numdata)), Float32.(ones(numdata)))
     pred2 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
     @test !isapprox(pred1, pred2; rtol=1e-5) # show that the gradients caused an update
 
