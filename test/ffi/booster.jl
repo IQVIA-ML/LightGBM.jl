@@ -382,7 +382,7 @@ end
     string_repr = LightGBM.LGBM_BoosterSaveModelToString(booster)
     # so it turns out that the string save and file save aren't necesarily the same so..
     # check a bunch of expected substrings, etc
-    @test occursin("version=v3", string_repr)
+    @test occursin(r"version=v[3-9]", string_repr)
     @test occursin("num_leaves=1", string_repr)
     @test occursin("end of trees", string_repr)
     @test occursin("feature_importances:", string_repr)
