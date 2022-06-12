@@ -1,21 +1,3 @@
-abstract type Estimator end
-abstract type LGBMEstimator <: Estimator end
-
-
-abstract type LGBMObjective end
-Base.print(io::IO, obj::LGBMObjective) = print(io, obj.objective)
-Base.isempty(x::LGBMObjective) = isempty(x.objective)
-struct PredefinedObjective <: LGBMObjective
-    objective::String
-end
-struct CustomObjective <: LGBMObjective
-    objective::String
-    custom_function::Function
-end
-LGBMObjective(x::String) = PredefinedObjective(x)
-LGBMObjective(x::Function) = CustomObjective("custom", x)
-
-
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String

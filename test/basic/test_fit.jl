@@ -197,8 +197,8 @@ end
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
-            results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_scores, best_iterations, ["auc"]
+            results_fixture, estimator, estimator.metric, ["test_bla"], iter, -1,
+            bigger_is_better, best_scores, best_iterations,
         )
 
         @test output == false
@@ -237,8 +237,8 @@ Criteria: early_stopping should kick in on round 6
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
-            results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_scores, best_iterations, ["auc"]
+            results_fixture, estimator, estimator.metric, ["test_bla"], iter, -1,
+            bigger_is_better, best_scores, best_iterations,
         )
 
         # reset scores to round 1 being best
