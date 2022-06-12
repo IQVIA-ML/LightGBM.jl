@@ -138,7 +138,7 @@ function train!(
 
     for (idx, iter) in enumerate(start_iter:end_iter)
 
-        is_finished = boosting(estimator.booster, objectivedata)
+        is_finished = boosting(estimator.booster, estimator.application, objectivedata)
 
         log_debug(verbosity, Dates.CompoundPeriod(now() - start_time), " elapsed, finished iteration ", iter, "\n")
 
@@ -183,8 +183,8 @@ function truncate_model!(estimator::LGBMEstimator, best_iteration::Integer)
 end
 
 
-boosting(booster::Booster, objectivedata::LGBMFitData) = LGBM_BoosterUpdateOneIter(booster)
-function boosting(booster::Booster, objectivedata::CustomFitData)
+boosting(booster::Booster, ::LGBMObjective, ::LGBMFitData) = LGBM_BoosterUpdateOneIter(booster)
+function boosting(booster::Booster, objective::LGBMObjective, data::CustomFitData)
     return 0
 end
 
