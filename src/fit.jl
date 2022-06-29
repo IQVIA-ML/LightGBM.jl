@@ -187,7 +187,7 @@ boosting(booster::Booster, ::LGBMObjective, ::LGBMFitData) = LGBM_BoosterUpdateO
 function boosting(booster::Booster, objective::LGBMObjective, data::CustomFitData)
     preds = LGBM_BoosterGetPredict(booster, 0)
     grads, hessians = objective.custom_function(preds, data)
-    return LGBM_BoosterUpdateOneIter(booster, grads, hessians)
+    return LGBM_BoosterUpdateOneIterCustom(booster, grads, hessians)
 end
 
 
