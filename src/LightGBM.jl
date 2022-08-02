@@ -16,7 +16,7 @@ struct LibraryNotFoundError <: Exception
 end
 
 
-function find_library(library_name::String, custom_paths::Vector{String})
+function find_library(library_name::Vector{String}, custom_paths::Vector{String})
 
     # Search system filedirs first, returns empty string if not found
     libpath = Libdl.find_library(library_name)
@@ -39,7 +39,8 @@ end
 
 
 function __init__()
-    LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    location = [@__DIR__]
+    LGBM_library[] = Libdl.dlopen(find_library(["lib_lightgbm"], location))
     return nothing
 end
 

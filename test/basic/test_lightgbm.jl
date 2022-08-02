@@ -48,7 +48,7 @@ end
         cp(settings["ref_lib_lightgbm_path"], settings["lib_not_on_sys_fixture_path"]) # fake file copied from lightgbm
 
         # Act
-        output = LightGBM.find_library("lib_not_on_sys", [src_dir])
+        output = LightGBM.find_library(["lib_not_on_sys"], [src_dir])
 
         # Assert
         @test output == joinpath(src_dir, "lib_not_on_sys") # custom path detected (without extension)
@@ -63,11 +63,14 @@ end
         cp(settings["ref_lib_lightgbm_path"], settings["custom_fixture_path"]) # fake file copied from lightgbm
 
         # Act
-        output = LightGBM.find_library(settings["sample_lib"], [src_dir])
+        push!(Libdl.DL_LOAD_PATH, src_dir)
+
+        output = LightGBM.find_library([settings["sample_lib"]], [src_dir])
 
         # Assert
         @test output == settings["sample_lib"] # sys lib detected
 
+        deleteat!(Libdl.DL_LOAD_PATH, findall(x -> x == src_dir, Libdl.DL_LOAD_PATH))
         teardown(settings)
     end
 
@@ -76,11 +79,13 @@ end
         # Arrange
         settings = setup_env()
 
+        push!(Libdl.DL_LOAD_PATH, src_dir)
         # Act
-        output = LightGBM.find_library(settings["sample_lib"], [src_dir]) # library should only exist in syspath, not custom path
+        output = LightGBM.find_library([settings["sample_lib"]], [src_dir]) # library should only exist in syspath, not custom path
 
         # Assert
         @test output == settings["sample_lib"] # sys lib detected
+        deleteat!(Libdl.DL_LOAD_PATH, findall(x -> x == src_dir, Libdl.DL_LOAD_PATH))
 
         teardown(settings)
     end
@@ -91,7 +96,7 @@ end
         settings = setup_env()
 
         # Act and assert
-        @test_throws LightGBM.LibraryNotFoundError LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
+        @test_throws LightGBM.LibraryNotFoundError LightGBM.find_library(["lib_that_simply_doesnt_exist"], [src_dir])
 
         teardown(settings)
 
