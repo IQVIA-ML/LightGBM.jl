@@ -16,21 +16,25 @@ struct LibraryNotFoundError <: Exception
 end
 
 
-function find_library(library_name::Vector{String}, custom_paths::Vector{String})
+function find_library(library_names::Vector{String}, custom_paths::Vector{String})
 
-    # Search system filedirs first, returns empty string if not found
-    libpath = Libdl.find_library(library_name)
+    # If any of library_names is not an absolute path name, then the paths in the DL_LOAD_PATH and 
+    # system load path are searched. Returns empty string if not found.
+    libpath = Libdl.find_library(library_names)
 
-    if libpath == ""
-        # try specified paths
-        @info("$(library_name) not found in system dirs, trying fallback")
-        libpath = Libdl.find_library(library_name, custom_paths)
+    if libpath != ""
+        @info("$(library_names) found in `DL_LOAD_PATH`, or system library paths $(ENV["PATH"])!")
     else
-        @info("$(library_name) found in system dirs!")
+        # try specified paths
+        @info("$(library_names) not found in `DL_LOAD_PATH`, or system library paths, trying fallback")
+        libpath = Libdl.find_library(library_names, custom_paths)
     end
 
-    if libpath == ""
-        throw(LibraryNotFoundError("$(library_name) not found. Please ensure this library is either in system dirs or the dedicated paths: $(custom_paths)"))
+    if libpath != ""
+        @info("$(library_names) found in $(custom_paths)")
+    else
+        throw(LibraryNotFoundError("$(library_names) not found. Please check this library using " *
+        "Libdl.dlopen(l; throw_error=true) where l = joinpath(custom_paths, lib)"))
     end
 
     return libpath

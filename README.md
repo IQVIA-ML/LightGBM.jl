@@ -45,6 +45,14 @@ Running tests for the package requires the use of the LightGBM example files,
 download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
 and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
 Then you can run the tests by simply doing
+
+```bash
+cd ~
+wget -O /tmp/lgbm.tar https://github.com/microsoft/LightGBM/archive/v3.2.0.tar.gz
+tar -xf /tmp/lgbm.tar -C /tmp/
+export LIGHTGBM_EXAMPLES_PATH=/tmp/LightGBM-3.2.0
+```
+
 ```julia
 Pkg.test("LightGBM")
 ```
@@ -66,7 +74,7 @@ tar -xf v3.2.0.tar.gz
 using LightGBM
 using DelimitedFiles
 
-LIGHTGBM_SOURCE = abspath("~/LightGBM-3.2.0")
+LIGHTGBM_SOURCE = abspath("./LightGBM-3.2.0")
 
 # Load LightGBM's binary classification example.
 binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "examples", "binary_classification", "binary.test"), '\t')
