@@ -43,7 +43,7 @@ end
 
     @testset "find_library works with no system lib" begin
 
-        # Arrange
+        # Arrange I add this to trigger the CI tests
         settings = setup_env()
         cp(settings["ref_lib_lightgbm_path"], settings["lib_not_on_sys_fixture_path"]) # fake file copied from lightgbm
 
