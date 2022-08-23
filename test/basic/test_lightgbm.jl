@@ -17,6 +17,8 @@ function setup_env()
     loaded = Libdl.dllist()
     # get all the ones which just have the system extension and no funny business
     withext = loaded[endswith.(loaded, Ref(Libdl.dlext))]
+    # Some versions of LLVM are ... weird ... in that they don't like being double loaded. Use something else
+    withext = withext[.!occursin.(Ref("LLVM"), withext)]
     # get the libname without prefix and extension
     withoutext = libname.(withext)
     # check which are loadable (or findable by find_library, this is WILD if they're not all found)
@@ -24,8 +26,6 @@ function setup_env()
     # get the first one matching or nothing
     libidx = findfirst(libnames .== withoutext)
     borked = libidx == nothing
-
-
 
     output = Dict()
     output["sample_lib"] = ""
