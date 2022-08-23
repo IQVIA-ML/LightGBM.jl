@@ -45,8 +45,6 @@ jobs:
         run: rm test/Project.toml
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
         continue-on-error: false
-        env:
-          LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
   MLJ:
     name: MLJ Interface enabled -- Julia ${{ matrix.version }}
     runs-on: ubuntu-latest
@@ -61,8 +59,6 @@ jobs:
           version: ${{ matrix.version }}
       - run: wget -O lgbm.tar https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz && tar -xf lgbm.tar
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
-        env:
-          LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
   docs:
     name: Documentation
     runs-on: ubuntu-latest
