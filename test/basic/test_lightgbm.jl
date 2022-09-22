@@ -26,10 +26,10 @@ function setup_env()
     # because we had to be able to load a LightGBM library at all to run them
     # and sometimes they fail and cause user consternation because assumptions aren't satisfied
     broken_system = loaded == ""
-    fullpath = Libdl.dlpath(loaded)
 
     if !broken_system
         # fullpath of a linkable lib to copy off the sys path
+        fullpath = Libdl.dlpath(loaded)
         output["linkable_path"] = fullpath
         # where to create a fixture library file (custom path) where such library exists in the syspath
         output["custom_fixture_path"] = joinpath(src_dir, "$(output["sample_lib"]).$(Libdl.dlext)")
@@ -44,8 +44,11 @@ function setup_env()
 
 end
 
-function teardown(settings::Dict)
+function teardown(settings::Dict, broken::Bool)
 
+    if broken
+        return nothing
+    end
     rm(settings["custom_fixture_path"], force=true)
     rm(settings["lib_not_on_sys_fixture_path"], force=true)
 
@@ -59,26 +62,24 @@ end
     settings, broken_system = setup_env()
 
     @testset "find_library works with no system lib" begin
-        # Act
-        output = LightGBM.find_library("lib_not_on_sys", [src_dir])
-
-        # Assert
         if !broken_system
+            # Act
+            output = LightGBM.find_library("lib_not_on_sys", [src_dir])
+            # Assert
             @test output == joinpath(src_dir, "lib_not_on_sys") # custom path detected (without extension)
         else
-            @test_broken output == joinpath(src_dir, "lib_not_on_sys")
+            @test_broken false
         end
     end
 
     @testset "find_library finds system lib before fallback" begin
-        # Act
-        output = LightGBM.find_library(settings["sample_lib"], [src_dir])
-
-        # Assert
         if !broken_system
+            # Act
+            output = LightGBM.find_library(settings["sample_lib"], [src_dir])
+            # Assert
             @test output == settings["sample_lib"] # sys lib detected
         else
-            @test_broken output == settings["sample_lib"]
+            @test_broken false
         end
     end
 
@@ -87,7 +88,7 @@ end
         @test_throws LightGBM.LibraryNotFoundError LightGBM.find_library("lib_that_simply_doesnt_exist", [src_dir])
     end
 
-    teardown(settings)
+    teardown(settings, broken_system)
 
 end
 
