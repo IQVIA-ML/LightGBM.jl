@@ -7,7 +7,7 @@ import LightGBM
 const LGBM_METRICS = (
     "None", "l1", "l2", "rmse", "quantile", "mape", "huber", "fair", "poisson", "gamma", "gamma_deviance",
     "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "average_precision", "binary_logloss",
-    "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss","cross_entropy_lambda",
+    "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss", "cross_entropy_lambda",
     "xentlambda", "kullback_leibler", "kldiv",
 )
 
@@ -30,11 +30,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
-    learning_rate::Float64 = 0.1::(_ > 0.)
+    learning_rate::Float64 = 0.1::(_ > 0.0)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
+    max_depth::Int = -1#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
-    histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    histogram_pool_size::Float64 = -1.0#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
     max_delta_step::Float64 = 0.0
@@ -55,7 +55,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     init_score::String = ""
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
+    skip_drop::Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
@@ -76,17 +76,17 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     use_missing::Bool = true
     feature_pre_filter::Bool = true
 
-    alpha::Float64 = 0.9::(_ > 0.0 )
+    alpha::Float64 = 0.9::(_ > 0.0)
 
     # Metrics
-    metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
+    metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS,))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
     ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
+    num_threads::Int = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_file::String = ""
@@ -104,11 +104,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
-    learning_rate::Float64 = 0.1::(_ > 0.)
+    learning_rate::Float64 = 0.1::(_ > 0.0)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
+    max_depth::Int = -1#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
-    histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    histogram_pool_size::Float64 = -1.0#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
     max_delta_step::Float64 = 0.0
@@ -131,7 +131,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     init_score::String = ""
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
+    skip_drop::Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
@@ -148,7 +148,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Model properties
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}();
+    categorical_feature::Vector{Int} = Vector{Int}()
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
@@ -158,14 +158,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     feature_pre_filter::Bool = true
 
     # Metrics
-    metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
+    metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS,))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
     ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
+    num_threads::Int = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_file::String = ""
@@ -178,12 +178,12 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 end
 
 
-MODELS = Union{LGBMClassifier, LGBMRegressor}
+MODELS = Union{LGBMClassifier,LGBMRegressor}
 
 
 function mlj_to_kwargs(model::MODELS)
 
-    return Dict{Symbol, Any}(
+    return Dict{Symbol,Any}(
         name => getfield(model, name)
         for name in fieldnames(typeof(model))
         if !(name in NON_LIGHTGBM_PARAMETERS)
@@ -215,7 +215,11 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
     # MLJ docs are clear that 0 means silent. but 0 in LightGBM world means "warnings"
     # and < 0 means fatal logs only, so we put intended silence to -1 (which is probably the closest we get)
-    verbosity = if verbosity == 0; -1 else verbosity end
+    verbosity = if verbosity == 0
+        -1
+    else
+        verbosity
+    end
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
     model = model_init(mlj_model, classes)
@@ -316,7 +320,7 @@ function predict_classifier((fitted_model, classes, _), Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
     # when the objective == binary, lightgbm internally has classes = 1 and spits out only probability of positive class
     if size(predicted, 2) == 1
-        predicted = hcat(1. .- predicted, predicted)
+        predicted = hcat(1.0 .- predicted, predicted)
     end
 
     return MLJModelInterface.UnivariateFinite(classes, predicted)
@@ -336,8 +340,8 @@ end
 # kept under control via tests and so on. It's not a lot for now but is likely to grow.
 function user_fitreport(estimator::LightGBM.LGBMEstimator, fit_metrics::Dict)
 
-    importance = (gain = LightGBM.gain_importance(estimator), split = LightGBM.split_importance(estimator))
-    return (training_metrics = deepcopy(fit_metrics["metrics"]), importance = importance, best_iter = fit_metrics["best_iter"])
+    importance = (gain=LightGBM.gain_importance(estimator), split=LightGBM.split_importance(estimator))
+    return (training_metrics=deepcopy(fit_metrics["metrics"]), importance=importance, best_iter=fit_metrics["best_iter"])
 
 end
 function user_fitreport(estimator::LightGBM.LGBMEstimator, cached_training_metrics::Dict, new_fit_metrics::Dict)
@@ -380,7 +384,7 @@ MLJModelInterface.metadata_pkg.(
     url="https://github.com/IQVIA-ML/LightGBM.jl",
     julia=false,
     license="MIT Expat",
-    is_wrapper=false,
+    is_wrapper=false
 )
 
 
@@ -389,8 +393,8 @@ MLJModelInterface.metadata_model(
     path="LightGBM.MLJInterface.LGBMClassifier",
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{<:MLJModelInterface.Finite},
-    weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Classifier",
+    weights=true
+    # descr="Microsoft LightGBM FFI wrapper: Classifier",
 )
 
 MLJModelInterface.metadata_model(
@@ -398,8 +402,275 @@ MLJModelInterface.metadata_model(
     path="LightGBM.MLJInterface.LGBMRegressor",
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{MLJModelInterface.Continuous},
-    weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Regressor",
+    weights=true
+    # descr="Microsoft LightGBM FFI wrapper: Regressor",
 )
+
+"""
+`LightGBMRegressor`: LightGBM, short for light gradient-boosting machine, is a framework for gradient boosting
+based on decision tree algorithms and used for ranking, classification and other machine
+learning tasks, with a focus on performance and scalability. This model in particular is used for various types
+of regression
+
+# Training data
+In MLJ or MLJBase, bind an instance `model` to data with
+    mach = machine(model, X, y)
+Here:
+- `X` is any table of input features (eg, a `DataFrame`) whose columns are of scitype
+  `Continuous`; check the column scitypes with `schema(X)`; alternatively, `X` is any
+  `AbstractMatrix` with `Continuous` elements; check the scitype with `scitype(X)`.
+- y is a vector of targets whose items are of scitype `Continuous`. Check the scitype with
+  scitype(y).
+
+Train the machine using `fit!(mach, rows=...)`.
+
+# Operations
+
+- `predict(mach, Xnew)`: return predictions of the target given new
+  features `Xnew` having the same Scitype as `X` above.
+
+# Hyper-parameters
+
+- `boosting::String = "gbdt"`: Which boosting algorithm to use. One of:
+    - gbdt: traditional gradient boosting
+    - rf: random forest
+    - dart: dropout additive regression trees
+    - goss: gradient one side sampling
+- `num_iterations::Int = 10`: Number of iterations to run the boosting algorithm.
+- `learning_rate::Float64 = 0.1`: The update or shrinkage rate. In `dart` boosting, also
+  affects the normalization weights of dropped trees.
+- `num_leaves::Int = 31`: The maximum number of leaves in one tree.
+- `max_depth::Int = -1`: The limit on the maximum depth of a tree.
+  Used to reduce overfitting. Set to `≤0` for unlimited depth
+- `tree_learner::String = "serial"`: The tree learning mode. One of:
+    - serial: Single machine tree learner.
+    - feature: feature parallel tree learner.
+    - data: data parallel tree learner
+    - voting: voting parallel tree learner.
+    see the [LightGBM distributed learning guide](https://lightgbm.readthedocs.io/en/latest/Parallel-Learning-Guide.html) for details
+- `histogram_pool_size::Float64 = -1.0`: Max size in MB for the historical histogram.
+  Set to `≤0` for an unlimited size.
+- `min_data_in_leaf::Int = 20`: Minimal number of data in one leaf. Can be used to deal with over-fitting.
+- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like min_data_in_leaf, it can be used to deal with over-fitting.
+- `max_delta_step::Float64 = 0.0`: Used to limit the max output of tree leaves. The final maximum amount of leaves is `max_delta_step * learning_rate`.
+  A value less than 0 means no limit on the max output.
+- `lambda_l1::Float64 = 0.0`: L1 regularization.
+- `lambda_l2::Float64 = 0.0`: L2 regularization.
+- `min_gain_to_split::Float64 = 0.0`: The minimal gain required to perform a split. Can be used to speed up training.
+- `feature_fraction::Float64 = 1.0`: The fraction of features to select before fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `feature_fraction_bynode::Float64 = 1.0`: The fraction of features to select for each tree node. Can be used to reduce over-fitting.
+- `feature_fraction_seed::Int = 2`: Random seed to use for the gesture fraction
+- `bagging_fraction::Float64 = 1.0`: The fraction of samples to use before fitting fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `bagging_freq::Int = 0`: The frequency to perform bagging at. At frequency `k`, every `k` samples select `bagging_fraction` of the data and use that data for the next `k` iterations.
+- `bagging_seed::Int = 3`: The random seed to use for bagging.
+- `early_stopping_round::Int = 0`: Will stop training if a validation metric does not improve over `early_stopping_round` rounds.
+- `extra_trees::Bool = false`: Use extremely randomized trees. If true, will only check one randomly chosen threshold before splitting. Can be used to speed up training and reduce over-fitting.
+- `extra_seed::Int = 6`: The random seed to use for `extra_trees`.
+- `max_bin::Int = 255`: Number of bins feature values will be bucketed in. Smaller values may reduce training accuracy and help alleviate over-fitting.
+- `bin_construct_sample_cnt = 200000`: Number of samples to use to construct bins. Larger values will give better results but may increase data loading time.
+- `init_score::String = ""`: The initial score to try and correct in the first boosting iteration.
+- `drop_rate::Float64 = 0.1`: The dropout rate for `dart`.
+- `max_drop::Int = 50`: The maximum number of trees to drop in `dart`.
+- `skip_drop:: Float64 = 0.5`: Probability of skipping dropout in `dart`.
+- `xgboost_dart_mode::Bool`: Set to true if you want to use xgboost dart mode in dart.
+- `uniform_drop::Bool`: Set to true if you want to use uniform dropout in `dart`.
+- `drop_seed::Int = 4`: Random seed for `dart` dropout.
+- `top_rate::Float64 = 0.2`: The retain ratio of large gradient data in `goss`.
+- `other_rate::Float64 = 0.1`: The retain ratio of large gradient data in `goss`.
+- `min_data_per_group::Int = 100`: Minimal amount of data per categorical group.
+- `max_cat_threshold::Int = 32`: Limits the number of split points considered for categorical features.
+- `cat_l2::Float64 = 10.0`: L2 regularization for categorical splits
+- `cat_smooth::Float64 = 10.0`: Reduces noise in categorical features, particularly useful when there are categories with little data
+- `objective::String = "regression"`: The objective function to use. One of:
+    - regression: L2 loss or mse.
+    - regression_l1: L1 loss or mae.
+    - huber: Huber loss.
+    - fair: Fair loss.
+    - poisson: poisson regression.
+    - quantile: Quantile regression.
+    - mape: MAPE (mean mean_absolute_percentage_error) loss.
+    - gamma: Gamma regression with log-link.
+    - tweedie: Tweedie regression with log-link.
+- `categorical_feature::Vector{Int} = Vector{Int}()`: Used to specify the categorical features. Items in the vector are column indices representing which features should be interpreted as categorical.
+- `data_random_seed::Int = 1`: Random seed used when constructing histogram bins.
+- `is_sparse::Bool = true`: Enable/disable sparse optimization.
+- `is_unbalance::Bool = false`: Set to true if training data is unbalanced.
+- `boost_from_average::Bool = true`: Adjusts the initial score to the mean of labels for faster convergence.
+- `use_missing::Bool = true`: Whether or not to handle missing values.
+- `feature_pre_filter::Bool = true`: Whether or not to ignore unsplittable features.
+- `alpha::Float64 = 0.9`: Parameter used for huber and quantile regression.
+- `metric::Vector{String} = ["l2"]`: Metric(s) to be used when evaluating on evaluation set. For detailed information, see [the official documentation](https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric-parameters)
+- `metric_freq::Int = 1`: The frequency to run metric evaluation at.
+- `is_training_metric::Bool = false`: Set true to output metric result on training dataset.
+- `ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])`: Evaluation positions for ndcg and map metrics.
+- `num_machines::Int = 1`: Number of machines to use when doing distributed learning.
+- `num_threads::Int  = 0`: Number of threads to use.
+- `local_listen_port::Int = 12400`: TCP listen port.
+- `time_out::Int = 120`: Socket timeout.
+- `machine_list_file::String = ""`: Path of files that lists the machines used for distributed learning.
+- `save_binary::Bool = false`: Whether or not to save the dataset to a binary file
+- `device_type::String = "cpu"`: The type of device being used. One of `cpu` or `gpu`
+- `force_col_wise::Bool = false`: Force column wise histogram building. Only applicable on cpu.
+- `force_row_wise::Bool = false`: Force row wise histogram building. Only applicable on cpu.
+- `truncate_booster::Bool = true`: Whether or not to truncate the booster.
+
+# Examples
+
+```julia
+
+using MLJ
+using PrettyPrinting
+import DataFrames
+import Statistics
+
+
+LGBMRegressor = @load LGBMRegressor
+
+features, targets = @load_boston
+features = DataFrames.DataFrame(features)
+@show size(features)
+@show targets[1:3]
+train, test = partition(collect(eachindex(targets)), 0.70, shuffle=true)
+
+first(features, 3) |> pretty
+lgb = LGBMRegressor() #initialised a model with default params
+lgbm = machine(lgb, features[train, :], targets[train, 1]) |> MLJ.fit!
+
+predict(lgbm, train)
+```
+"""
+LGBMRegressor
+
+
+"""
+`LightGBMRegressor`: LightGBM, short for light gradient-boosting machine, is a framework for gradient boosting
+based on decision tree algorithms and used for ranking, classification and other machine
+learning tasks, with a focus on performance and scalability. This model in particular is used for various types
+of regression
+
+# Training data
+In MLJ or MLJBase, bind an instance `model` to data with
+    mach = machine(model, X, y)
+Here:
+- `X` is any table of input features (eg, a `DataFrame`) whose columns are of scitype
+  `Continuous`; check the column scitypes with `schema(X)`; alternatively, `X` is any
+  `AbstractMatrix` with `Continuous` elements; check the scitype with `scitype(X)`.
+- y is a vector of targets whose items are of scitype `Continuous`. Check the scitype with
+  scitype(y).
+
+Train the machine using `fit!(mach, rows=...)`.
+
+# Operations
+
+- `predict(mach, Xnew)`: return predictions of the target given new
+  features `Xnew` having the same Scitype as `X` above.
+
+# Hyper-parameters
+
+- `boosting::String = "gbdt"`: Which boosting algorithm to use. One of:
+    - gbdt: traditional gradient boosting
+    - rf: random forest
+    - dart: dropout additive regression trees
+    - goss: gradient one side sampling
+- `num_iterations::Int = 10`: Number of iterations to run the boosting algorithm.
+- `learning_rate::Float64 = 0.1`: The update or shrinkage rate. In `dart` boosting, also
+  affects the normalization weights of dropped trees.
+- `num_leaves::Int = 31`: The maximum number of leaves in one tree.
+- `max_depth::Int = -1`: The limit on the maximum depth of a tree.
+- `tree_learner::String = "serial"`: The tree learning mode. One of:
+    - serial: Single machine tree learner.
+    - feature: feature parallel tree learner.
+    - data: data parallel tree learner
+    - voting: voting parallel tree learner.
+    see the [LightGBM distributed learning guide](https://lightgbm.readthedocs.io/en/latest/Parallel-Learning-Guide.html) for details
+- `histogram_pool_size::Float64 = -1.0`: Max size in MB for the historical histogram.
+- `min_data_in_leaf::Int = 20`: Minimal number of data in one leaf. Can be used to deal with over-fitting.
+- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like min_data_in_leaf, it can be used to deal with over-fitting.
+- `max_delta_step::Float64 = 0.0`: Used to limit the max output of tree leaves. The final maximum amount of leaves is `max_delta_step * learning_rate`.
+- `lambda_l1::Float64 = 0.0`: L1 regularization.
+- `lambda_l2::Float64 = 0.0`: L2 regularization.
+- `min_gain_to_split::Float64 = 0.0`: The minimal gain required to perform a split. Can be used to speed up training.
+- `feature_fraction::Float64 = 1.0`: The fraction of features to select before fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `feature_fraction_bynode::Float64 = 1.0`: The fraction of features to select for each tree node. Can be used to reduce over-fitting.
+- `feature_fraction_seed::Int = 2`: Random seed to use for the gesture fraction
+- `bagging_fraction::Float64 = 1.0`: The fraction of samples to use before fitting fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `bagging_freq::Int = 0`: The frequency to perform bagging at. At frequency `k`, every `k` samples select `bagging_fraction` of the data and use that data for the next `k` iterations.
+- `bagging_seed::Int = 3`: The random seed to use for bagging.
+- `early_stopping_round::Int = 0`: Will stop training if a validation metric does not improve over `early_stopping_round` rounds.
+- `extra_trees::Bool = false`: Use extremely randomized trees. If true, will only check one randomly chosen threshold before splitting. Can be used to speed up training and reduce over-fitting.
+- `extra_seed::Int = 6`: The random seed to use for `extra_trees`.
+- `max_bin::Int = 255`: Number of bins feature values will be bucketed in. Smaller values may reduce training accuracy and help alleviate over-fitting.
+- `bin_construct_sample_cnt = 200000`: Number of samples to use to construct bins. Larger values will give better results but may increase data loading time.
+- `init_score::String = ""`: The initial score to try and correct in the first boosting iteration.
+- `drop_rate::Float64 = 0.1`: The dropout rate for `dart`.
+- `max_drop::Int = 50`: The maximum number of trees to drop in `dart`.
+- `skip_drop:: Float64 = 0.5`: Probability of skipping dropout in `dart`.
+- `xgboost_dart_mode::Bool`: Set to true if you want to use xgboost dart mode in dart.
+- `uniform_drop::Bool`: Set to true if you want to use uniform dropout in `dart`.
+- `drop_seed::Int = 4`: Random seed for `dart` dropout.
+- `top_rate::Float64 = 0.2`: The retain ratio of large gradient data in `goss`.
+- `other_rate::Float64 = 0.1`: The retain ratio of large gradient data in `goss`.
+- `min_data_per_group::Int = 100`: Minimal amount of data per categorical group.
+- `max_cat_threshold::Int = 32`: Limits the number of split points considered for categorical features.
+- `cat_l2::Float64 = 10.0`: L2 regularization for categorical splits
+- `cat_smooth::Float64 = 10.0`: Reduces noise in categorical features, particularly useful when there are categories with little data
+- `objective::String = "multiclass"`: The objective function to use. One of:
+    - binary: Binary log loss classification.
+    - multiclass: Softmax classification.
+    - multiclassova: One verse all multiclass classification. `num_class` should be set as well
+    - cross_entropy: Cross-entropy objective function.
+    - cross_entropy_lambda: Alternative parametrized form of the cross-entropy objective function.
+    - lambdarank: The lambdarank objective function, for use in ranking applications.
+    - rank_xendcg: The XE_NDCG_MART ranking objective function. Faster than lambdarank with same peroformance.
+- `categorical_feature::Vector{Int} = Vector{Int}()`: Used to specify the categorical features. Items in the vector are column indices representing which features should be interpreted as categorical.
+- `data_random_seed::Int = 1`: Random seed used when constructing histogram bins.
+- `is_sparse::Bool = true`: Enable/disable sparse optimization.
+- `is_unbalance::Bool = false`: Set to true if training data is unbalanced.
+- `boost_from_average::Bool = true`: Adjusts the initial score to the mean of labels for faster convergence.
+- `use_missing::Bool = true`: Whether or not to handle missing values.
+- `feature_pre_filter::Bool = true`: Whether or not to ignore unsplittable features.
+- `alpha::Float64 = 0.9`: Parameter used for huber and quantile regression.
+- `metric::Vector{String} = ["none"]`: Metric(s) to be used when evaluating on evaluation set. For detailed information, see [the official documentation](https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric-parameters)
+- `metric_freq::Int = 1`: The frequency to run metric evaluation at.
+- `is_training_metric::Bool = false`: Set true to output metric result on training dataset.
+- `ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])`: Evaluation positions for ndcg and map metrics.
+
+# Implementation parameters
+- `num_machines::Int = 1`: Number of machines to use when doing distributed learning.
+- `num_threads::Int  = 0`: Number of threads to use.
+- `local_listen_port::Int = 12400`: TCP listen port.
+- `time_out::Int = 120`: Socket timeout.
+- `machine_list_file::String = ""`: Path of files that lists the machines used for distributed learning.
+- `save_binary::Bool = false`: Whether or not to save the dataset to a binary file
+- `device_type::String = "cpu"`: The type of device being used. One of `cpu` or `gpu`
+- `force_col_wise::Bool = false`: Force column wise histogram building. Only applicable on cpu.
+- `force_row_wise::Bool = false`: Force row wise histogram building. Only applicable on cpu.
+- `truncate_booster::Bool = true`: Whether or not to truncate the booster.
+# Examples
+
+```julia
+
+using MLJ
+using PrettyPrinting
+import DataFrames
+import Statistics
+
+
+LGBMClassifier = @load LGBMClassifier
+
+features, targets = @load_iris
+features = DataFrames.DataFrame(features)
+@show size(features)
+@show targets[1:3]
+train, test = partition(collect(eachindex(targets)), 0.70, shuffle=true)
+
+first(features, 3) |> pretty
+lgb = LGBMClassifier() #initialised a model with default params
+lgbm = machine(lgb, features[train, :], targets[train, 1]) |> MLJ.fit!
+
+predict(lgbm, train)
+```
+"""
+LGBMClassifier
 
 end # module
