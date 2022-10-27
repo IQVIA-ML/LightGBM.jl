@@ -1,9 +1,6 @@
 module TestFit
 
 
-import Statistics
-
-
 using Test
 using Dates
 using LightGBM
