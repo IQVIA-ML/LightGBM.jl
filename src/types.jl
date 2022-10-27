@@ -84,15 +84,18 @@ struct CustomFitData <: LGBMFitData
     num_models::Integer
 end
 function CustomFitData(b::Booster)
-    if length(bst.datasets) == 0
+    if length(b.datasets) == 0
         throw(ErrorException("Booster does not have any training data associated"))
     end
-    dataset = first(bst.datasets)
+    dataset = first(b.datasets)
     labels = LGBM_DatasetGetField(dataset, "label")
     weights = LGBM_DatasetGetField(dataset, "weight")
-    nummodels = LGBM_BoosterNumModelPerIteration(bst)
+    nummodels = LGBM_BoosterNumModelPerIteration(b)
 
     return CustomFitData(labels, weights, nummodels)
 end
+# Last arg is meant to be the metric type later on, and the
+# 2nd return value meant to be the data used for computing custom metrics
 LGBMFitData(::Booster, ::PredefinedObjective, ::Any) = EmptyFitData(), nothing
+LGBMFitData(b::Booster, ::CustomObjective, ::Any) = CustomFitData(b), nothing
 
