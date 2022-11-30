@@ -420,14 +420,14 @@ Here:
   `Continuous`; check the column scitypes with `schema(X)`; alternatively, `X` is any
   `AbstractMatrix` with `Continuous` elements; check the scitype with `scitype(X)`.
 - y is a vector of targets whose items are of scitype `Continuous`. Check the scitype with
-  scitype(y).
+  `scitype(y)`.
 
 Train the machine using `fit!(mach, rows=...)`.
 
 # Operations
 
 - `predict(mach, Xnew)`: return predictions of the target given new
-  features `Xnew` having the same Scitype as `X` above.
+  features `Xnew`, which should have the same scitype as `X` above.
 
 # Hyper-parameters
 
@@ -443,15 +443,15 @@ Train the machine using `fit!(mach, rows=...)`.
 - `max_depth::Int = -1`: The limit on the maximum depth of a tree.
   Used to reduce overfitting. Set to `≤0` for unlimited depth
 - `tree_learner::String = "serial"`: The tree learning mode. One of:
-    - serial: Single machine tree learner.
-    - feature: feature parallel tree learner.
-    - data: data parallel tree learner
-    - voting: voting parallel tree learner.
+    - "serial":: Single machine tree learner.
+    - "feature": feature parallel tree learner.
+    - "data": data parallel tree learner
+    - "voting": voting parallel tree learner.
     see the [LightGBM distributed learning guide](https://lightgbm.readthedocs.io/en/latest/Parallel-Learning-Guide.html) for details
 - `histogram_pool_size::Float64 = -1.0`: Max size in MB for the historical histogram.
   Set to `≤0` for an unlimited size.
 - `min_data_in_leaf::Int = 20`: Minimal number of data in one leaf. Can be used to deal with over-fitting.
-- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like min_data_in_leaf, it can be used to deal with over-fitting.
+- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like `min_data_in_leaf`, it can be used to deal with over-fitting.
 - `max_delta_step::Float64 = 0.0`: Used to limit the max output of tree leaves. The final maximum amount of leaves is `max_delta_step * learning_rate`.
   A value less than 0 means no limit on the max output.
 - `lambda_l1::Float64 = 0.0`: L1 regularization.
@@ -482,15 +482,15 @@ Train the machine using `fit!(mach, rows=...)`.
 - `cat_l2::Float64 = 10.0`: L2 regularization for categorical splits
 - `cat_smooth::Float64 = 10.0`: Reduces noise in categorical features, particularly useful when there are categories with little data
 - `objective::String = "regression"`: The objective function to use. One of:
-    - regression: L2 loss or mse.
-    - regression_l1: L1 loss or mae.
-    - huber: Huber loss.
-    - fair: Fair loss.
-    - poisson: poisson regression.
-    - quantile: Quantile regression.
-    - mape: MAPE (mean mean_absolute_percentage_error) loss.
-    - gamma: Gamma regression with log-link.
-    - tweedie: Tweedie regression with log-link.
+    - "regression": L2 loss or mse.
+    - "regression_l1": L1 loss or mae.
+    - "huber": Huber loss.
+    - "fair": Fair loss.
+    - "poisson": poisson regression.
+    - "quantile": Quantile regression.
+    - "mape": MAPE (mean mean_absolute_percentage_error) loss.
+    - "gamma": Gamma regression with log-link.
+    - "tweedie": Tweedie regression with log-link.
 - `categorical_feature::Vector{Int} = Vector{Int}()`: Used to specify the categorical features. Items in the vector are column indices representing which features should be interpreted as categorical.
 - `data_random_seed::Int = 1`: Random seed used when constructing histogram bins.
 - `is_sparse::Bool = true`: Enable/disable sparse optimization.
@@ -501,7 +501,7 @@ Train the machine using `fit!(mach, rows=...)`.
 - `alpha::Float64 = 0.9`: Parameter used for huber and quantile regression.
 - `metric::Vector{String} = ["l2"]`: Metric(s) to be used when evaluating on evaluation set. For detailed information, see [the official documentation](https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric-parameters)
 - `metric_freq::Int = 1`: The frequency to run metric evaluation at.
-- `is_training_metric::Bool = false`: Set true to output metric result on training dataset.
+- `is_training_metric::Bool = false`: Set to `true` to output metric result on training dataset.
 - `ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])`: Evaluation positions for ndcg and map metrics.
 - `num_machines::Int = 1`: Number of machines to use when doing distributed learning.
 - `num_threads::Int  = 0`: Number of threads to use.
@@ -526,7 +526,7 @@ import Statistics
 
 LGBMRegressor = @load LGBMRegressor
 
-features, targets = @load_boston
+features, targets = @load_boston # a table and a vector
 features = DataFrames.DataFrame(features)
 @show size(features)
 @show targets[1:3]
@@ -536,7 +536,7 @@ first(features, 3) |> pretty
 lgb = LGBMRegressor() #initialised a model with default params
 lgbm = machine(lgb, features[train, :], targets[train, 1]) |> MLJ.fit!
 
-predict(lgbm, train)
+predict(lgbm, X[test, :])
 ```
 """
 LGBMRegressor
