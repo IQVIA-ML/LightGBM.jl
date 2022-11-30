@@ -7,7 +7,7 @@ import LightGBM
 const LGBM_METRICS = (
     "None", "l1", "l2", "rmse", "quantile", "mape", "huber", "fair", "poisson", "gamma", "gamma_deviance",
     "tweedie", "ndcg", "lambdarank", "map", "mean_average_precision", "auc", "average_precision", "binary_logloss",
-    "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss", "cross_entropy_lambda",
+    "binary_error", "auc_mu", "multi_logloss", "multi_error", "cross_entropy", "xentropy", "multi_logloss","cross_entropy_lambda",
     "xentlambda", "kullback_leibler", "kldiv",
 )
 
@@ -30,11 +30,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
-    learning_rate::Float64 = 0.1::(_ > 0.0)
+    learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1#::(_ != 0);
+    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
-    histogram_pool_size::Float64 = -1.0#::(_ != 0.0);
+    histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
     max_delta_step::Float64 = 0.0
@@ -55,7 +55,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     init_score::String = ""
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop::Float64 = 0.5::(0.0 <= _ <= 1)
+    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
@@ -76,17 +76,17 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     use_missing::Bool = true
     feature_pre_filter::Bool = true
 
-    alpha::Float64 = 0.9::(_ > 0.0)
+    alpha::Float64 = 0.9::(_ > 0.0 )
 
     # Metrics
-    metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS,))))
+    metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
     ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int = 0::(_ >= 0)
+    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_file::String = ""
@@ -104,11 +104,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 10::(_ >= 0)
-    learning_rate::Float64 = 0.1::(_ > 0.0)
+    learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1#::(_ != 0);
+    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
-    histogram_pool_size::Float64 = -1.0#::(_ != 0.0);
+    histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
     max_delta_step::Float64 = 0.0
@@ -131,7 +131,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     init_score::String = ""
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
-    skip_drop::Float64 = 0.5::(0.0 <= _ <= 1)
+    skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
     xgboost_dart_mode::Bool
     uniform_drop::Bool
     drop_seed::Int = 4
@@ -148,7 +148,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Model properties
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}()
+    categorical_feature::Vector{Int} = Vector{Int}();
     data_random_seed::Int = 1
     is_sparse::Bool = true
     is_unbalance::Bool = false
@@ -158,14 +158,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     feature_pre_filter::Bool = true
 
     # Metrics
-    metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS,))))
+    metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
     ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int = 0::(_ >= 0)
+    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_file::String = ""
@@ -178,12 +178,12 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 end
 
 
-MODELS = Union{LGBMClassifier,LGBMRegressor}
+MODELS = Union{LGBMClassifier, LGBMRegressor}
 
 
 function mlj_to_kwargs(model::MODELS)
 
-    return Dict{Symbol,Any}(
+    return Dict{Symbol, Any}(
         name => getfield(model, name)
         for name in fieldnames(typeof(model))
         if !(name in NON_LIGHTGBM_PARAMETERS)
@@ -215,11 +215,7 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
     # MLJ docs are clear that 0 means silent. but 0 in LightGBM world means "warnings"
     # and < 0 means fatal logs only, so we put intended silence to -1 (which is probably the closest we get)
-    verbosity = if verbosity == 0
-        -1
-    else
-        verbosity
-    end
+    verbosity = if verbosity == 0; -1 else verbosity end
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
     model = model_init(mlj_model, classes)
@@ -320,7 +316,7 @@ function predict_classifier((fitted_model, classes, _), Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
     # when the objective == binary, lightgbm internally has classes = 1 and spits out only probability of positive class
     if size(predicted, 2) == 1
-        predicted = hcat(1.0 .- predicted, predicted)
+        predicted = hcat(1. .- predicted, predicted)
     end
 
     return MLJModelInterface.UnivariateFinite(classes, predicted)
@@ -340,8 +336,8 @@ end
 # kept under control via tests and so on. It's not a lot for now but is likely to grow.
 function user_fitreport(estimator::LightGBM.LGBMEstimator, fit_metrics::Dict)
 
-    importance = (gain=LightGBM.gain_importance(estimator), split=LightGBM.split_importance(estimator))
-    return (training_metrics=deepcopy(fit_metrics["metrics"]), importance=importance, best_iter=fit_metrics["best_iter"])
+    importance = (gain = LightGBM.gain_importance(estimator), split = LightGBM.split_importance(estimator))
+    return (training_metrics = deepcopy(fit_metrics["metrics"]), importance = importance, best_iter = fit_metrics["best_iter"])
 
 end
 function user_fitreport(estimator::LightGBM.LGBMEstimator, cached_training_metrics::Dict, new_fit_metrics::Dict)
@@ -384,7 +380,7 @@ MLJModelInterface.metadata_pkg.(
     url="https://github.com/IQVIA-ML/LightGBM.jl",
     julia=false,
     license="MIT Expat",
-    is_wrapper=false
+    is_wrapper=false,
 )
 
 
@@ -393,8 +389,8 @@ MLJModelInterface.metadata_model(
     path="LightGBM.MLJInterface.LGBMClassifier",
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{<:MLJModelInterface.Finite},
-    weights=true
-    # descr="Microsoft LightGBM FFI wrapper: Classifier",
+    weights=true,
+    descr="Microsoft LightGBM FFI wrapper: Classifier",
 )
 
 MLJModelInterface.metadata_model(
@@ -402,8 +398,8 @@ MLJModelInterface.metadata_model(
     path="LightGBM.MLJInterface.LGBMRegressor",
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{MLJModelInterface.Continuous},
-    weights=true
-    # descr="Microsoft LightGBM FFI wrapper: Regressor",
+    weights=true,
+    descr="Microsoft LightGBM FFI wrapper: Regressor",
 )
 
 """
