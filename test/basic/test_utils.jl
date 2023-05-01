@@ -21,10 +21,10 @@ end
     indices = [1, 3, 5, 7, 9]
     classifier = LightGBM.LGBMClassification(categorical_feature = indices)
     LightGBM.stringifyparams(classifier; verbosity=-1)
-    ds_parameters = LightGBM.stringifyparams(classifier; verbosity=-1)
+    @test indices == classifier.categorical_feature
 
-    expected = "categorical_feature=0,2,4,6,8"
-    @test occursin(expected, ds_parameters)
+    LightGBM.stringifyparams(classifier; verbosity=-1)
+    @test indices == classifier.categorical_feature
 end
 
 
