@@ -5,6 +5,7 @@ import Base
 import Libdl
 import SparseArrays
 import Statistics
+import LightGBM_jll
 
 
 
