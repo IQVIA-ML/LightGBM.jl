@@ -92,6 +92,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    gpu_use_dp::Bool = false
+    gpu_platform_id::Int = -1
+    gpu_device_id::Int = -1
+    num_gpu::Int = 1
     force_col_wise::Bool = false
     force_row_wise::Bool = false
     truncate_booster::Bool = true
@@ -171,6 +175,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    gpu_use_dp::Bool = false
+    gpu_platform_id::Int = -1
+    gpu_device_id::Int = -1
+    num_gpu::Int = 1
     force_col_wise::Bool = false
     force_row_wise::Bool = false
     truncate_booster::Bool = true
