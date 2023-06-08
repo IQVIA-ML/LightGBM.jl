@@ -17,7 +17,7 @@ Use `dropdims` if a vector is required.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
-* `num_threads::Integeger`: keyword argument specifying the number of threads to use
+* `num_threads::Integer`: keyword argument specifying the number of threads to use
     for prediction. Default is `-1` which reuses `num_threads` of the estimator.
 
 One can obtain some form of feature importances by averaging SHAP contributions across predictions, i.e.
