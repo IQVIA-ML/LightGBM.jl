@@ -355,10 +355,15 @@ end
 
 
 @testset "LGBM_BoosterPredictForMat" begin
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
 
-    # Needs implementing
-    @test_broken false
+    preds = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1) 
+    @test all(iszero, preds)
 
+    preds_threaded = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1, false, 2) 
+    @test all(iszero, preds_threaded)
 end
 
 
