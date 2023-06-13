@@ -42,8 +42,8 @@ Pkg.add("LightGBM")
 ```
 ## Tests
 Running tests for the package requires the use of the LightGBM example files,
-download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
-and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
+download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
+and set the environment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
 Then you can run the tests by simply doing
 ```julia
 Pkg.test("LightGBM")
@@ -53,20 +53,20 @@ To skip MLJ testing when running tests, set the env var `DISABLE_MLJ_TESTS` to a
 
 # A simple example using LightGBM example files
 
-First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.2.0.zip)
+First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
 and untar it somewhere.
 
 ```bash
 cd ~
-wget https://github.com/microsoft/LightGBM/archive/v3.2.0.tar.gz
-tar -xf v3.2.0.tar.gz
+wget https://github.com/microsoft/LightGBM/archive/v3.3.5.tar.gz
+tar -xf v3.3.5.tar.gz
 ```
 
 ```julia
 using LightGBM
 using DelimitedFiles
 
-LIGHTGBM_SOURCE = abspath("~/LightGBM-3.2.0")
+LIGHTGBM_SOURCE = abspath("~/LightGBM-3.3.5")
 
 # Load LightGBM's binary classification example.
 binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "examples", "binary_classification", "binary.test"), '\t')
