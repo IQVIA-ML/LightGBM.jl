@@ -131,19 +131,21 @@ function train!(
         end
     end
 
+    objectivedata, metricdata = LGBMFitData(estimator.booster, estimator.application, estimator.metric)
+
     start_iter = get_iter_number(estimator) + 1
     end_iter = start_iter + num_iterations - 1
 
     for (idx, iter) in enumerate(start_iter:end_iter)
 
-        is_finished = LGBM_BoosterUpdateOneIter(estimator.booster)
+        is_finished = boosting(estimator.booster, estimator.application, objectivedata)
 
         log_debug(verbosity, Dates.CompoundPeriod(now() - start_time), " elapsed, finished iteration ", iter, "\n")
 
         if is_finished == 0
             is_finished = eval_metrics!(
-                results, estimator, tests_names, iter, verbosity,
-                bigger_is_better, best_scores, best_iterations, metrics,
+                results, estimator, metrics, tests_names, iter, verbosity,
+                bigger_is_better, best_scores, best_iterations,
             )
         end
 
@@ -181,16 +183,24 @@ function truncate_model!(estimator::LGBMEstimator, best_iteration::Integer)
 end
 
 
+boosting(booster::Booster, ::LGBMObjective, ::LGBMFitData) = LGBM_BoosterUpdateOneIter(booster)
+function boosting(booster::Booster, objective::LGBMObjective, data::CustomFitData)
+    preds = LGBM_BoosterGetPredict(booster, 0)
+    grads, hessians = objective.custom_function(preds, data)
+    return LGBM_BoosterUpdateOneIterCustom(booster, grads, hessians)
+end
+
+
 function eval_metrics!(
     results::Dict,
     estimator::LGBMEstimator,
+    metrics::Vector{String},
     tests_names::Vector{String},
     iter::Integer,
     verbosity::Integer,
     bigger_is_better::Dict{String,Float64},
     best_scores::Dict{String,Dict{String,Real}},
     best_iterations::Dict{String,Dict{String,Real}},
-    metrics::Vector{String},
 )
     now_scores = Dict{String,Vector{Float64}}()
 

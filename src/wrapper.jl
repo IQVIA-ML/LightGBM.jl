@@ -1,53 +1,9 @@
-const DatasetHandle = Ptr{Nothing}
-const BoosterHandle = Ptr{Nothing}
-
 const C_API_DTYPE_FLOAT32 = 0
 const C_API_DTYPE_FLOAT64 = 1
 const C_API_DTYPE_INT32 = 2
 const C_API_DTYPE_INT64 = 3
 const C_API_MATRIX_TYPE_CSC = 1
 const C_API_MATRIX_TYPE_CSR = 0
-
-mutable struct Dataset
-    handle::DatasetHandle
-
-    function Dataset(handle::DatasetHandle)
-        ds = new(handle)
-        finalizer(Dataset_finalizer, ds)
-        return ds
-    end
-
-    function Dataset_finalizer(ds::Dataset)
-        if ds.handle != C_NULL
-            LGBM_DatasetFree(ds)
-        end
-    end
-end
-
-mutable struct Booster
-    handle::BoosterHandle
-    datasets::Vector{Dataset}
-
-    function Booster(handle::BoosterHandle, datasets::Vector{Dataset})
-        bst = new(handle, datasets)
-        finalizer(Booster_finalizer, bst)
-        return bst
-    end
-
-    function Booster_finalizer(bst::Booster)
-        if bst.handle != C_NULL
-            LGBM_BoosterFree(bst)
-        end
-    end
-end
-
-function Booster()
-    return Booster(C_NULL, Dataset[])
-end
-
-function Booster(handle::BoosterHandle)
-    return Booster(handle, Dataset[])
-end
 
 
 # deepcopy utils, but we can't reasonably do this for datasets
