@@ -8,6 +8,7 @@ import Statistics
 
 
 
+
 const LGBM_library = Ref{Ptr{Cvoid}}(C_NULL)
 
 
@@ -39,7 +40,16 @@ end
 
 
 function __init__()
-    LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    if Sys.isapple()
+        # for macOS users alternative LightGBM_jll - binaries compiled with Binary Builder
+        # particularly to address the issues raised for M1/aarch64-apple-darwin
+        @eval using LightGBM_jll
+        LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    else
+        # build provided precompiled binary for Intel architectures, or use custom binaries
+        LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    end
+
     return nothing
 end
 
