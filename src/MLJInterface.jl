@@ -74,6 +74,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     use_missing::Bool = true
+    linear_tree::Bool = false
     feature_pre_filter::Bool = true
 
     alpha::Float64 = 0.9::(_ > 0.0 )
@@ -159,6 +160,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     boost_from_average::Bool = true
     scale_pos_weight = 1.0
     use_missing::Bool = true
+    linear_tree::Bool = false
     feature_pre_filter::Bool = true
 
     # Metrics
