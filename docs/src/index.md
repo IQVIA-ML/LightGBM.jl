@@ -149,5 +149,4 @@ Note: `Libdl.DL_LOAD_PATH` will be first searched and used, then the system libr
 
 ## Contributors ✨
 
-The list of our Contributors can be found [here](CONTRIBUTORS.md).
-Please don't hesitate to add yourself when you contribute.
+Please don't hesitate to add yourself when you contribute to CONTRIBUTORS.md.
