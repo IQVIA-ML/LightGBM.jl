@@ -1,7 +1,7 @@
 module TestRegressionLGBM
 
-
 using MLJBase
+using StatisticalMeasures
 using Test
 
 import LightGBM
