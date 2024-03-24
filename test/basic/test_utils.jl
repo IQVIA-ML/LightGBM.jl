@@ -17,6 +17,16 @@ y_train_regression = rand(1000)
 end
 
 
+@testset "stringifyparams -- multiple calls won't mutate fields" begin
+    indices = [1, 3, 5, 7, 9]
+    classifier = LightGBM.LGBMClassification(categorical_feature = indices)
+    LightGBM.stringifyparams(classifier; verbosity=-1)
+    @test indices == classifier.categorical_feature
+
+    LightGBM.stringifyparams(classifier; verbosity=-1)
+    @test indices == classifier.categorical_feature
+end
+
 
 @testset "loadmodel predicts same as original model -- regression" begin
     # Arrange

@@ -303,8 +303,8 @@ function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
 
         if !isempty(param_value)
             # Convert parameters that contain indices to C's zero-based indices.
-            if in(param_name, INDEXPARAMS)
-                param_value .-= 1
+            if in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
+                param_value = param_value .- one(eltype(param_value))
             end
 
             if typeof(param_value) <: Array
