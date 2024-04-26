@@ -2,6 +2,7 @@ module TestMulticlassLGBM
 
 
 using MLJBase
+using StatisticalMeasures
 using Test
 
 import CategoricalArrays
