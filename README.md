@@ -21,7 +21,7 @@ Additionally, the package automatically converts all LightGBM parameters that re
 A majority of the C-interfaces are implemented. A few are known to be missing and are
 [tracked.](https://github.com/IQVIA-ML/LightGBM.jl/issues)
 
-All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia versions 1.0+ are supported.
+All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia versions 1.6+ are supported.
 
 # Table of Contents
 1. [Installation](#installation)
@@ -29,17 +29,13 @@ All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia 
 1. [MLJ](#mlj-support)
 
 # Installation
-Please ensure your system meets the pre-requisites for LightGBM. This generally means ensuring
-that `libomp` is installed and linkable on your system. See here for [Microsoft's installation guide.](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
-
-Please note that the package actually downloads a [precompiled binary](https://github.com/microsoft/LightGBM/releases)
-so you do not need to install LightGBM first. This is done as a user convenience, and support
-will be added for supplying ones own LightGBM binary (for GPU acceleration, etc).
 
 To add the package to Julia:
 ```julia
 Pkg.add("LightGBM")
 ```
+This package uses [LightGBM_jll](https://github.com/JuliaBinaryWrappers/LightGBM_jll.jl) to package `lightgbm` binaries
+so it works out-of-the-box.
 ## Tests
 Running tests for the package requires the use of the LightGBM example files,
 download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
@@ -133,19 +129,10 @@ and integrated as part of a larger MLJ pipeline. [An example is provided](https:
 MLJ Is only officially supported on 1.6+ (because this is what MLJ supports). Using older versions of the MLJ package may work, but your mileage may vary.
 
 # Custom LightGBM binaries
-Though this package comes with a precompiled binary (`lib_lightgbm.so` for linux, `lib_lightgbm.dylib` for macos, `lib_lightgbm.dll` for windows, refer to [Microsoft's LightGBM release page](https://github.com/microsoft/LightGBM/releases)), a custom binary can be used with this package (we use `Libdl.dlopen` to do this). In order to do so, either:
 
-  - Add the directory of your custom binary to the `Libdl.DL_LOAD_PATH` before calling `import LightGBM`, e.g.
-      ```
-      import Libdl
-      push!(Libdl.DL_LOAD_PATH, "/path/to/your/lib_lightgbm/directory")
-
-      import LightGBM
-      ...
-      ```
-  - Specify the directory of your custom binary in the environment variables `LD_LIBRARY_PATH` (for linux), `DYLD_LIBRARY_PATH` (macos), `PATH` (windows), or place the custom binary file in the system search path
-
-Note: `Libdl.DL_LOAD_PATH` will be first searched and used, then the system library paths. If no binaries are found, the program will fallback to using the precompiled binary
+This package uses [LightGBM_jll](https://github.com/JuliaBinaryWrappers/LightGBM_jll.jl) to package `lightgbm` binaries.
+JLL packages use the [Artifacts system](https://pkgdocs.julialang.org/v1/artifacts/) to provide the files.
+If you would like to override the existing files with your own binaries, you can follow the [overriding the artifacts](https://docs.binarybuilder.org/stable/jll/#Overriding-the-artifacts-in-JLL-packages) guidance.
 
 ## Contributors ✨
 

@@ -21,5 +21,10 @@ Thank you to our Amazing :star: Contributors:
     <td align="center"><a href="https://github.com/artemsolod"><img src="https://avatars.githubusercontent.com/u/1939268" width="100px" alt=""/><br /><sub><b>artemsolod</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/yalwan-sage"><img src="https://avatars.githubusercontent.com/u/82372549" width="100px;" alt=""/><br /><sub><b>yalwan-sage</b></sub></a><br /></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/characat0"><img src="https://avatars.githubusercontent.com/u/3645397" width="100px;" alt=""/><br /><sub><b>characat0</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/rikhuijzer"><img src="https://avatars.githubusercontent.com/u/20724914" width="100px;" alt=""/><br /><sub><b>rikhuijzer</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/giordano"><img src="https://avatars.githubusercontent.com/u/765740" width="100px;" alt=""/><br /><sub><b>giordano</b></sub></a><br /></td>
+  </tr>
 
 </table>
