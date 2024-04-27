@@ -167,7 +167,7 @@ end
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
     LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     # default params won't allow this to learn anything from this useless data set (i.e. splitting completes)
-    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=none $verbosity")
 
     finished = LightGBM.LGBM_BoosterUpdateOneIterCustom(booster, randn(numdata), ones(numdata))
     pred1 = LightGBM.LGBM_BoosterGetPredict(booster, 0)
