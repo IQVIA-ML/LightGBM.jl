@@ -74,6 +74,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     use_missing::Bool = true
+    linear_tree::Bool = false
     feature_pre_filter::Bool = true
 
     alpha::Float64 = 0.9::(_ > 0.0 )
@@ -92,6 +93,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    gpu_use_dp::Bool = false
+    gpu_platform_id::Int = -1
+    gpu_device_id::Int = -1
+    num_gpu::Int = 1
     force_col_wise::Bool = false
     force_row_wise::Bool = false
     truncate_booster::Bool = true
@@ -155,6 +160,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     boost_from_average::Bool = true
     scale_pos_weight = 1.0
     use_missing::Bool = true
+    linear_tree::Bool = false
     feature_pre_filter::Bool = true
 
     # Metrics
@@ -171,6 +177,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     machine_list_file::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    gpu_use_dp::Bool = false
+    gpu_platform_id::Int = -1
+    gpu_device_id::Int = -1
+    num_gpu::Int = 1
     force_col_wise::Bool = false
     force_row_wise::Bool = false
     truncate_booster::Bool = true

@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8']
-        os:  [windows-latest, ubuntu-latest, macOS-latest]
+        version: ['1.6', '1.7', '1.8', '1.9', '1.10']
+        os:  [windows-latest, ubuntu-latest, macOS-12, macOS-14]
         arch:
           - x64
     env:
@@ -24,12 +24,6 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - name: Setup MacOS libomp
-        if: matrix.os == 'macOS-latest'
-        run: |
-          ls  /usr/local/opt/
-          brew install libomp
-          ls  /usr/local/opt/libomp/lib/libomp.dylib
       - name: Download LGBM examples
         shell: python
         run: |
@@ -37,33 +31,30 @@ jobs:
           import importlib
           import sys
           req = importlib.import_module("urllib") if sys.version_info < (3, ) else importlib.import_module("urllib.request")
-          req.urlretrieve("https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz", "lgbm.tar")
+          req.urlretrieve("https://github.com/microsoft/LightGBM/archive/v3.3.5.tar.gz", "lgbm.tar")
       - run: tar -xvf lgbm.tar
         shell: bash
         name: Untar LGBM examples
-      - name: v1.2 hackfix
-        if: matrix.version == '1.2'
-        run: rm test/Project.toml
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
         continue-on-error: false
         env:
-          LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
+          LIGHTGBM_EXAMPLES_PATH: LightGBM-3.3.5
   MLJ:
     name: MLJ Interface enabled -- Julia ${{ matrix.version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.6', '1.7', '1.8']
+        version: ['1.6', '1.7', '1.8', '1.9', '1.10']
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
-      - run: wget -O lgbm.tar https://github.com/microsoft/LightGBM/archive/v2.3.1.tar.gz && tar -xf lgbm.tar
+      - run: wget -O lgbm.tar https://github.com/microsoft/LightGBM/archive/v3.3.5.tar.gz && tar -xf lgbm.tar
       - run: julia --color=yes --project -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true);'
         env:
-          LIGHTGBM_EXAMPLES_PATH: LightGBM-2.3.1
+          LIGHTGBM_EXAMPLES_PATH: LightGBM-3.3.5
   docs:
     name: Documentation
     runs-on: ubuntu-latest
