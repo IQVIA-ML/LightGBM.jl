@@ -19,8 +19,8 @@ jobs:
     env:
       DISABLE_MLJ_TESTS: 1
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
@@ -47,8 +47,8 @@ jobs:
       matrix:
         version: ['1.6', '1.7', '1.8', '1.9', '1.10']
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
       - run: wget -O lgbm.tar https://github.com/microsoft/LightGBM/archive/v3.3.5.tar.gz && tar -xf lgbm.tar
@@ -59,7 +59,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
       - name: Build package to grab binary
         run: julia --project -e 'using Pkg; Pkg.build(); Pkg.instantiate()'
