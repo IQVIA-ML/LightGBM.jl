@@ -39,8 +39,8 @@ mutable struct LGBMRegression <: LGBMEstimator
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
-    feature_pre_filter::Bool
     linear_tree::Bool
+    feature_pre_filter::Bool
 
     is_unbalance::Bool
     boost_from_average::Bool
