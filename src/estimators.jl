@@ -353,6 +353,7 @@ end
         categorical_feature = Int[],
         use_missing = true,
         linear_tree = false,
+        feature_pre_filter = true,
         is_unbalance = false,
         boost_from_average = true,
         scale_pos_weight = 1.0,
