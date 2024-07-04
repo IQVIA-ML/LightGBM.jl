@@ -1,27 +1,42 @@
 module TestFit
 
+
 using Test
 using Dates
 using LightGBM
 using SparseArrays
 
+
 # test fixtures
-train_matrix = rand(5000,70) # create random dataset
+train_matrix = rand(5000, 70) # create random dataset
 train_sparse = sparse(train_matrix)
 train_labels = rand([0, 1], 5000)
 train_dataset = LightGBM.LGBM_DatasetCreateFromMat(train_matrix, "")
 LightGBM.LGBM_DatasetSetField(train_dataset, "label", train_labels)
 
 
-test_matrix = rand(2000,70) # create random dataset
+test_matrix = rand(2000, 70) # create random dataset
 test_labels = rand([0, 1], 2000)
 test_dataset = LightGBM.LGBM_DatasetCreateFromMat(test_matrix, "", train_dataset)
 LightGBM.LGBM_DatasetSetField(test_dataset, "label", test_labels)
 
-test2_matrix = rand(1500,70) # create second random dataset
+
+test2_matrix = rand(1500, 70) # create second random dataset
 test2_labels = rand([0, 1], 1500)
 test2_dataset = LightGBM.LGBM_DatasetCreateFromMat(test2_matrix, "", train_dataset)
 LightGBM.LGBM_DatasetSetField(test2_dataset, "label", test2_labels)
+
+
+regression_matrix = randn(1000, 10)
+regression_targets = randn(1000)
+regression_dataset = LightGBM.LGBM_DatasetCreateFromMat(regression_matrix, "")
+LightGBM.LGBM_DatasetSetField(regression_dataset, "label", regression_targets)
+
+regression_test_matrix = randn(2000, 10)
+regression_test_targets = randn(2000)
+regression_test_dataset = LightGBM.LGBM_DatasetCreateFromMat(regression_test_matrix, "", regression_dataset)
+LightGBM.LGBM_DatasetSetField(regression_test_dataset, "label", regression_test_targets)
+
 
 @testset "test fit! with dataset -- binary" begin
     # Arrange
@@ -197,8 +212,8 @@ end
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
-            results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_scores, best_iterations, ["auc"]
+            results_fixture, estimator, estimator.metric, ["test_bla"], iter, -1,
+            bigger_is_better, best_scores, best_iterations,
         )
 
         @test output == false
@@ -237,8 +252,8 @@ Criteria: early_stopping should kick in on round 6
     for iter in 1:10
         LightGBM.LGBM_BoosterUpdateOneIter(estimator.booster)
         output = LightGBM.eval_metrics!(
-            results_fixture, estimator, ["test_bla"], iter, -1,
-            bigger_is_better, best_scores, best_iterations, ["auc"]
+            results_fixture, estimator, estimator.metric, ["test_bla"], iter, -1,
+            bigger_is_better, best_scores, best_iterations,
         )
 
         # reset scores to round 1 being best
@@ -283,7 +298,6 @@ end
         metric = ["auc"],
         objective = "binary",
     )
-    verbosity = "verbose=-1"
 
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
@@ -304,7 +318,6 @@ end
         metric = ["auc"],
         objective = "binary",
     )
-    verbosity = "verbose=-1"
 
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=false, verbosity=-1)
@@ -326,7 +339,6 @@ end
         metric = ["auc"],
         objective = "binary",
     )
-    verbosity = "verbose=-1"
 
     # Act
     output = LightGBM.fit!(estimator, train_dataset, test_dataset; truncate_booster=true, verbosity=-1)
@@ -361,5 +373,45 @@ end
 end
 
 
+
+@testset "test fit with custom objective" begin
+
+    # equivalent custom regression objective
+    regression_objective(pred, data) = (pred .- data.labels), ones(size(pred))
+
+    # The tests are somewhat sensitive to these values. Too many iterations and the error starts diverging
+    # too few, and the error on prediction values hasn't quite converged.
+    # Ideally, the comparison tolerance could be pushed to close to double precision
+    # But custom objectives optimise over single precision gradients and
+    # it isn't fully clear why it is hard to get closer
+    num_iter = 1000
+    tolerance = 1e-8
+
+    estimator = LightGBM.LGBMClassification(
+        num_class = 1,
+        num_iterations = num_iter,
+        metric = [],
+        objective = "regression",
+    )
+
+    estimator_custom = LightGBM.LGBMClassification(
+        num_class = 1,
+        num_iterations = num_iter,
+        metric = [],
+        objective = regression_objective,
+    )
+
+    LightGBM.fit!(estimator, regression_dataset; verbosity=-1)
+    LightGBM.fit!(estimator_custom, regression_dataset; verbosity=-1)
+
+    p = LightGBM.predict(estimator, regression_test_matrix, verbosity=-1)
+    p_custom = LightGBM.predict(estimator_custom, regression_test_matrix, verbosity=-1)
+    num_iter = LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster)
+    num_iter_custom = LightGBM.LGBM_BoosterGetCurrentIteration(estimator_custom.booster)
+
+    @test isapprox(p, p_custom, rtol=tolerance)
+    @test num_iter == num_iter_custom
+
+end
 
 end # module

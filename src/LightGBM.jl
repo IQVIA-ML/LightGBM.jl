@@ -57,6 +57,7 @@ function __init__()
 end
 
 
+include("types.jl")
 include("wrapper.jl")
 include("estimators.jl")
 include("utils.jl")

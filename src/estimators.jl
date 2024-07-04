@@ -1,10 +1,7 @@
-abstract type Estimator end
-abstract type LGBMEstimator <: Estimator end
-
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    application::LGBMObjective
     boosting::String
 
     num_iterations::Int
@@ -217,7 +214,7 @@ function LGBMRegression(;
 )
 
     return LGBMRegression(
-        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves,
+        Booster(), "", LGBMObjective(objective), boosting, num_iterations, learning_rate, num_leaves,
         max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
@@ -236,7 +233,7 @@ end
 mutable struct LGBMClassification <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    application::LGBMObjective
     boosting :: String
 
     num_iterations::Int
@@ -461,7 +458,7 @@ function LGBMClassification(;
 )
 
     return LGBMClassification(
-        Booster(), "", objective, boosting, num_iterations, learning_rate,
+        Booster(), "", LGBMObjective(objective), boosting, num_iterations, learning_rate,
         num_leaves, max_depth, tree_learner, num_threads, histogram_pool_size,
         min_data_in_leaf, min_sum_hessian_in_leaf, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
@@ -476,3 +473,5 @@ function LGBMClassification(;
         force_col_wise, force_row_wise,
     )
 end
+
+
