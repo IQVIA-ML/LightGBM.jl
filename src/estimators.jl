@@ -443,7 +443,7 @@ function LGBMClassification(;
     max_cat_threshold = 32,
     cat_l2 = 10.0,
     cat_smooth = 10.0,
-    metric = ["None"],
+    metric = [""],
     metric_freq = 1,
     is_training_metric = false,
     ndcg_at = Int[],
