@@ -314,6 +314,9 @@ mutable struct LGBMClassification <: LGBMEstimator
     num_gpu::Int
     force_col_wise::Bool
     force_row_wise::Bool
+
+    group_column::String
+    eval_at::Int
 end
 
 """
@@ -459,6 +462,8 @@ function LGBMClassification(;
     num_gpu = 1,
     force_col_wise = false,
     force_row_wise = false,
+    group_column = "",
+    eval_at = Int,
 )
 
     return LGBMClassification(
@@ -474,6 +479,6 @@ function LGBMClassification(;
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_training_metric, ndcg_at, num_machines, local_listen_port, time_out,
         machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
-        force_col_wise, force_row_wise,
+        force_col_wise, force_row_wise, group_column, eval_at
     )
 end
