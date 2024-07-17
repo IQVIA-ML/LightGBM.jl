@@ -316,7 +316,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     force_row_wise::Bool
 
     group_column::String
-    eval_at::Int
+    eval_at::Vector{Int}
 end
 
 """
@@ -463,7 +463,7 @@ function LGBMClassification(;
     force_col_wise = false,
     force_row_wise = false,
     group_column = "",
-    eval_at = Int,
+    eval_at = Int[1, 2, 3, 4, 5],
 )
 
     return LGBMClassification(
