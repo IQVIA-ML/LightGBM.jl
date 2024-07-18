@@ -1,5 +1,13 @@
 """
-    fit!(estimator, num_iterations, X, y[, test...]; [verbosity = 1, is_row_major = false])
+    fit!(
+    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
+    verbosity::Integer = 1,
+    is_row_major = false,
+    weights::Vector{Tw} = Float32[],
+    init_score::Vector{Ti} = Float64[],
+    group::Vector{Int} = Int[],
+    truncate_booster::Bool=true,
+) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
     fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, X, y, train_indices[, test_indices...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, train_dataset[, test_datasets...]; [verbosity = 1])
@@ -38,6 +46,7 @@ function fit!(
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
+    group::Vector{Int} = Int[],
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
@@ -52,6 +61,9 @@ function fit!(
     end
     if length(init_score) > 0
         LGBM_DatasetSetField(train_ds, "init_score", init_score)
+    end
+    if length(group) > 0
+        LGBM_DatasetSetField(train_ds, "group", group)
     end
 
     test_dss = []
