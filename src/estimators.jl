@@ -298,7 +298,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     metric::Vector{String}
     metric_freq::Int
     is_training_metric::Bool
-    ndcg_at::Vector{Int}
+    ndcg_at::Vector{Int} #alias it's called eval_at
 
     num_machines::Int
     local_listen_port::Int
