@@ -46,8 +46,7 @@ function fit!(
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
-    group::Vector{Int} = Int64[],
-    test_group::Vector{Int} = Int64[],
+    group::Vector{Int} = Int[],
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
@@ -65,9 +64,6 @@ function fit!(
     end
     if length(group) > 0
         LGBM_DatasetSetField(train_ds, "group", group)
-    end
-    if length(test_group) > 0
-        LGBM_DatasetSetField(train_ds, "test_group", test_group)
     end
 
     test_dss = []

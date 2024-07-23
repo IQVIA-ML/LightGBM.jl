@@ -161,6 +161,7 @@ end
     labels = [0.2f0, 0.5f0, -1.2f0] # Float32
     init_scores = [2.2, 0.1, 0.7] # Float64
     groups = Int32.([2, 1]) # Int32
+    cumsumgroups = Int32.([0, 2, 3]) # Int32
 
     LightGBM.LGBM_DatasetSetField(created_dataset, "weight", weights)
     LightGBM.LGBM_DatasetSetField(created_dataset, "label", labels)
@@ -176,10 +177,13 @@ end
     @test LightGBM.LGBM_DatasetGetField(created_dataset, "init_score") == init_scores
     @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "init_score"), Vector{Float64})
 
-    # I dont understand the discrepancy between input and output
-    # It looks like LightGBM returns the cumsum of the group query
-    # counts with 0 prepended but that isn't mentioned in docs
-    @test_broken LightGBM.LGBM_DatasetGetField(created_dataset, "group") == groups
+    # In the C API, the function `LGBM_DatasetGetField` returns the cumulative sum of group sizes,
+    # while `LGBM_DatasetSetField` expects the actual group sizes.
+    # The "group" field is used internally by LightGBM for ranking tasks,
+    # and the library uses a cumulative sum representation for efficiency.
+    # In this tested example the group = [2, 1] means 2 rows  of created_dataset belong to the first group
+    # and 1 to the second group with its cumulative sum representation [0, 2, 3]
+    @test LightGBM.LGBM_DatasetGetField(created_dataset, "group") == cumsumgroups
     @test isa(LightGBM.LGBM_DatasetGetField(created_dataset, "group"), Vector{Int32})
 
 end

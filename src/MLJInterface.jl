@@ -83,7 +83,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
-    ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
+    eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
@@ -167,7 +167,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_training_metric::Bool = false
-    ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
+    eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
