@@ -39,6 +39,7 @@ array that holds the validation metric's value at each iteration.
     Should be consistent across train/test. Does not apply to `SparseArrays.SparseMatrixCSC` or `Dataset` constructors.
 * `weights::Vector{Tw<:Real}`: the training weights.
 * `init_score::Vector{Ti<:Real}`: the init scores.
+* `group::Vector{Int}`: group size information for ranking tasks.
 """
 function fit!(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
