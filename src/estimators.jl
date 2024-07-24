@@ -561,7 +561,6 @@ mutable struct LGBMRanking <: LGBMEstimator
     force_col_wise::Bool
     force_row_wise::Bool
 
-    group_column::String
     lambdarank_truncation_level::Int
     lambdarank_norm::Bool
     label_gain::Vector{Int}
@@ -639,7 +638,6 @@ end
         num_gpu = 1,
         force_col_wise = false,
         force_row_wise = false,
-        group_column = "",
         lambdarank_truncation_level = 30,
         lambdarank_norm = true,
         label_gain = [2^i - 1 for i in 0:30],
@@ -717,7 +715,6 @@ function LGBMRanking(;
     num_gpu = 1,
     force_col_wise = false,
     force_row_wise = false,
-    group_column = "",
     lambdarank_truncation_level = 30,
     lambdarank_norm = true,
     label_gain = [2^i - 1 for i in 0:30],
@@ -737,6 +734,6 @@ function LGBMRanking(;
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
-        force_col_wise, force_row_wise, group_column, lambdarank_truncation_level, lambdarank_norm, label_gain, objective_seed
+        force_col_wise, force_row_wise, lambdarank_truncation_level, lambdarank_norm, label_gain, objective_seed
     )
 end

@@ -8,20 +8,26 @@ using LightGBM
 
 #=
 The below code is a direct translation of the following Python code:
-import pandas as pd
 import lightgbm as lgb
-# Create X_train DataFrame
-X_train = pd.DataFrame({
-    'var1' : [0.3, 0.1, 0.5, 0.3, 0.7, 0.2, 0.1, 0.4],
-    'var2' : [0.6, 0.4, 0.8, 0.6, 1.0, 0.5, 0.4, 0.7],
-    'var3' : [0.9, 0.7, 1.1, 0.9, 1.3, 0.8, 0.7, 1.0],
-})
-# Create X_test DataFrame
-X_test = pd.DataFrame({
-    'var1' : [0.6, 0.2],
-    'var2' : [0.9, 0.5],
-    'var3' : [1.2, 0.8],
-})
+import numpy as np
+
+# Create X_train numpy array
+X_train = np.array([
+    [0.3, 0.6, 0.9],
+    [0.1, 0.4, 0.7],
+    [0.5, 0.8, 1.1],
+    [0.3, 0.6, 0.9],
+    [0.7, 1.0, 1.3],
+    [0.2, 0.5, 0.8],
+    [0.1, 0.4, 0.7],
+    [0.4, 0.7, 1.0],
+])
+
+# Create X_test numpy array
+X_test = np.array([
+    [0.6, 0.9, 1.2],
+    [0.2, 0.5, 0.8],
+])
 # Create y_train and y_test arrays
 y_train = [0, 0, 0, 0, 1, 0, 1, 1]
 y_test = [0, 1]
@@ -91,7 +97,7 @@ y_pred = ranker.predict(X_test)
     # Predict the relevance scores for the test set
     y_pred = LightGBM.predict(ranker, X_test)
 
-    # Test the predicted scores are as expected
+    # Test the predicted scores are as expected to match with python's output
     @test y_pred ≈ [0.3713922520492622; -0.15637136430479565] atol=1e-6
 
 end
