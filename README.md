@@ -109,6 +109,60 @@ filename = pwd() * "/finished.model"
 savemodel(estimator, filename)
 loadmodel!(estimator, filename)
 ```
+# LGBM Ranking Support
+
+LightGBM.jl core includes a separate estimator `LGBMRanking` with parameters suitable for ranking applications as described in [group query](https://lightgbm.readthedocs.io/en/v3.3.5/Parameters.html#query-data). Similar to other
+wrapper libraries it is possible to pass a one-dimensional array with `group` information parameter.
+
+Here's an example of how to use `LGBMRanking`:
+
+
+```julia
+using LightGBM
+
+# Create X_train Matrix
+X_train = [
+    0.3 0.6 0.9;
+    0.1 0.4 0.7;
+    0.5 0.8 1.1;
+    0.3 0.6 0.9;
+    0.7 1.0 1.3;
+    0.2 0.5 0.8;
+    0.1 0.4 0.7;
+    0.4 0.7 1.0;
+]
+
+# Create X_test Matrix
+X_test = [
+    0.6 0.9 1.2;
+    0.2 0.5 0.8;
+]
+
+# Create y_train and y_test arrays
+y_train = [0, 0, 0, 0, 1, 0, 1, 1]
+y_test = [0, 1]
+
+# Create group_train and group_test arrays
+group_train = [2, 2, 4]
+group_test = [1, 1]
+
+# Create ranker model
+ranker = LightGBM.LGBMRanking(
+    num_class = 1,
+    objective = "lambdarank",
+    metric = ["ndcg"],
+    eval_at = [1, 3, 5, 10],
+    learning_rate = 0.1,
+    num_leaves = 31,
+    min_data_in_leaf = 1,
+)
+
+# Fit the model
+LightGBM.fit!(ranker, X_train, Vector(y_train), group = group_train)
+
+# Predict the relevance scores for the test set
+y_pred = LightGBM.predict(ranker, X_test)
+   ```
 
 # MLJ Support
 

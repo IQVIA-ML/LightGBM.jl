@@ -38,8 +38,9 @@ array that holds the validation metric's value at each iteration.
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
     Should be consistent across train/test. Does not apply to `SparseArrays.SparseMatrixCSC` or `Dataset` constructors.
 * `weights::Vector{Tw<:Real}`: the training weights.
-* `init_score::Vector{Ti<:Real}`: the init scores.
+* `init_score::Vector{Ti<:Real}`: the init scores. 
 * `group::Vector{Int}`: group size information for ranking tasks.
+* `truncate_booster::Bool`: allows to reduce the size of the model by removing less impactful trees. Default is `true`.
 """
 function fit!(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
