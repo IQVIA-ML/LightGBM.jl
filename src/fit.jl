@@ -1,5 +1,13 @@
 """
-    fit!(estimator, num_iterations, X, y[, test...]; [verbosity = 1, is_row_major = false])
+    fit!(
+    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
+    verbosity::Integer = 1,
+    is_row_major = false,
+    weights::Vector{Tw} = Float32[],
+    init_score::Vector{Ti} = Float64[],
+    group::Vector{Int} = Int[],
+    truncate_booster::Bool=true,
+) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
     fit!(estimator, X, y[, test...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, X, y, train_indices[, test_indices...]; [verbosity = 1, is_row_major = false])
     fit!(estimator, train_dataset[, test_datasets...]; [verbosity = 1])
@@ -30,7 +38,9 @@ array that holds the validation metric's value at each iteration.
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
     Should be consistent across train/test. Does not apply to `SparseArrays.SparseMatrixCSC` or `Dataset` constructors.
 * `weights::Vector{Tw<:Real}`: the training weights.
-* `init_score::Vector{Ti<:Real}`: the init scores.
+* `init_score::Vector{Ti<:Real}`: the init scores. 
+* `group::Vector{Int}`: group size information for ranking tasks.
+* `truncate_booster::Bool`: allows to reduce the size of the model by removing less impactful trees. Default is `true`.
 """
 function fit!(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
@@ -38,6 +48,7 @@ function fit!(
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
+    group::Vector{Int} = Int[],
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
@@ -52,6 +63,9 @@ function fit!(
     end
     if length(init_score) > 0
         LGBM_DatasetSetField(train_ds, "init_score", init_score)
+    end
+    if length(group) > 0
+        LGBM_DatasetSetField(train_ds, "group", group)
     end
 
     test_dss = []
