@@ -19,7 +19,7 @@ y = randn(nrows)
     # by settoing metric freq to 2 we can check the frequency is occurring correctly,
     # first time we expect only 2 metrics and then (metric @iter0 and metric @iter2)
     # if we go for 3 more iterations we expect 1 more metric
-    estimator = LightGBM.LGBMRegression(;num_iterations=3, is_training_metric=true, metric=["l2"], metric_freq=2)
+    estimator = LightGBM.LGBMRegression(;num_iterations=3, is_provide_training_metric=true, metric=["l2"], metric_freq=2)
     metrics = LightGBM.fit!(estimator, x, y; verbosity=-1)
 
     report = LightGBM.MLJInterface.user_fitreport(estimator, metrics)
@@ -49,7 +49,7 @@ y = randn(nrows)
 
 
     # check metrics are right when freq is just 1
-    new_estimator = LightGBM.LGBMRegression(;num_iterations=3, is_training_metric=true, metric=["l2"], metric_freq=1)
+    new_estimator = LightGBM.LGBMRegression(;num_iterations=3, is_provide_training_metric=true, metric=["l2"], metric_freq=1)
     freq_metrics = LightGBM.fit!(new_estimator, x, y; verbosity=-1)
 
     report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics)

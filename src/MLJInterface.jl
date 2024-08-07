@@ -70,7 +70,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
     categorical_feature::Vector{Int} = Vector{Int}()
     data_random_seed::Int = 1
-    is_sparse::Bool = true
+    is_enable_sparse::Bool = true
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     use_missing::Bool = true
@@ -82,7 +82,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
-    is_training_metric::Bool = false
+    is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters
@@ -155,7 +155,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
     categorical_feature::Vector{Int} = Vector{Int}();
     data_random_seed::Int = 1
-    is_sparse::Bool = true
+    is_enable_sparse::Bool = true
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     scale_pos_weight = 1.0
@@ -166,7 +166,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     # Metrics
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
-    is_training_metric::Bool = false
+    is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
     # Implementation parameters

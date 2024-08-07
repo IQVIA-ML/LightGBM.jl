@@ -16,9 +16,9 @@ params = [
 ]
 
 estimator = LightGBM.LGBMClassification(
-    objective = "binary", 
+    objective = "binary",
     num_class = 1,
-    is_training_metric = true, 
+    is_provide_training_metric = true,
     metric = ["auc"]
 )
 

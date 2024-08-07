@@ -9,7 +9,7 @@ Alternatively, search_cv can be called with an input Dataset class
 
 Return an array with a tuple for each set of parameters value, where the first entry is a set of
 parameter values and the second entry the cross-validation outcome of those values. This outcome is
-a dictionary with an entry for the validation dataset and, if the parameter `is_training_metric` is
+a dictionary with an entry for the validation dataset and, if the parameter `is_provide_training_metric` is
 set in the `estimator`, an entry for the training dataset. Each entry of the dictionary is
 another dictionary with an entry for each validation metric in the `estimator`. Each of these
 entries is an array that holds the validation metric's value for each dataset, at the last valid
@@ -27,25 +27,25 @@ iteration.
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
 """
 function search_cv(
-    estimator::LGBMEstimator, 
-    X::Matrix{TX}, 
+    estimator::LGBMEstimator,
+    X::Matrix{TX},
     y::Vector{Ty},
-    splits, 
-    params; 
-    verbosity::Integer = 1, 
+    splits,
+    params;
+    verbosity::Integer = 1,
     truncate_booster::Bool=true
 ) where {TX<:Real,Ty<:Real}
 
     ds_parameters = stringifyparams(estimator; verbosity=verbosity)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
-                                                                    
+
     return search_cv(estimator, full_ds, splits, params, verbosity = verbosity, truncate_booster = truncate_booster)
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
 function search_cv(
-    estimator::LGBMEstimator, dataset::Dataset, splits, params; 
+    estimator::LGBMEstimator, dataset::Dataset, splits, params;
     verbosity::Integer = 1,
     truncate_booster::Bool=true,
 )
@@ -57,8 +57,8 @@ function search_cv(
         search_estimator = deepcopy(estimator)
         foreach(param -> setfield!(search_estimator, param[1], param[2]), search_params)
         search_results = cv(
-            search_estimator, 
-            dataset, 
+            search_estimator,
+            dataset,
             deepcopy(splits),
             verbosity = ifelse(verbosity == 1, 0, verbosity),
             truncate_booster = truncate_booster,

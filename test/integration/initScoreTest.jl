@@ -35,7 +35,7 @@ using LightGBM
             num_leaves = 31,
             metric = ["l2"],
             metric_freq = 1,
-            is_training_metric = true,
+            is_provide_training_metric = true,
             max_bin = 255,
             min_sum_hessian_in_leaf = 5.,
             min_data_in_leaf = 100,
