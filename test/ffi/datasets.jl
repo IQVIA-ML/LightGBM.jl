@@ -144,9 +144,40 @@ end
 
 
 @testset "LGBM_DatasetSetField" begin
-    # The current implementation for LGBM_DatasetSetField has questionable type promotions
-    # but it touches too much code in order to tidy up right now
-    @test_broken false
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    ds = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+
+    @testset "_LGBM_DatasetSetField invalid field name test" begin
+        # "test_field" is not a valid field name
+        err = @test_throws(ErrorException, LightGBM._LGBM_DatasetSetField(ds, "test_field", [1.0, 2.0, 3.0]))
+        @test err.value.msg == "call to LightGBM's LGBM_DatasetSetField failed: Input data type error or field not found"
+    end
+
+    @testset "with input Vector{Int64} returning required Vector{Float32}" begin
+        LightGBM.LGBM_DatasetSetField(ds, "label", [1, 2, 3])
+        @test LightGBM.LGBM_DatasetGetField(ds, "label") == Float32[1.0, 2.0, 3.0]
+    end
+
+    @testset "with intput Vector{Float64} returning required Vector{Float32}" begin
+        LightGBM.LGBM_DatasetSetField(ds, "label", [1.0, 2.0, 3.0])
+        @test LightGBM.LGBM_DatasetGetField(ds, "label") == Float32[1.0, 2.0, 3.0]
+    end
+
+    @testset "with Vector{Float64} returning Int32 cumulative sum" begin
+        LightGBM.LGBM_DatasetSetField(ds, "group", [2.0, 1.0])
+        # `LGBM_DatasetGetField` returns the cumulative sum of group sizes
+        @test LightGBM.LGBM_DatasetGetField(ds, "group") == Int32[0, 2, 3]
+    end
+
+    @testset "with input Vector{Float32} returning Vector{Float64}" begin
+        LightGBM.LGBM_DatasetSetField(ds, "init_score", [1.f0, 2.f0, 3.f0])
+        @test LightGBM.LGBM_DatasetGetField(ds, "init_score") == Float64[1.0, 2.0, 3.0]
+    end
+
+    @testset "with input Vector{Int64} returning Vector{Float64}" begin
+        LightGBM.LGBM_DatasetSetField(ds, "init_score", [1, 2, 3])
+        @test LightGBM.LGBM_DatasetGetField(ds, "init_score") == Float64[1.0, 2.0, 3.0]
+    end
 
 end
 
