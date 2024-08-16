@@ -92,7 +92,7 @@ end
     @test norm(p_dart_default .- p_dart_max_drop) >= sqrt(NSAMPLES_TEST) * 1e-10
     @test norm(p_dart_default .- p_dart_skip_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(p_dart_default .- p_dart_xdm) >= sqrt(NSAMPLES_TEST) * 1e-10
-    @test_broken norm(p_dart_default .- p_dart_uniform_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(p_dart_default .- p_dart_uniform_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(p_dart_default .- p_dart_drop_seed) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end
@@ -131,7 +131,7 @@ end
     @test norm(r_dart_default .- r_dart_max_drop) >= sqrt(NSAMPLES_TEST) * 1e-10
     @test norm(r_dart_default .- r_dart_skip_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(r_dart_default .- r_dart_xdm) >= sqrt(NSAMPLES_TEST) * 1e-10
-    @test_broken norm(r_dart_default .- r_dart_uniform_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
+    @test norm(r_dart_default .- r_dart_uniform_drop) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(r_dart_default .- r_dart_drop_seed) >= sqrt(NSAMPLES_TEST) * 1e-5
 
 end

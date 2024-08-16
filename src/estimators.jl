@@ -4,7 +4,7 @@ abstract type LGBMEstimator <: Estimator end
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting::String
 
     num_iterations::Int
@@ -83,14 +83,14 @@ end
     LGBMRegression(; [
         objective = "regression",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
         num_threads = Sys.CPU_THREADS,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -152,14 +152,14 @@ Return a LGBMRegression estimator.
 function LGBMRegression(;
     objective = "regression",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
     num_threads = Sys.CPU_THREADS,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
@@ -236,7 +236,7 @@ end
 mutable struct LGBMClassification <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting :: String
 
     num_iterations::Int
@@ -321,14 +321,14 @@ end
     LGBMClassification(;[
         objective = "multiclass",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
         num_threads = Sys.CPU_THREADS,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -394,14 +394,14 @@ Return a LGBMClassification estimator.
 function LGBMClassification(;
     objective = "multiclass",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
     num_threads = Sys.CPU_THREADS,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
@@ -482,7 +482,7 @@ end
 mutable struct LGBMRanking <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting :: String
 
     num_iterations::Int
@@ -573,14 +573,14 @@ end
     LGBMRanking(;[
         objective = "lambdarank",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
         num_threads = Sys.CPU_THREADS,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -651,14 +651,14 @@ Return a LGBMRanking estimator.
 function LGBMRanking(;
     objective = "lambdarank",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
     num_threads = Sys.CPU_THREADS,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
