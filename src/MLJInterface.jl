@@ -29,7 +29,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
-    num_iterations::Int = 10::(_ >= 0)
+    num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
     max_depth::Int = -1;#::(_ != 0);
@@ -51,13 +51,12 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     extra_trees::Bool = false
     extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt = 200000::(_ > 0)
-    init_score::String = ""
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
-    xgboost_dart_mode::Bool
-    uniform_drop::Bool
+    xgboost_dart_mode::Bool = false
+    uniform_drop::Bool = false
     drop_seed::Int = 4
     top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)
     other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
@@ -90,7 +89,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
-    machine_list_file::String = ""
+    machine_list_filename::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
     gpu_use_dp::Bool = false
@@ -108,7 +107,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
-    num_iterations::Int = 10::(_ >= 0)
+    num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
     max_depth::Int = -1;#::(_ != 0);
@@ -132,13 +131,12 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     extra_trees::Bool = false
     extra_seed::Int = 6
     max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt = 200000::(_ > 0)
-    init_score::String = ""
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
-    xgboost_dart_mode::Bool
-    uniform_drop::Bool
+    xgboost_dart_mode::Bool = false
+    uniform_drop::Bool = false
     drop_seed::Int = 4
     top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)
     other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
@@ -171,10 +169,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
+    num_threads::Int  = Sys.CPU_THREADS::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
-    machine_list_file::String = ""
+    machine_list_filename::String = ""
     save_binary::Bool = false
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
     gpu_use_dp::Bool = false

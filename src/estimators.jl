@@ -34,7 +34,6 @@ mutable struct LGBMRegression <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
     is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
@@ -67,7 +66,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
     device_type::String
@@ -108,7 +107,6 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
         is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
@@ -130,14 +128,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"l2\"],
+        metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         device_type=\"cpu\",
         gpu_use_dp = false,
         gpu_platform_id = -1,
@@ -177,7 +175,6 @@ function LGBMRegression(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
     is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
@@ -199,14 +196,14 @@ function LGBMRegression(;
     max_cat_threshold = 32,
     cat_l2 = 10.0,
     cat_smooth = 10.0,
-    metric = ["l2"],
+    metric = [""],
     metric_freq = 1,
     is_provide_training_metric = false,
     eval_at = Int[1, 2, 3, 4, 5],
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     device_type="cpu",
     gpu_use_dp = false,
     gpu_platform_id = -1,
@@ -222,12 +219,12 @@ function LGBMRegression(;
         min_data_in_leaf, min_sum_hessian_in_leaf, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, extra_trees,
-        extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
+        extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed,
         is_enable_sparse, save_binary, categorical_feature, use_missing, linear_tree, feature_pre_filter,
         is_unbalance, boost_from_average, alpha, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, 1, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        machine_list_filename, 1, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise,
     )
 end
@@ -269,7 +266,6 @@ mutable struct LGBMClassification <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
     is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
@@ -303,7 +299,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
 
@@ -348,7 +344,6 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
         is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
@@ -371,14 +366,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"multi_logloss\"],
+        metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         num_class = 2,
         device_type=\"cpu\",
         gpu_use_dp = false,
@@ -421,7 +416,6 @@ function LGBMClassification(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
     is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
@@ -451,7 +445,7 @@ function LGBMClassification(;
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     num_class = 2,
     device_type="cpu",
     gpu_use_dp = false,
@@ -469,12 +463,12 @@ function LGBMClassification(;
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
-        data_random_seed, init_score, is_enable_sparse, save_binary,
+        data_random_seed, is_enable_sparse, save_binary,
         categorical_feature, use_missing, linear_tree, feature_pre_filter, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        machine_list_filename, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise,
     )
 end
@@ -515,7 +509,6 @@ mutable struct LGBMRanking <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
     is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
@@ -549,7 +542,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
 
@@ -600,7 +593,6 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
         is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
@@ -623,14 +615,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"multi_logloss\"],
+        metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         num_class = 1,
         device_type=\"cpu\",
         gpu_use_dp = false,
@@ -678,7 +670,6 @@ function LGBMRanking(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
     is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
@@ -708,7 +699,7 @@ function LGBMRanking(;
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     num_class = 1,
     device_type="cpu",
     gpu_use_dp = false,
@@ -731,12 +722,12 @@ function LGBMRanking(;
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
-        data_random_seed, init_score, is_enable_sparse, save_binary,
+        data_random_seed, is_enable_sparse, save_binary,
         categorical_feature, use_missing, linear_tree, feature_pre_filter, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        machine_list_filename, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise, lambdarank_truncation_level, lambdarank_norm, label_gain, objective_seed, group_column,
     )
 end
