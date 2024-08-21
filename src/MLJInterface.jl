@@ -169,7 +169,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Implementation parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = Sys.CPU_THREADS::(_ >= 0)
+    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
