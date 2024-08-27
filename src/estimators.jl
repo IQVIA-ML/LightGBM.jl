@@ -4,7 +4,7 @@ abstract type LGBMEstimator <: Estimator end
 mutable struct LGBMRegression <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting::String
 
     num_iterations::Int
@@ -34,8 +34,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
-    is_sparse::Bool
+    is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
@@ -61,13 +60,13 @@ mutable struct LGBMRegression <: LGBMEstimator
 
     metric::Vector{String}
     metric_freq::Int
-    is_training_metric::Bool
+    is_provide_training_metric::Bool
     eval_at::Vector{Int}
 
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
     device_type::String
@@ -83,14 +82,14 @@ end
     LGBMRegression(; [
         objective = "regression",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
-        num_threads = Sys.CPU_THREADS,
+        num_threads = 0,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -108,8 +107,7 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
-        is_sparse = true,
+        is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
         use_missing = true,
@@ -130,14 +128,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"l2\"],
+        metric = [""],
         metric_freq = 1,
-        is_training_metric = false,
+        is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         device_type=\"cpu\",
         gpu_use_dp = false,
         gpu_platform_id = -1,
@@ -152,14 +150,14 @@ Return a LGBMRegression estimator.
 function LGBMRegression(;
     objective = "regression",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
+    num_threads = 0,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
@@ -177,8 +175,7 @@ function LGBMRegression(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
+    is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
     use_missing = true,
@@ -199,14 +196,14 @@ function LGBMRegression(;
     max_cat_threshold = 32,
     cat_l2 = 10.0,
     cat_smooth = 10.0,
-    metric = ["l2"],
+    metric = [""],
     metric_freq = 1,
-    is_training_metric = false,
+    is_provide_training_metric = false,
     eval_at = Int[1, 2, 3, 4, 5],
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     device_type="cpu",
     gpu_use_dp = false,
     gpu_platform_id = -1,
@@ -222,12 +219,12 @@ function LGBMRegression(;
         min_data_in_leaf, min_sum_hessian_in_leaf, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, bagging_freq, bagging_seed, early_stopping_round, extra_trees,
-        extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed, init_score,
-        is_sparse, save_binary, categorical_feature, use_missing, linear_tree, feature_pre_filter,
+        extra_seed, max_bin, bin_construct_sample_cnt, data_random_seed,
+        is_enable_sparse, save_binary, categorical_feature, use_missing, linear_tree, feature_pre_filter,
         is_unbalance, boost_from_average, alpha, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode,uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
-        cat_l2, cat_smooth, metric, metric_freq, is_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, 1, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        cat_l2, cat_smooth, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
+        machine_list_filename, 1, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise,
     )
 end
@@ -236,7 +233,7 @@ end
 mutable struct LGBMClassification <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting :: String
 
     num_iterations::Int
@@ -269,8 +266,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
-    is_sparse::Bool
+    is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
@@ -297,13 +293,13 @@ mutable struct LGBMClassification <: LGBMEstimator
 
     metric::Vector{String}
     metric_freq::Int
-    is_training_metric::Bool
+    is_provide_training_metric::Bool
     eval_at::Vector{Int}
 
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
 
@@ -321,14 +317,14 @@ end
     LGBMClassification(;[
         objective = "multiclass",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
-        num_threads = Sys.CPU_THREADS,
+        num_threads = 0,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -348,8 +344,7 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
-        is_sparse = true,
+        is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
         use_missing = true,
@@ -371,14 +366,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"multi_logloss\"],
+        metric = [""],
         metric_freq = 1,
-        is_training_metric = false,
+        is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         num_class = 2,
         device_type=\"cpu\",
         gpu_use_dp = false,
@@ -394,14 +389,14 @@ Return a LGBMClassification estimator.
 function LGBMClassification(;
     objective = "multiclass",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
+    num_threads = 0,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
@@ -421,8 +416,7 @@ function LGBMClassification(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
+    is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
     use_missing = true,
@@ -446,12 +440,12 @@ function LGBMClassification(;
     cat_smooth = 10.0,
     metric = [""],
     metric_freq = 1,
-    is_training_metric = false,
+    is_provide_training_metric = false,
     eval_at = Int[1, 2, 3, 4, 5],
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     num_class = 2,
     device_type="cpu",
     gpu_use_dp = false,
@@ -469,12 +463,12 @@ function LGBMClassification(;
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
-        data_random_seed, init_score, is_sparse, save_binary,
+        data_random_seed, is_enable_sparse, save_binary,
         categorical_feature, use_missing, linear_tree, feature_pre_filter, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
-        metric, metric_freq, is_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
+        machine_list_filename, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise,
     )
 end
@@ -482,7 +476,7 @@ end
 mutable struct LGBMRanking <: LGBMEstimator
     booster::Booster
     model::String
-    application::String
+    objective::String
     boosting :: String
 
     num_iterations::Int
@@ -515,8 +509,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     max_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
-    init_score::String
-    is_sparse::Bool
+    is_enable_sparse::Bool
     save_binary::Bool
     categorical_feature::Vector{Int}
     use_missing::Bool
@@ -543,13 +536,13 @@ mutable struct LGBMRanking <: LGBMEstimator
 
     metric::Vector{String}
     metric_freq::Int
-    is_training_metric::Bool
+    is_provide_training_metric::Bool
     eval_at::Vector{Int}
 
     num_machines::Int
     local_listen_port::Int
     time_out::Int
-    machine_list_file::String
+    machine_list_filename::String
 
     num_class::Int
 
@@ -573,14 +566,14 @@ end
     LGBMRanking(;[
         objective = "lambdarank",
         boosting = "gbdt",
-        num_iterations = 10,
+        num_iterations = 100,
         learning_rate = .1,
-        num_leaves = 127,
+        num_leaves = 31,
         max_depth = -1,
         tree_learner = \"serial\",
-        num_threads = Sys.CPU_THREADS,
+        num_threads = 0,
         histogram_pool_size = -1.,
-        min_data_in_leaf = 100,
+        min_data_in_leaf = 20,
         min_sum_hessian_in_leaf = 1e-3,
         max_delta_step = 0.,
         lambda_l1 = 0.,
@@ -600,8 +593,7 @@ end
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
-        init_score = \"\",
-        is_sparse = true,
+        is_enable_sparse = true,
         save_binary = false,
         categorical_feature = Int[],
         use_missing = true,
@@ -623,14 +615,14 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.0,
         cat_smooth = 10.0,
-        metric = [\"multi_logloss\"],
+        metric = [""],
         metric_freq = 1,
-        is_training_metric = false,
+        is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
-        machine_list_file = \"\",
+        machine_list_filename = \"\",
         num_class = 1,
         device_type=\"cpu\",
         gpu_use_dp = false,
@@ -651,14 +643,14 @@ Return a LGBMRanking estimator.
 function LGBMRanking(;
     objective = "lambdarank",
     boosting = "gbdt",
-    num_iterations = 10,
+    num_iterations = 100,
     learning_rate = .1,
-    num_leaves = 127,
+    num_leaves = 31,
     max_depth = -1,
     tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
+    num_threads = 0,
     histogram_pool_size = -1.,
-    min_data_in_leaf = 100,
+    min_data_in_leaf = 20,
     min_sum_hessian_in_leaf = 1e-3,
     max_delta_step = 0.,
     lambda_l1 = 0.,
@@ -678,8 +670,7 @@ function LGBMRanking(;
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
+    is_enable_sparse = true,
     save_binary = false,
     categorical_feature = Int[],
     use_missing = true,
@@ -701,14 +692,14 @@ function LGBMRanking(;
     max_cat_threshold = 32,
     cat_l2 = 10.0,
     cat_smooth = 10.0,
-    metric = [""],
+    metric = ["ndcg"],
     metric_freq = 1,
-    is_training_metric = false,
+    is_provide_training_metric = false,
     eval_at = Int[1, 2, 3, 4, 5],
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
-    machine_list_file = "",
+    machine_list_filename = "",
     num_class = 1,
     device_type="cpu",
     gpu_use_dp = false,
@@ -731,12 +722,12 @@ function LGBMRanking(;
         min_gain_to_split, feature_fraction, feature_fraction_bynode, feature_fraction_seed,
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, early_stopping_round, extra_trees, extra_seed, max_bin, bin_construct_sample_cnt,
-        data_random_seed, init_score, is_sparse, save_binary,
+        data_random_seed, is_enable_sparse, save_binary,
         categorical_feature, use_missing, linear_tree, feature_pre_filter, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth,
-        metric, metric_freq, is_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_file, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
+        metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
+        machine_list_filename, num_class, device_type, gpu_use_dp, gpu_platform_id, gpu_device_id, num_gpu,
         force_col_wise, force_row_wise, lambdarank_truncation_level, lambdarank_norm, label_gain, objective_seed, group_column,
     )
 end

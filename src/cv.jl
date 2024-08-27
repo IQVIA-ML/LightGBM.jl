@@ -8,7 +8,7 @@ Alternatively, cv can be called with an input Dataset class
 
 
 Return a dictionary with an entry for the validation dataset and, if the parameter
-`is_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
+`is_provide_training_metric` is set in the `estimator`, an entry for the training dataset. Each entry of
 the dictionary is another dictionary with an entry for each validation metric in the `estimator`.
 Each of these entries is an array that holds the validation metric's value for each dataset, at the
 last valid iteration.

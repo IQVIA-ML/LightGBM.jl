@@ -34,7 +34,7 @@ using LightGBM
             bagging_freq = 1,
             num_leaves = 1000,
             metric = ["auc", "binary_logloss"],
-            is_training_metric = true,
+            is_provide_training_metric = true,
             max_bin = 255,
             min_sum_hessian_in_leaf = 0.,
             min_data_in_leaf = 1,
@@ -48,7 +48,7 @@ using LightGBM
     catch
         @test false
     end
-end   
+end
 
 
 end # module
