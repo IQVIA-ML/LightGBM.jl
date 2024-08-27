@@ -146,8 +146,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     cat_smooth::Float64 = 10.0::(_ >= 0)
 
     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
-    # Not included above because this is only present for the binary model in the FFI wrapper, hence commented out
-    # sigmoid::Float64 = 1.0::(_ > 0.0 )
+    sigmoid::Float64 = 1.0::(_ > 0.0 )
 
     # Model properties
     objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
