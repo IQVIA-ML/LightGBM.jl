@@ -1,9 +1,9 @@
 name: CI
 on:
   pull_request:
-    branches: ['master']
+    branches: ['master', 'all-params'] # remove all-params once merged to master
   push:
-    branches: ['master']
+    branches: ['master', 'all-params'] # remove all-params once merged to master
     tags: ['*']
 jobs:
   test:
