@@ -28,30 +28,36 @@ const NON_LIGHTGBM_PARAMETERS = (
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    # Core parameters
+    objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
+    num_threads::Int  = 0::(_ >= 0)
+    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+
+    # Learning control parameters
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    max_depth::Int = -1;#::(_ != 0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
+    bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    bagging_freq::Int = 0::(_ >= 0)
+    bagging_seed::Int = 3
+    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_seed::Int = 2
+    extra_trees::Bool = false
+    extra_seed::Int = 6
+    early_stopping_round::Int = 0
     max_delta_step::Float64 = 0.0
     lambda_l1::Float64 = 0.0::(_ >= 0.0)
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
-    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_seed::Int = 2
-    bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
-    bagging_freq::Int = 0::(_ >= 0)
-    bagging_seed::Int = 3
-    early_stopping_round::Int = 0
-    extra_trees::Bool = false
-    extra_seed::Int = 6
-    max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
@@ -64,18 +70,20 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
-
-    # Model properties
-    objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}()
+    
+    # Dataset parameters
+    linear_tree::Bool = false
+    max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
+    use_missing::Bool = true
+    feature_pre_filter::Bool = true
+    categorical_feature::Vector{Int} = Vector{Int}()
+    
+    # Objective parameters
     is_unbalance::Bool = false
     boost_from_average::Bool = true
-    use_missing::Bool = true
-    linear_tree::Bool = false
-    feature_pre_filter::Bool = true
-
     alpha::Float64 = 0.9::(_ > 0.0 )
 
     # Metrics
@@ -84,20 +92,19 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
-    # Implementation parameters
+    # Network parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
-    save_binary::Bool = false
-    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
-    gpu_use_dp::Bool = false
+
+    # GPU parameters
     gpu_platform_id::Int = -1
     gpu_device_id::Int = -1
+    gpu_use_dp::Bool = false
     num_gpu::Int = 1
-    force_col_wise::Bool = false
-    force_row_wise::Bool = false
+
+    # Other (non-lightbm) parameters
     truncate_booster::Bool = true
 
 end
@@ -106,32 +113,38 @@ end
 MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    # Core parameters
+    objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
+    num_threads::Int  = 0::(_ >= 0)
+    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    
+    # Learning control parameters
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    max_depth::Int = -1;#::(_ != 0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
-    max_delta_step::Float64 = 0.0
-    lambda_l1::Float64 = 0.0::(_ >= 0.0)
-    lambda_l2::Float64 = 0.0::(_ >= 0.0)
-    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
-    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     pos_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     neg_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
-    early_stopping_round::Int = 0
+    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_seed::Int = 2
     extra_trees::Bool = false
     extra_seed::Int = 6
-    max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt::Int = 200000::(_ > 0)
+    early_stopping_round::Int = 0
+    max_delta_step::Float64 = 0.0
+    lambda_l1::Float64 = 0.0::(_ >= 0.0)
+    lambda_l2::Float64 = 0.0::(_ >= 0.0)
+    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
@@ -144,42 +157,43 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
-
-    # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
-    sigmoid::Float64 = 1.0::(_ > 0.0 )
-
-    # Model properties
-    objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}();
+    
+    # Dateset parameters
+    linear_tree::Bool = false
+    max_bin::Int = 255::(_ > 1)
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
+    use_missing::Bool = true
+    feature_pre_filter::Bool = true
+    categorical_feature::Vector{Int} = Vector{Int}();
+    
+    # Objective parameters
     is_unbalance::Bool = false
     boost_from_average::Bool = true
     scale_pos_weight = 1.0
-    use_missing::Bool = true
-    linear_tree::Bool = false
-    feature_pre_filter::Bool = true
+     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
+    sigmoid::Float64 = 1.0::(_ > 0.0 )
 
-    # Metrics
+    # Metric parameters
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
-    # Implementation parameters
+    # Network parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
-    save_binary::Bool = false
-    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
-    gpu_use_dp::Bool = false
+
+    # GPU parameters
     gpu_platform_id::Int = -1
     gpu_device_id::Int = -1
+    gpu_use_dp::Bool = false
     num_gpu::Int = 1
-    force_col_wise::Bool = false
-    force_row_wise::Bool = false
+
+    # Other (non-lightbm) parameters
     truncate_booster::Bool = true
 
 end
