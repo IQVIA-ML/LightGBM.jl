@@ -58,6 +58,14 @@ mutable struct LGBMRegression <: LGBMEstimator
     feature_pre_filter::Bool
     categorical_feature::Vector{Int}
 
+    # Predict parameters
+    start_iteration_predict::Int
+    num_iteration_predict::Int
+    predict_raw_score::Bool
+    predict_leaf_index::Bool
+    predict_contrib::Bool
+    predict_disable_shape_check::Bool
+
     # Objective parameters
     num_class::Int 
     is_unbalance::Bool
@@ -122,8 +130,8 @@ end
         other_rate = 0.1,
         min_data_per_group = 100,
         max_cat_threshold = 32,
-        cat_l2 = 10.0,
-        cat_smooth = 10.0,
+        cat_l2 = 10.,
+        cat_smooth = 10.,
         linear_tree = false,
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
@@ -132,6 +140,12 @@ end
         use_missing = true,
         feature_pre_filter = true,
         categorical_feature = Int[],
+        start_iteration_predict = 0,
+        num_iteration_predict = -1,
+        predict_raw_score = false,
+        predict_leaf_index = false,
+        predict_contrib = false,
+        predict_disable_shape_check = false,
         is_unbalance = false,
         boost_from_average = true,
         alpha = 0.9,
@@ -189,8 +203,8 @@ function LGBMRegression(;
     other_rate = 0.1,
     min_data_per_group = 100,
     max_cat_threshold = 32,
-    cat_l2 = 10.0,
-    cat_smooth = 10.0,
+    cat_l2 = 10.,
+    cat_smooth = 10.,
     linear_tree = false,
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
@@ -199,6 +213,12 @@ function LGBMRegression(;
     use_missing = true,
     feature_pre_filter = true,
     categorical_feature = Int[],
+    start_iteration_predict = 0,
+    num_iteration_predict = -1,
+    predict_raw_score = false,
+    predict_leaf_index = false,
+    predict_contrib = false,
+    predict_disable_shape_check = false,
     is_unbalance = false,
     boost_from_average = true,
     alpha = 0.9,
@@ -225,8 +245,9 @@ function LGBMRegression(;
         min_gain_to_split, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, linear_tree, max_bin, bin_construct_sample_cnt, data_random_seed,
-        is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 1,
-        is_unbalance, boost_from_average, alpha, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
+        is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
+        1, is_unbalance, boost_from_average, alpha, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
@@ -290,6 +311,14 @@ mutable struct LGBMClassification <: LGBMEstimator
     use_missing::Bool
     feature_pre_filter::Bool
     categorical_feature::Vector{Int}
+
+    # Predict parameters
+    start_iteration_predict::Int
+    num_iteration_predict::Int
+    predict_raw_score::Bool
+    predict_leaf_index::Bool
+    predict_contrib::Bool
+    predict_disable_shape_check::Bool
 
     # Objective parameters
     num_class::Int
@@ -358,8 +387,8 @@ end
         other_rate = 0.1,
         min_data_per_group = 100,
         max_cat_threshold = 32,
-        cat_l2 = 10.0,
-        cat_smooth = 10.0,
+        cat_l2 = 10.,
+        cat_smooth = 10.,
         linear_tree = false,
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
@@ -368,11 +397,17 @@ end
         use_missing = true,
         feature_pre_filter = true,
         categorical_feature = Int[],
+        start_iteration_predict = 0,
+        num_iteration_predict = -1,
+        predict_raw_score = false,
+        predict_leaf_index = false,
+        predict_contrib = false,
+        predict_disable_shape_check = false,
         num_class = 2,
         is_unbalance = false,
         boost_from_average = true,
-        scale_pos_weight = 1.0,
-        sigmoid = 1.0,
+        scale_pos_weight = 1.,
+        sigmoid = 1.,
         metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
@@ -429,8 +464,8 @@ function LGBMClassification(;
     other_rate = 0.1,
     min_data_per_group = 100,
     max_cat_threshold = 32,
-    cat_l2 = 10.0,
-    cat_smooth = 10.0,
+    cat_l2 = 10.,
+    cat_smooth = 10.,
     linear_tree = false,
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
@@ -439,11 +474,17 @@ function LGBMClassification(;
     use_missing = true,
     feature_pre_filter = true,
     categorical_feature = Int[],
+    start_iteration_predict = 0,
+    num_iteration_predict = -1,
+    predict_raw_score = false,
+    predict_leaf_index = false,
+    predict_contrib = false,
+    predict_disable_shape_check = false,
     num_class = 2,
     is_unbalance = false,
     boost_from_average = true,
-    scale_pos_weight = 1.0,
-    sigmoid = 1.0,
+    scale_pos_weight = 1.,
+    sigmoid = 1.,
     metric = [""],
     metric_freq = 1,
     is_provide_training_metric = false,
@@ -466,8 +507,10 @@ function LGBMClassification(;
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse,
-        use_missing, feature_pre_filter, categorical_feature, num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
+        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        predict_disable_shape_check, 
+        num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
@@ -532,6 +575,14 @@ mutable struct LGBMRanking <: LGBMEstimator
     feature_pre_filter::Bool
     group_column::String
     categorical_feature::Vector{Int}
+
+    # Predict parameters
+    start_iteration_predict::Int
+    num_iteration_predict::Int
+    predict_raw_score::Bool
+    predict_leaf_index::Bool
+    predict_contrib::Bool
+    predict_disable_shape_check::Bool
 
     # Objective parameters
     objective_seed::Int
@@ -604,8 +655,8 @@ end
         other_rate = 0.1,
         min_data_per_group = 100,
         max_cat_threshold = 32,
-        cat_l2 = 10.0,
-        cat_smooth = 10.0,
+        cat_l2 = 10.,
+        cat_smooth = 10.,
         linear_tree = false,
         max_bin = 255,
         bin_construct_sample_cnt = 200000,
@@ -615,12 +666,18 @@ end
         feature_pre_filter = true,
         group_column = ""
         categorical_feature = Int[],
+        start_iteration_predict = 0,
+        num_iteration_predict = -1,
+        predict_raw_score = false,
+        predict_leaf_index = false,
+        predict_contrib = false,
+        predict_disable_shape_check = false,
         objective_seed = 5,
         num_class = 1,
         is_unbalance = false,
         boost_from_average = true,
-        scale_pos_weight = 1.0,
-        sigmoid = 1.0,
+        scale_pos_weight = 1,
+        sigmoid = 1.,
         lambdarank_truncation_level = 30,
         lambdarank_norm = true,
         label_gain = [2^i - 1 for i in 0:30],
@@ -680,8 +737,8 @@ function LGBMRanking(;
     other_rate = 0.1,
     min_data_per_group = 100,
     max_cat_threshold = 32,
-    cat_l2 = 10.0,
-    cat_smooth = 10.0,
+    cat_l2 = 10.,
+    cat_smooth = 10.,
     linear_tree = false,
     max_bin = 255,
     bin_construct_sample_cnt = 200000,
@@ -691,12 +748,18 @@ function LGBMRanking(;
     feature_pre_filter = true,
     group_column = "",
     categorical_feature = Int[],
+    start_iteration_predict = 0,
+    num_iteration_predict = -1,
+    predict_raw_score = false,
+    predict_leaf_index = false,
+    predict_contrib = false,
+    predict_disable_shape_check = false,
     objective_seed = 5,
     num_class = 1,
     is_unbalance = false,
     boost_from_average = true,
-    scale_pos_weight = 1.0,
-    sigmoid = 1.0,
+    scale_pos_weight = 1.,
+    sigmoid = 1.,
     lambdarank_truncation_level = 30,
     lambdarank_norm = true,
     label_gain = [2^i - 1 for i in 0:30],
@@ -722,8 +785,10 @@ function LGBMRanking(;
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, 
-        use_missing, feature_pre_filter, group_column, categorical_feature, objective_seed, num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid, lambdarank_truncation_level, lambdarank_norm, label_gain,
+        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, group_column, categorical_feature, 
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        predict_disable_shape_check,
+        objective_seed, num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
