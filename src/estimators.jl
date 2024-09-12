@@ -15,7 +15,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     num_threads::Int
     device_type::String
 
-    # Leraning control parameters
+    # Learning control parameters
     force_col_wise::Bool
     force_row_wise::Bool
     histogram_pool_size::Float64 
@@ -267,7 +267,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     num_threads::Int
     device_type::String
 
-    # Leraning control parameters
+    # Learning control parameters
     force_col_wise::Bool
     force_row_wise::Bool
     histogram_pool_size::Float64
@@ -323,9 +323,9 @@ mutable struct LGBMClassification <: LGBMEstimator
     # Objective parameters
     num_class::Int
     is_unbalance::Bool
-    boost_from_average::Bool
     scale_pos_weight::Float64
     sigmoid::Float64
+    boost_from_average::Bool
 
     # Metric parameters
     metric::Vector{String}
@@ -405,9 +405,9 @@ end
         predict_disable_shape_check = false,
         num_class = 2,
         is_unbalance = false,
+        scale_pos_weight = 1.0,
+        sigmoid = 1.0,
         boost_from_average = true,
-        scale_pos_weight = 1.,
-        sigmoid = 1.,
         metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
@@ -482,9 +482,9 @@ function LGBMClassification(;
     predict_disable_shape_check = false,
     num_class = 2,
     is_unbalance = false,
+    scale_pos_weight = 1.0,
+    sigmoid = 1.0,
     boost_from_average = true,
-    scale_pos_weight = 1.,
-    sigmoid = 1.,
     metric = [""],
     metric_freq = 1,
     is_provide_training_metric = false,
@@ -510,7 +510,7 @@ function LGBMClassification(;
         data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, 
-        num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid,
+        num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
@@ -530,7 +530,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     num_threads::Int
     device_type::String
 
-    # Leraning control parameters
+    # Learning control parameters
     force_col_wise::Bool
     force_row_wise::Bool
     histogram_pool_size::Float64
@@ -588,9 +588,9 @@ mutable struct LGBMRanking <: LGBMEstimator
     objective_seed::Int
     num_class::Int
     is_unbalance::Bool
-    boost_from_average::Bool
     scale_pos_weight::Float64
     sigmoid::Float64
+    boost_from_average::Bool
     lambdarank_truncation_level::Int
     lambdarank_norm::Bool
     label_gain::Vector{Int}
@@ -675,9 +675,9 @@ end
         objective_seed = 5,
         num_class = 1,
         is_unbalance = false,
+        scale_pos_weight = 1.0,
+        sigmoid = 1.0,
         boost_from_average = true,
-        scale_pos_weight = 1,
-        sigmoid = 1.,
         lambdarank_truncation_level = 30,
         lambdarank_norm = true,
         label_gain = [2^i - 1 for i in 0:30],
@@ -757,9 +757,9 @@ function LGBMRanking(;
     objective_seed = 5,
     num_class = 1,
     is_unbalance = false,
+    scale_pos_weight = 1.0,
+    sigmoid = 1.0,
     boost_from_average = true,
-    scale_pos_weight = 1.,
-    sigmoid = 1.,
     lambdarank_truncation_level = 30,
     lambdarank_norm = true,
     label_gain = [2^i - 1 for i in 0:30],
@@ -788,7 +788,7 @@ function LGBMRanking(;
         data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, group_column, categorical_feature, 
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check,
-        objective_seed, num_class, is_unbalance, boost_from_average, scale_pos_weight, sigmoid, lambdarank_truncation_level, lambdarank_norm, label_gain,
+        objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )

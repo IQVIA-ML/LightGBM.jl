@@ -185,10 +185,10 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     
     # Objective parameters
     is_unbalance::Bool = false
-    boost_from_average::Bool = true
     scale_pos_weight = 1.0
-     # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
+    # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
     sigmoid::Float64 = 1.0::(_ > 0.0 )
+    boost_from_average::Bool = true
 
     # Metric parameters
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
