@@ -188,4 +188,87 @@ end
 end
 
 
+@testset "parameters -- prediction" begin
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train_classifier = rand([0, 1], 1000)
+    y_train_regressor = randn(1000)
+
+    # Define combinations of parameters
+    combinations = [
+        # predict_raw_score
+        (true, false, false),
+        # predict_leaf_index
+        (false, true, false),
+        # predict_contrib
+        (false, false, true),
+        # predict_normal
+        (false, false, false),
+        # predict_normal
+        (true, true, true)
+    ]
+
+    # Function to create and fit estimators for each combination
+    function fit_estimators(combinations, model_type, objective)
+        estimators = []
+        for (predict_raw_score, predict_leaf_index, predict_contrib) in combinations
+            estimator = model_type(
+                objective = objective,
+                start_iteration_predict = 0,
+                num_iteration_predict = -1,
+                predict_raw_score = predict_raw_score,
+                predict_leaf_index = predict_leaf_index,
+                predict_contrib = predict_contrib,
+                predict_disable_shape_check = false,
+                num_iterations = 100,
+            )
+            if model_type == LightGBM.LGBMClassification
+                estimator.num_class = 1
+            end
+            LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
+            push!(estimators, estimator)
+        end
+        return estimators
+    end
+
+    # Function to generate predictions for each estimator
+    function generate_predictions(models)
+        predictions = []
+        for model in models
+            prediction = LightGBM.predict(model, X_train, verbosity = -1)
+            push!(predictions, prediction)
+        end
+        return predictions
+    end
+
+    # Fit classifiers and regressors and generate predictions
+    classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
+    regressors = fit_estimators(combinations, LightGBM.LGBMRegression, "regression")
+    classifier_predictions = generate_predictions(classifiers)
+    regressor_predictions = generate_predictions(regressors)
+
+    # Test prediction outputs for different parameters for classifier
+    @testset "Classifier predict parameters" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test classifier_predictions[4] == classifier_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test classifier_predictions[1] != classifier_predictions[2]
+        @test classifier_predictions[1] != classifier_predictions[3]
+        @test classifier_predictions[2] != classifier_predictions[3]
+    end
+
+    # Test prediction outputs for different parameters for regressor
+    @testset "Regressor predict parameters" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test regressor_predictions[4] == regressor_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test regressor_predictions[1] != regressor_predictions[2]
+        @test regressor_predictions[1] != regressor_predictions[3]
+        @test regressor_predictions[2] != regressor_predictions[3]
+    end
+end
+
+
 end # end module
