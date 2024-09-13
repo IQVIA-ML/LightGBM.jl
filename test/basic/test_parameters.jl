@@ -244,8 +244,10 @@ end
     # Fit classifiers and regressors and generate predictions
     classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
     regressors = fit_estimators(combinations, LightGBM.LGBMRegression, "regression")
+    regressors_poisson = fit_estimators(combinations, LightGBM.LGBMRegression, "poisson")
     classifier_predictions = generate_predictions(classifiers)
     regressor_predictions = generate_predictions(regressors)
+    regressor_poisson_predictions = generate_predictions(regressors_poisson)
 
     # Test prediction outputs for different parameters for classifier
     @testset "Classifier predict parameters" begin
@@ -256,10 +258,14 @@ end
         @test classifier_predictions[1] != classifier_predictions[2]
         @test classifier_predictions[1] != classifier_predictions[3]
         @test classifier_predictions[2] != classifier_predictions[3]
+        # 1, 2, 3 should not be equal to 4 (or 5)
+        @test classifier_predictions[1] != classifier_predictions[4]
+        @test classifier_predictions[2] != classifier_predictions[4]
+        @test classifier_predictions[3] != classifier_predictions[4]
     end
 
     # Test prediction outputs for different parameters for regressor
-    @testset "Regressor predict parameters" begin
+    @testset "Regressor predict parameters with regression objective" begin
         # 4 and 5 should be the same as they are both predict_normal
         @test regressor_predictions[4] == regressor_predictions[5]
         # 1, 2, 3 should be different as they are different predict types
@@ -267,6 +273,27 @@ end
         @test regressor_predictions[1] != regressor_predictions[2]
         @test regressor_predictions[1] != regressor_predictions[3]
         @test regressor_predictions[2] != regressor_predictions[3]
+        # 2 and 3 should not be equal to 4 (or 5)
+        @test regressor_predictions[2] != regressor_predictions[4]
+        @test regressor_predictions[3] != regressor_predictions[4]
+        # 1 should be the same as 4 (or 5) as for "regression" objective
+        # there is no transformation so predict_raw_score is the same as predict_normal
+        @test regressor_predictions[1] == regressor_predictions[4]
+    end
+
+    # Test prediction outputs for different parameters for regressor with poisson objective
+    @testset "Regressor predict parameters with poisson objective" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test regressor_poisson_predictions[4] == regressor_poisson_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[2]
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[3]
+        @test regressor_poisson_predictions[2] != regressor_poisson_predictions[3]
+        # 1, 2 and 3 should not be equal to 4 (or 5)
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[4]
+        @test regressor_poisson_predictions[2] != regressor_poisson_predictions[4]
+        @test regressor_poisson_predictions[3] != regressor_poisson_predictions[4]
     end
 end
 
