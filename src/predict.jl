@@ -1,4 +1,10 @@
 # TODO: Change verbosity on LightGBM's side after a booster is created.
+
+const C_API_PREDICT_NORMAL = 0
+const C_API_PREDICT_RAW_SCORE = 1
+const C_API_PREDICT_LEAF_INDEX = 2
+const C_API_PREDICT_CONTRIB = 3
+
 """
     predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1,
     is_row_major = false])
@@ -31,6 +37,16 @@ function predict(
 )::Matrix{Float64} where TX <:Real
 
     tryload!(estimator)
+
+    if estimator.predict_raw_score && !estimator.predict_leaf_index && !estimator.predict_contrib
+        predict_type = C_API_PREDICT_RAW_SCORE
+    elseif !estimator.predict_raw_score && estimator.predict_leaf_index && !estimator.predict_contrib
+        predict_type = C_API_PREDICT_LEAF_INDEX
+    elseif !estimator.predict_raw_score && !estimator.predict_leaf_index && estimator.predict_contrib
+        predict_type = C_API_PREDICT_CONTRIB
+    else
+        predict_type = C_API_PREDICT_NORMAL
+    end
 
     log_debug(verbosity, "Started predicting\n")
 

@@ -80,6 +80,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     use_missing::Bool = true
     feature_pre_filter::Bool = true
     categorical_feature::Vector{Int} = Vector{Int}()
+
+    # Predict parameters
+    start_iteration_predict::Int = 0
+    num_iteration_predict::Int = -1
+    predict_raw_score::Bool = false
+    predict_leaf_index::Bool = false
+    predict_contrib::Bool = false
+    predict_disable_shape_check::Bool = false
     
     # Objective parameters
     is_unbalance::Bool = false
@@ -167,6 +175,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     use_missing::Bool = true
     feature_pre_filter::Bool = true
     categorical_feature::Vector{Int} = Vector{Int}();
+
+    # Predict parameters
+    start_iteration_predict::Int = 0
+    num_iteration_predict::Int = -1
+    predict_raw_score::Bool = false
+    predict_leaf_index::Bool = false
+    predict_contrib::Bool = false
+    predict_disable_shape_check::Bool = false
     
     # Objective parameters
     is_unbalance::Bool = false

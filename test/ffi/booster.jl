@@ -347,9 +347,45 @@ end
 
 
 @testset "LGBM_BoosterCalcNumPredict" begin
+    # Setup train data and booster
+    mymat = rand(100, 10)  # 100 rows and 10 features
+    labels = rand([0, 1], 100)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+    num_rows = size(mymat, 1)
+    num_features = size(mymat, 2)
 
-    # Needs implementing
-    @test_broken false
+    # Train the booster with a known number of trees
+    num_iterations = 10
+    for i in 1:num_iterations
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Verify the number of iterations completed
+    num_trees = LightGBM.LGBM_BoosterGetCurrentIteration(booster)
+
+    # Test for normal prediction (predict_type = 0, start_iteration = 0, num_iteration = num_iterations)
+    # For normal prediction, the number of predictions should be equal to the number of rows
+    # multiplied by the number of classes in case of multi-class classification or 1 for binary classification and regression
+    preds_normal = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 0, 0, num_iterations)
+    @test preds_normal == num_rows
+
+    # Test for raw score (predict_type = 1, start_iteration = 0, num_iteration = num_iterations)
+    # Similar to normal prediction, the number of predictions should be equal to the number of rows or multiplied by the number of classes
+    preds_raw = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 1, 0, num_iterations)
+    @test preds_raw == num_rows
+
+    # Test for predict leaf index (predict_type = 2, start_iteration = 0, num_iteration = num_iterations)
+    # The number of predictions should be equal to the number of rows multiplied by the number of trees
+    # As it returns the leaf indices for each tree in the model for each data point
+    preds_leaf = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 2, 0, num_iterations)
+    @test preds_leaf == num_rows * num_trees
+
+    # Test for predict contribution (predict_type = 3, start_iteration = 0, num_iteration = num_iterations)
+    # This returns the SHAP values (feature contributions) for each feature in the dataset and an additional bias term/base value
+    preds_contrib = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 3, 0, num_iterations)
+    @test preds_contrib == num_rows * (num_features + 1)
 
 end
 
