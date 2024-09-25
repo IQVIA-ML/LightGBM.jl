@@ -312,8 +312,10 @@ end
         # very low margin means very fast predictions but they will be less accurate
         # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
         (true, 10, 0.1),
-        (true, 20, 0.2),
-        (true, 30, 0.3)
+        # High margin case (predictions should be the same as full predictions)
+        (true, 10, 5.5),
+        # High frequency case (predicted_probabilities should be the same as full time predictions given frequency is 100 and 100 iterations)
+        (true, 100, 0.2),
     ]
 
     # Function to create and fit estimators for each combination
@@ -323,8 +325,6 @@ end
             estimator = model_type(
                 objective = objective,
                 num_class = 1,
-                start_iteration_predict = 0,
-                num_iteration_predict = -1,
                 pred_early_stop = pred_early_stop,
                 pred_early_stop_freq = pred_early_stop_freq,
                 pred_early_stop_margin = pred_early_stop_margin,
@@ -336,25 +336,36 @@ end
         return estimators
     end
 
-    # Function to generate predictions for each estimator
+    # Function to generate predictions and predicted probabilities for each estimator
     function generate_predictions(models)
         predictions = []
+        predicted_probabilities = []
         for model in models
-            prediction = LightGBM.predict(model, X_train, verbosity = -1)
+            prediction = LightGBM.predict_classes(model, X_train, binary_threshold=0.5, verbosity = -1)
+            predicted_probability = LightGBM.predict(model, X_train, verbosity = -1)
             push!(predictions, prediction)
+            push!(predicted_probabilities, predicted_probability)
         end
-        return predictions
+        return predictions, predicted_probabilities
     end
 
     # Fit classifiers and generate predictions
     classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
-    classifier_predictions = generate_predictions(classifiers)
+    classifier_predictions, classifier_predicted_probabilities = generate_predictions(classifiers)
 
     # Test prediction outputs for different parameters for classifier
     @testset "Classifier predict parameters with early stopping" begin
-        # Predictions [2:4] with early stopping will be different from full predictions [1]
-        # as early stopping will stop predictions early with different frequencies and margins
-        @test all(classifier_predictions[1] != pred for pred in classifier_predictions[2:4])
+        # Predictions [2:4] with early stopping will be different from full predictions [1] for very low pred_early_stop_margin
+        # as the speed of predictions will be prioritized over accuracy
+        @test all(classifier_predictions[1] != classifier_predictions[2])
+        # High margin case should give the same predictions but the predicted probabilities values will differ from full predictions
+        @test all(classifier_predictions[1] == classifier_predictions[3])
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[3])
+        # High frequency case given 100 iterations and 100 frequency check should give the same predicted probabilities as full time predictions
+        @test classifier_predictions[1] == classifier_predictions[4]
+        @test classifier_predicted_probabilities[1] == classifier_predicted_probabilities[4]
+        # Ensure all predicted probabilities are within 0 and 1
+        @test all(0.0 .<= prob <= 1.0 for prob in vcat(classifier_predicted_probabilities...))
     end
 end
 
