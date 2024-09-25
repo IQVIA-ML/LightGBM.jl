@@ -319,6 +319,9 @@ mutable struct LGBMClassification <: LGBMEstimator
     predict_leaf_index::Bool
     predict_contrib::Bool
     predict_disable_shape_check::Bool
+    pred_early_stop::Bool
+    pred_early_stop_freq::Int
+    pred_early_stop_margin::Float64
 
     # Objective parameters
     num_class::Int
@@ -403,6 +406,9 @@ end
         predict_leaf_index = false,
         predict_contrib = false,
         predict_disable_shape_check = false,
+        pred_early_stop = false,
+        pred_early_stop_freq = 10,
+        pred_early_stop_margin = 10.0,
         num_class = 2,
         is_unbalance = false,
         scale_pos_weight = 1.0,
@@ -480,6 +486,9 @@ function LGBMClassification(;
     predict_leaf_index = false,
     predict_contrib = false,
     predict_disable_shape_check = false,
+    pred_early_stop = false,
+    pred_early_stop_freq = 10,
+    pred_early_stop_margin = 10.0,
     num_class = 2,
     is_unbalance = false,
     scale_pos_weight = 1.0,
@@ -509,7 +518,7 @@ function LGBMClassification(;
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, linear_tree, max_bin, bin_construct_sample_cnt,
         data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
-        predict_disable_shape_check, 
+        predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
@@ -583,6 +592,9 @@ mutable struct LGBMRanking <: LGBMEstimator
     predict_leaf_index::Bool
     predict_contrib::Bool
     predict_disable_shape_check::Bool
+    pred_early_stop::Bool
+    pred_early_stop_freq::Int
+    pred_early_stop_margin::Float64
 
     # Objective parameters
     objective_seed::Int
@@ -672,6 +684,9 @@ end
         predict_leaf_index = false,
         predict_contrib = false,
         predict_disable_shape_check = false,
+        pred_early_stop = false,
+        pred_early_stop_freq = 10,
+        pred_early_stop_margin = 10.0,
         objective_seed = 5,
         num_class = 1,
         is_unbalance = false,
@@ -754,6 +769,9 @@ function LGBMRanking(;
     predict_leaf_index = false,
     predict_contrib = false,
     predict_disable_shape_check = false,
+    pred_early_stop = false,
+    pred_early_stop_freq = 10,
+    pred_early_stop_margin = 10.0,
     objective_seed = 5,
     num_class = 1,
     is_unbalance = false,
@@ -787,7 +805,7 @@ function LGBMRanking(;
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, linear_tree, max_bin, bin_construct_sample_cnt,
         data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, group_column, categorical_feature, 
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
-        predict_disable_shape_check,
+        predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
