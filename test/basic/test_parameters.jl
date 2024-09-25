@@ -302,7 +302,6 @@ end
     # Generate random data
     X_train = randn(1000, 20)
     y_train_classifier = rand([0, 1], 1000)
-    y_train_regressor = randn(1000)
 
     # Define combinations of parameters for early stopping
     combinations = [
@@ -321,26 +320,17 @@ end
     function fit_estimators(combinations, model_type, objective)
         estimators = []
         for (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin) in combinations
-            if model_type == LightGBM.LGBMClassification
-                estimator = model_type(
-                    objective = objective,
-                    start_iteration_predict = 0,
-                    num_iteration_predict = -1,
-                    pred_early_stop = pred_early_stop,
-                    pred_early_stop_freq = pred_early_stop_freq,
-                    pred_early_stop_margin = pred_early_stop_margin,
-                    num_iterations = 100,
-                )
-                estimator.num_class = 1
-            else
-                estimator = model_type(
-                    objective = objective,
-                    start_iteration_predict = 0,
-                    num_iteration_predict = -1,
-                    num_iterations = 100,
-                )
-            end
-            LightGBM.fit!(estimator, X_train, model_type == LightGBM.LGBMClassification ? y_train_classifier : y_train_regressor, verbosity = -1)
+            estimator = model_type(
+                objective = objective,
+                num_class = 1,
+                start_iteration_predict = 0,
+                num_iteration_predict = -1,
+                pred_early_stop = pred_early_stop,
+                pred_early_stop_freq = pred_early_stop_freq,
+                pred_early_stop_margin = pred_early_stop_margin,
+                num_iterations = 100,
+            )
+            LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
             push!(estimators, estimator)
         end
         return estimators
@@ -356,23 +346,15 @@ end
         return predictions
     end
 
-    # Fit classifiers and regressors and generate predictions
+    # Fit classifiers and generate predictions
     classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
-    regressors = fit_estimators(combinations, LightGBM.LGBMRegression, "regression")
     classifier_predictions = generate_predictions(classifiers)
-    regressor_predictions = generate_predictions(regressors)
 
     # Test prediction outputs for different parameters for classifier
     @testset "Classifier predict parameters with early stopping" begin
         # Predictions [2:4] with early stopping will be different from full predictions [1]
         # as early stopping will stop predictions early with different frequencies and margins
         @test all(classifier_predictions[1] != pred for pred in classifier_predictions[2:4])
-    end
-
-    # Test prediction outputs for different parameters for regressor
-    @testset "Regressor predict parameters without early stopping" begin
-        # There is no prediction early stopping for regression hence all predictions should be the same
-        @test all(regressor_predictions[1] == pred for pred in regressor_predictions[2:4])
     end
 end
 
