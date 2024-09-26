@@ -398,7 +398,7 @@ end
     preds = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1) 
     @test all(iszero, preds)
 
-    preds_threaded = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1, false, 2) 
+    preds_threaded = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1, false, "num_threads=2") 
     @test all(iszero, preds_threaded)
 end
 

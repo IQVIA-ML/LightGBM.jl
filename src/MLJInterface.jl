@@ -183,6 +183,9 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     predict_leaf_index::Bool = false
     predict_contrib::Bool = false
     predict_disable_shape_check::Bool = false
+    pred_early_stop::Bool = false
+    pred_early_stop_freq::Int = 10
+    pred_early_stop_margin::Float64 = 10.0
     
     # Objective parameters
     is_unbalance::Bool = false

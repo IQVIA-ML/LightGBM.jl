@@ -656,7 +656,7 @@ function LGBM_BoosterPredictForMat(
     start_iteration::Integer,
     num_iteration::Integer,
     is_row_major::Bool = false,
-    num_threads::Integer = -1
+    parameter::String = ""
 ) where T<:Union{Float32,Float64}
 
     lgbm_data_type = jltype_to_lgbmid(T)
@@ -665,10 +665,6 @@ function LGBM_BoosterPredictForMat(
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, start_iteration, num_iteration)
     out_result = Array{Cdouble}(undef, alloc_len)
 
-    parameter = ""  # full prediction, no early stopping
-    if num_threads > 0
-        parameter = "num_threads=$num_threads"
-    end
     @lightgbm(
         :LGBM_BoosterPredictForMat,
         bst.handle => BoosterHandle,

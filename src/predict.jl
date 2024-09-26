@@ -32,7 +32,7 @@ One can obtain some form of feature importances by averaging SHAP contributions 
 function predict(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
     start_iteration::Integer = 0, num_iterations::Integer = -1, verbosity::Integer = 1,
-    is_row_major::Bool = false,
+    is_row_major::Bool = false, 
     num_threads::Integer = -1,
 )::Matrix{Float64} where TX <:Real
 
@@ -50,8 +50,18 @@ function predict(
 
     log_debug(verbosity, "Started predicting\n")
 
+    if num_threads != -1
+        parameter = "num_threads=$(num_threads)"
+    else
+        parameter = "num_threads=$(estimator.num_threads)"
+    end
+
+    if !(estimator isa LGBMRegression) && estimator.pred_early_stop
+        parameter *= " pred_early_stop=true pred_early_stop_freq=$(estimator.pred_early_stop_freq) pred_early_stop_margin=$(estimator.pred_early_stop_margin)"
+    end
+
     prediction = LGBM_BoosterPredictForMat(
-        estimator.booster, X, predict_type, start_iteration, num_iterations, is_row_major, num_threads
+        estimator.booster, X, predict_type, start_iteration, num_iterations, is_row_major, parameter
     )
 
     # This works the same one way or another because when n=1, (regression) reshaping is basically no-op

@@ -298,4 +298,76 @@ end
 end
 
 
+@testset "parameters -- prediction with early stopping" begin
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train_classifier = rand([0, 1], 1000)
+
+    # Define combinations of parameters for early stopping
+    # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
+    combinations = [
+        # No early stopping case (full predictions)
+        (false, 0, 0.0),
+        # Early stopping with very low margin case which means very fast predictions but they will be less accurate
+        # Such predictions and predicted probabilities will be different from full predictions and predicted probabilities
+        (true, 10, 0.1),
+        # High margin case (predictions with a 0.5 binary threshold will be the same as full predictions but predicted probabilities will differ)
+        (true, 10, 5.5),
+        # High frequency case (both predictions and predicted probabilities will be the same as full predictions given early stop frequency is 100 and 100 iterations)
+        (true, 100, 0.2),
+    ]
+
+    # Function to create and fit estimators for each combination
+    function fit_estimators(combinations, model_type, objective)
+        estimators = []
+        for (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin) in combinations
+            estimator = model_type(
+                objective = objective,
+                num_class = 1,
+                pred_early_stop = pred_early_stop,
+                pred_early_stop_freq = pred_early_stop_freq,
+                pred_early_stop_margin = pred_early_stop_margin,
+                num_iterations = 100,
+            )
+            LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
+            push!(estimators, estimator)
+        end
+        return estimators
+    end
+
+    # Function to generate predictions and predicted probabilities for each estimator
+    function generate_predictions(models)
+        predictions = []
+        predicted_probabilities = []
+        for model in models
+            prediction = LightGBM.predict_classes(model, X_train, binary_threshold=0.5, verbosity = -1)
+            predicted_probability = LightGBM.predict(model, X_train, verbosity = -1)
+            push!(predictions, prediction)
+            push!(predicted_probabilities, predicted_probability)
+        end
+        return predictions, predicted_probabilities
+    end
+
+    # Fit classifiers and generate predictions
+    classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
+    classifier_predictions, classifier_predicted_probabilities = generate_predictions(classifiers)
+
+    # Test prediction outputs for different parameters for classifier
+    @testset "Classifier predict parameters with early stopping" begin
+        # Predictions and predicted probabilities with early stopping will be different from full predictions and predicted probabilities
+        # for very low pred_early_stop_margin as the speed of predictions will be prioritized over accuracy
+        @test all(classifier_predictions[1] != classifier_predictions[2])
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[2])
+        # High margin case should give the same predictions with a threshold of 0.5 but the predicted probabilities values will differ from full predicted probabilities
+        @test all(classifier_predictions[1] == classifier_predictions[3])
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[3])
+        # High frequency case given 100 iterations and 100 frequency check should give the same predictions and predicted probabilities as full predictions and predicted probabilities
+        @test classifier_predictions[1] == classifier_predictions[4]
+        @test classifier_predicted_probabilities[1] == classifier_predicted_probabilities[4]
+        # Ensure all predicted probabilities are within 0 and 1
+        @test all(0.0 .<= prob <= 1.0 for prob in vcat(classifier_predicted_probabilities...))
+    end
+end
+
+
 end # end module
