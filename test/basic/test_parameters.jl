@@ -304,17 +304,16 @@ end
     y_train_classifier = rand([0, 1], 1000)
 
     # Define combinations of parameters for early stopping
+    # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
     combinations = [
-        # No early stopping
-        # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
+        # No early stopping case (full predictions)
         (false, 0, 0.0),
-        # Early stopping with different frequencies and margins
-        # very low margin means very fast predictions but they will be less accurate
-        # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
+        # Early stopping with very low margin case which means very fast predictions but they will be less accurate
+        # Such predictions and predicted probabilities will be different from full predictions and predicted probabilities
         (true, 10, 0.1),
-        # High margin case (predictions should be the same as full predictions)
+        # High margin case (predictions with a 0.5 binary threshold will be the same as full predictions but predicted probabilities will differ)
         (true, 10, 5.5),
-        # High frequency case (predicted_probabilities should be the same as full time predictions given frequency is 100 and 100 iterations)
+        # High frequency case (both predictions and predicted probabilities will be the same as full predictions given early stop frequency is 100 and 100 iterations)
         (true, 100, 0.2),
     ]
 
@@ -355,13 +354,14 @@ end
 
     # Test prediction outputs for different parameters for classifier
     @testset "Classifier predict parameters with early stopping" begin
-        # Predictions [2:4] with early stopping will be different from full predictions [1] for very low pred_early_stop_margin
-        # as the speed of predictions will be prioritized over accuracy
+        # Predictions and predicted probabilities with early stopping will be different from full predictions and predicted probabilities
+        # for very low pred_early_stop_margin as the speed of predictions will be prioritized over accuracy
         @test all(classifier_predictions[1] != classifier_predictions[2])
-        # High margin case should give the same predictions but the predicted probabilities values will differ from full predictions
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[2])
+        # High margin case should give the same predictions with a threshold of 0.5 but the predicted probabilities values will differ from full predicted probabilities
         @test all(classifier_predictions[1] == classifier_predictions[3])
         @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[3])
-        # High frequency case given 100 iterations and 100 frequency check should give the same predicted probabilities as full time predictions
+        # High frequency case given 100 iterations and 100 frequency check should give the same predictions and predicted probabilities as full predictions and predicted probabilities
         @test classifier_predictions[1] == classifier_predictions[4]
         @test classifier_predicted_probabilities[1] == classifier_predicted_probabilities[4]
         # Ensure all predicted probabilities are within 0 and 1
