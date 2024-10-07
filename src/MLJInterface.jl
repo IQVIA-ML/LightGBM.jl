@@ -70,6 +70,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     
     # Dataset parameters
     linear_tree::Bool = false
@@ -165,6 +166,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     
     # Dateset parameters
     linear_tree::Bool = false
