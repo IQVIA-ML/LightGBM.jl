@@ -690,6 +690,21 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::
                                      num_iteration)
 end
 
+function LGBM_BoosterRefit(bst::Booster, leaf_preds::Matrix{Float64})
+    nrow, ncol = size(leaf_preds)
+    # input matrix is Float64 (when comes from predictions), but leaf indices are Int32
+    leaf_preds = convert(Matrix{Int32}, leaf_preds)
+    
+    @lightgbm(
+        :LGBM_BoosterRefit,
+        bst.handle => BoosterHandle,
+        leaf_preds => Ptr{Int32},
+        nrow => Int32,
+        ncol => Int32
+    )
+    return nothing
+end
+
 function LGBM_BoosterSaveModel(
     bst::Booster,
     start_iteration::Integer,

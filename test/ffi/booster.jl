@@ -403,6 +403,32 @@ end
 end
 
 
+@testset "LGBM_BoosterRefit" begin
+    # Sample dataset
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+    
+    # Create an estimator with predict_leaf_index set to true to obtain leaf index predictions
+    estimator = LightGBM.LGBMClassification(predict_leaf_index = true, num_iterations = 1)
+    
+    # Fit the estimator with the training data
+    LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+    
+    # Get the number of trees in the booster
+    num_trees = LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster)
+    
+    # Get the leaf predictions using the training data
+    leaf_predictions = LightGBM.predict(estimator, X_train)
+    
+    # Refit the model using leaf predictions
+    result = LightGBM.LGBM_BoosterRefit(estimator.booster, leaf_predictions)
+    
+    # Test that LGBM_BoosterRefit returns nothing (meaning successful)
+    @test result == nothing
+ 
+end
+
+
 @testset "LGBM_BoosterSaveModel" begin
 
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))

@@ -191,8 +191,7 @@ end
 @testset "parameters -- prediction" begin
     # Generate random data
     X_train = randn(1000, 20)
-    y_train_classifier = rand([0, 1], 1000)
-    y_train_regressor = randn(1000)
+    y_train = rand([0, 1], 1000)
 
     # Define combinations of parameters
     combinations = [
@@ -225,7 +224,7 @@ end
             if model_type == LightGBM.LGBMClassification
                 estimator.num_class = 1
             end
-            LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
+            LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
             push!(estimators, estimator)
         end
         return estimators
