@@ -414,9 +414,6 @@ end
     # Fit the estimator with the training data
     LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
     
-    # Get the number of trees in the booster
-    num_trees = LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster)
-    
     # Get the leaf predictions using the training data
     leaf_predictions = LightGBM.predict(estimator, X_train)
     
