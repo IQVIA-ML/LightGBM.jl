@@ -294,6 +294,42 @@ end
         @test regressor_poisson_predictions[2] != regressor_poisson_predictions[4]
         @test regressor_poisson_predictions[3] != regressor_poisson_predictions[4]
     end
+
+    @testset "Predict parameters precedence" begin
+    # Create a simple estimator with default predict params set to false
+        estimator = LightGBM.LGBMClassification(
+            objective = "binary",
+            predict_raw_score = false,
+            predict_leaf_index = false,
+            predict_contrib = false,
+            num_class = 1
+        )
+        estimator_raw = LightGBM.LGBMClassification(
+            objective = "binary",
+            predict_raw_score = true,
+            num_class = 1
+        )
+        LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+        LightGBM.fit!(estimator_raw, X_train, y_train, verbosity = -1)
+    
+        # Generate normal predictions (with default predict params)
+        prediction_default = LightGBM.predict(estimator, X_train, verbosity = -1)
+        prediction_default_raw = LightGBM.predict(estimator_raw, X_train, verbosity = -1)
+    
+        # Generate predictions with predict_raw_score set to true
+        prediction_raw = LightGBM.predict(estimator, X_train; verbosity = -1, predict_raw_score = true)
+        prediction_leaf = LightGBM.predict(estimator, X_train; verbosity = -1, predict_leaf_index = true)
+        prediction_contrib = LightGBM.predict(estimator, X_train; verbosity = -1, predict_contrib = true)
+        prediction_default_raw = LightGBM.predict(estimator_raw, X_train; verbosity = -1)
+    
+        # Test that the default predictions are different (params passed to predict function have precedence)
+        @test prediction_default != prediction_raw
+        @test prediction_default != prediction_leaf
+        @test prediction_default != prediction_contrib
+        # Test that the default predictions with estimator predict_raw_score but no additional predict param 
+        # are the same as the predictions with predict_raw_score set to true
+        @test prediction_default_raw == prediction_raw
+    end
 end
 
 
@@ -366,6 +402,27 @@ end
         # Ensure all predicted probabilities are within 0 and 1
         @test all(0.0 .<= prob <= 1.0 for prob in vcat(classifier_predicted_probabilities...))
     end
+end
+
+
+@testset "parameters -- refit with refit decay rate" begin
+    using LightGBM, Test
+    # Create sample data, labels and estimator
+    featuresdata = randn(1000, 20)
+    labels = rand([0, 1], 1000)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    LightGBM.fit!(estimator, featuresdata, labels, verbosity = -1)
+    
+    # Refit with default refit_decay_rate
+    new_booster = LightGBM.refit(estimator, featuresdata, labels)
+    # Refit with custom refit_decay_rate
+    new_booster_custom = LightGBM.refit(estimator, featuresdata, labels, refit_decay_rate = 0.5)
+    
+    # Verify the returned booster
+    @test new_booster != nothing
+    @test new_booster != estimator
+    @test new_booster_custom != new_booster
+
 end
 
 

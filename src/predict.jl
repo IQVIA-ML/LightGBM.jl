@@ -6,8 +6,8 @@ const C_API_PREDICT_LEAF_INDEX = 2
 const C_API_PREDICT_CONTRIB = 3
 
 """
-    predict(estimator, X; [predict_type = 0, num_iterations = -1, verbosity = 1,
-    is_row_major = false])
+    predict(estimator, X; [num_iterations = -1, verbosity = 1,
+    is_row_major = false, num_threads = -1, predict_raw_score = false, predict_leaf_index = false, predict_contrib = false])
 
 Return a **MATRIX** with the labels that the `estimator` predicts for features data `X`.
 Use `dropdims` if a vector is required.
@@ -25,27 +25,37 @@ Use `dropdims` if a vector is required.
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
 * `num_threads::Integer`: keyword argument specifying the number of threads to use
     for prediction. Default is `-1` which reuses `num_threads` of the estimator.
+* `predict_raw_score::Bool`: keyword argument that indicates whether or not to predict raw scores. Setting to true overrides the estimator's setting.
+* `predict_leaf_index::Bool`: keyword argument that indicates whether or not to predict leaf indices. Setting to true overrides the estimator's setting.
+* `predict_contrib::Bool`: keyword argument that indicates whether or not to predict SHAP contributions. Setting to true overrides the estimator's setting.
 
-One can obtain some form of feature importances by averaging SHAP contributions across predictions, i.e.
-`mean(LightGBM.predict(estimator, X; predict_type=3); dims=1)`
 """
 function predict(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}; predict_type::Integer = 0,
+    estimator::LGBMEstimator, X::AbstractMatrix{TX};
     start_iteration::Integer = 0, num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false, 
     num_threads::Integer = -1,
+    predict_raw_score::Bool = false, predict_leaf_index::Bool = false, predict_contrib::Bool = false
 )::Matrix{Float64} where TX <:Real
 
     tryload!(estimator)
 
-    if estimator.predict_raw_score && !estimator.predict_leaf_index && !estimator.predict_contrib
+    if predict_raw_score
         predict_type = C_API_PREDICT_RAW_SCORE
-    elseif !estimator.predict_raw_score && estimator.predict_leaf_index && !estimator.predict_contrib
+    elseif predict_leaf_index
         predict_type = C_API_PREDICT_LEAF_INDEX
-    elseif !estimator.predict_raw_score && !estimator.predict_leaf_index && estimator.predict_contrib
+    elseif predict_contrib
         predict_type = C_API_PREDICT_CONTRIB
     else
-        predict_type = C_API_PREDICT_NORMAL
+        if estimator.predict_raw_score && !estimator.predict_leaf_index && !estimator.predict_contrib
+            predict_type = C_API_PREDICT_RAW_SCORE
+        elseif !estimator.predict_raw_score && estimator.predict_leaf_index && !estimator.predict_contrib
+            predict_type = C_API_PREDICT_LEAF_INDEX
+        elseif !estimator.predict_raw_score && !estimator.predict_leaf_index && estimator.predict_contrib
+            predict_type = C_API_PREDICT_CONTRIB
+        else
+            predict_type = C_API_PREDICT_NORMAL
+        end
     end
 
     log_debug(verbosity, "Started predicting\n")
@@ -74,7 +84,7 @@ end
 
 
 function predict_classes(
-    estimator::LGBMClassification, X::AbstractMatrix{TX}; predict_type::Integer = 0,
+    estimator::LGBMClassification, X::AbstractMatrix{TX};
     num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false, binary_threshold::Float64 = 0.5,
     num_threads::Integer = -1,
@@ -82,7 +92,7 @@ function predict_classes(
 
     # pass through, get probabilities
     predicted_probabilities = predict(
-        estimator, X; predict_type=predict_type, num_iterations=num_iterations,
+        estimator, X; num_iterations=num_iterations,
         verbosity=verbosity, is_row_major=is_row_major, num_threads=num_threads,
     )
 

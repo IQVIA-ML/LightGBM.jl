@@ -418,7 +418,7 @@ end
     leaf_predictions = LightGBM.predict(estimator, X_train)
 
     # Convert to Int32 which is expected by the C API and should be for leaf indices
-    # Reshape the leaf predictions as unlike the normal or raw predictions their number of rows is number of data points * num_trees/iterations 
+    # Reshape the leaf predictions as their number of rows is number of data points/rows * num_trees/iterations
     reshaped_leaf_predictions = reshape(convert(Matrix{Int32}, leaf_predictions), (size(X_train, 1), estimator.num_iterations))
 
     # Refit the model using the reshaped leaf predictions

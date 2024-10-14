@@ -692,7 +692,6 @@ end
 
 function LGBM_BoosterRefit(bst::Booster, leaf_preds::Matrix{Int32})
     nrow, ncol = size(leaf_preds)
-    
     @lightgbm(
         :LGBM_BoosterRefit,
         bst.handle => BoosterHandle,
@@ -785,6 +784,14 @@ end
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()
+
+function LGBM_BoosterGetLinear(bst::Booster)
+    out = Ref{Bool}()
+    @lightgbm(:LGBM_BoosterGetLinear,
+              bst.handle => BoosterHandle,
+              out => Ref{Bool})
+    return out[]
+end
 
 function LGBM_BoosterNumModelPerIteration(bst::Booster)
     out_models = Ref{Cint}()
