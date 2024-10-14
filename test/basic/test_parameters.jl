@@ -406,16 +406,15 @@ end
 
 
 @testset "parameters -- refit with refit decay rate" begin
-    using LightGBM, Test
     # Create sample data, labels and estimator
     featuresdata = randn(1000, 20)
     labels = rand([0, 1], 1000)
     estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
     LightGBM.fit!(estimator, featuresdata, labels, verbosity = -1)
     
-    # Refit with default refit_decay_rate
+    # Refit with a default refit_decay_rate
     new_booster = LightGBM.refit(estimator, featuresdata, labels)
-    # Refit with custom refit_decay_rate
+    # Refit with a custom refit_decay_rate
     new_booster_custom = LightGBM.refit(estimator, featuresdata, labels, refit_decay_rate = 0.5)
     
     # Verify the returned booster
