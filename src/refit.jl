@@ -11,8 +11,8 @@ function refit(estimator::LGBMEstimator, featuresdata::AbstractMatrix{TX}, label
     will use `leaf_output = decay_rate * old_leaf_output + (1.0 - decay_rate) * new_leaf_output` to refit trees.
 
     Returns
-    result : Booster
-        Refitted Booster.
+    result : LGBMEstimator
+        Refitted model.
     """
 
     # get leaf predictions for the provided estimator on new data

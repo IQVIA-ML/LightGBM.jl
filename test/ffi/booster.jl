@@ -518,6 +518,20 @@ end
 end
 
 
+@testset "LGBM_BoosterGetLinear" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    # non-linear example
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary")
+    @test LightGBM.LGBM_BoosterGetLinear(booster) == 0
+    # linear example
+    linear_booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary linear_tree=true")
+    @test LightGBM.LGBM_BoosterGetLinear(linear_booster) == 1
+
+end
+
+
 @testset "LGBM_BoosterNumModelPerIteration" begin
 
 
