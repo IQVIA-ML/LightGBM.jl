@@ -5,6 +5,30 @@ const C_API_PREDICT_RAW_SCORE = 1
 const C_API_PREDICT_LEAF_INDEX = 2
 const C_API_PREDICT_CONTRIB = 3
 
+
+function get_predict_type(
+    predict_raw_score::Bool, predict_leaf_index::Bool, predict_contrib::Bool,
+    estimator::LGBMEstimator
+)
+    predict_type = C_API_PREDICT_NORMAL
+
+    if predict_raw_score && !predict_leaf_index && !predict_contrib
+        predict_type = C_API_PREDICT_RAW_SCORE
+    elseif predict_leaf_index && !predict_raw_score && !predict_contrib
+        predict_type = C_API_PREDICT_LEAF_INDEX
+    elseif predict_contrib && !predict_raw_score && !predict_leaf_index
+        predict_type = C_API_PREDICT_CONTRIB
+    elseif estimator.predict_raw_score && !estimator.predict_leaf_index && !estimator.predict_contrib
+        predict_type = C_API_PREDICT_RAW_SCORE
+    elseif estimator.predict_leaf_index && !estimator.predict_raw_score && !estimator.predict_contrib
+        predict_type = C_API_PREDICT_LEAF_INDEX
+    elseif estimator.predict_contrib && !estimator.predict_raw_score && !estimator.predict_leaf_index
+        predict_type = C_API_PREDICT_CONTRIB
+    end
+
+    return predict_type
+end
+
 """
     predict(estimator, X; [num_iterations = -1, verbosity = 1,
     is_row_major = false, num_threads = -1, predict_raw_score = false, predict_leaf_index = false, predict_contrib = false])
@@ -40,23 +64,7 @@ function predict(
 
     tryload!(estimator)
 
-    if predict_raw_score
-        predict_type = C_API_PREDICT_RAW_SCORE
-    elseif predict_leaf_index
-        predict_type = C_API_PREDICT_LEAF_INDEX
-    elseif predict_contrib
-        predict_type = C_API_PREDICT_CONTRIB
-    else
-        if estimator.predict_raw_score && !estimator.predict_leaf_index && !estimator.predict_contrib
-            predict_type = C_API_PREDICT_RAW_SCORE
-        elseif !estimator.predict_raw_score && estimator.predict_leaf_index && !estimator.predict_contrib
-            predict_type = C_API_PREDICT_LEAF_INDEX
-        elseif !estimator.predict_raw_score && !estimator.predict_leaf_index && estimator.predict_contrib
-            predict_type = C_API_PREDICT_CONTRIB
-        else
-            predict_type = C_API_PREDICT_NORMAL
-        end
-    end
+    predict_type = get_predict_type(predict_raw_score, predict_leaf_index, predict_contrib, estimator)
 
     log_debug(verbosity, "Started predicting\n")
 
