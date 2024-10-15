@@ -403,6 +403,33 @@ end
 end
 
 
+@testset "LGBM_BoosterRefit" begin
+    # Sample dataset
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+    
+    # Create an estimator with predict_leaf_index set to true to obtain leaf index predictions
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, predict_leaf_index = true, num_iterations = 20)
+    
+    # Fit the estimator with the training data
+    LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+    
+    # Get the leaf predictions using the training data
+    leaf_predictions = LightGBM.predict(estimator, X_train)
+
+    # Convert to Int32 which is expected by the C API and should be for leaf indices
+    # Reshape the leaf predictions as their number of rows is number of data points/rows * num_trees/iterations
+    reshaped_leaf_predictions = reshape(convert(Matrix{Int32}, leaf_predictions), (size(X_train, 1), estimator.num_iterations))
+
+    # Refit the model using the reshaped leaf predictions
+    result = LightGBM.LGBM_BoosterRefit(estimator.booster, reshaped_leaf_predictions)
+    
+    # Test that LGBM_BoosterRefit returns nothing (meaning successful)
+    @test result == nothing
+ 
+end
+
+
 @testset "LGBM_BoosterSaveModel" begin
 
     booster = LightGBM.LGBM_BoosterCreateFromModelfile(joinpath(@__DIR__, "data", "test_tree"))
@@ -487,6 +514,20 @@ end
 
     @test isapprox(gain_sub_importance, expected_sub_gain, atol=1e-4)
     @test split_sub_importance == expected_sub_split
+
+end
+
+
+@testset "LGBM_BoosterGetLinear" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    # non-linear example
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary")
+    @test LightGBM.LGBM_BoosterGetLinear(booster) == 0
+    # linear example
+    linear_booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary linear_tree=true")
+    @test LightGBM.LGBM_BoosterGetLinear(linear_booster) == 1
 
 end
 
