@@ -47,6 +47,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    forcedsplits_filename::String
     refit_decay_rate::Float64
     
     # Dataset parameters
@@ -57,7 +58,14 @@ mutable struct LGBMRegression <: LGBMEstimator
     is_enable_sparse::Bool
     use_missing::Bool
     feature_pre_filter::Bool
+    two_round::Bool
+    header::Bool
+    label_column::String
+    weight_column::String
+    ignore_column::String
     categorical_feature::Vector{Int}
+    forcedbins_filename::String
+    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -133,6 +141,7 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        forcedsplits_filename = "",
         refit_decay_rate = 0.9,
         linear_tree = false,
         max_bin = 255,
@@ -141,7 +150,14 @@ end
         is_enable_sparse = true,
         use_missing = true,
         feature_pre_filter = true,
+        two_round = false,
+        header = false,
+        label_column = "",
+        weight_column = "",
+        ignore_column = "",
         categorical_feature = Int[],
+        forcedbins_filename = "",
+        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -207,6 +223,7 @@ function LGBMRegression(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    forcedsplits_filename = "",
     refit_decay_rate = 0.9,
     linear_tree = false,
     max_bin = 255,
@@ -215,7 +232,14 @@ function LGBMRegression(;
     is_enable_sparse = true,
     use_missing = true,
     feature_pre_filter = true,
+    two_round = false,
+    header = false,
+    label_column = "",
+    weight_column = "",
+    ignore_column = "",
     categorical_feature = Int[],
+    forcedbins_filename = "",
+    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -247,9 +271,9 @@ function LGBMRegression(;
         extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
-        cat_l2, cat_smooth, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt, data_random_seed,
-        is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
-        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
+        cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt, data_random_seed,
+        is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
+        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
         1, is_unbalance, boost_from_average, alpha, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
@@ -304,6 +328,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    forcedsplits_filename::String
     refit_decay_rate::Float64
 
     # Dataset parameters
@@ -314,7 +339,14 @@ mutable struct LGBMClassification <: LGBMEstimator
     is_enable_sparse::Bool
     use_missing::Bool
     feature_pre_filter::Bool
+    two_round::Bool
+    header::Bool
+    label_column::String
+    weight_column::String
+    ignore_column::String
     categorical_feature::Vector{Int}
+    forcedbins_filename::String
+    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -396,6 +428,7 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        forcedsplits_filename = "",
         refit_decay_rate = 0.9,
         linear_tree = false,
         max_bin = 255,
@@ -404,7 +437,14 @@ end
         is_enable_sparse = true,
         use_missing = true,
         feature_pre_filter = true,
+        two_round = false,
+        header = false,
+        label_column = "",
+        weight_column = "",
+        ignore_column = "",
         categorical_feature = Int[],
+        forcedbins_filename = "",
+        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -477,6 +517,7 @@ function LGBMClassification(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    forcedsplits_filename = "",
     refit_decay_rate = 0.9,
     linear_tree = false,
     max_bin = 255,
@@ -485,7 +526,14 @@ function LGBMClassification(;
     is_enable_sparse = true,
     use_missing = true,
     feature_pre_filter = true,
+    two_round = false,
+    header = false,
+    label_column = "",
+    weight_column = "",
+    ignore_column = "",
     categorical_feature = Int[],
+    forcedbins_filename = "",
+    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -521,9 +569,9 @@ function LGBMClassification(;
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, categorical_feature, 
-        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
+        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
+        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
@@ -579,6 +627,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    forcedsplits_filename::String
     refit_decay_rate::Float64
 
     # Dataset parameters
@@ -589,8 +638,15 @@ mutable struct LGBMRanking <: LGBMEstimator
     is_enable_sparse::Bool
     use_missing::Bool
     feature_pre_filter::Bool
+    two_round::Bool
+    header::Bool
+    label_column::String
+    weight_column::String
+    ignore_column::String
     group_column::String
     categorical_feature::Vector{Int}
+    forcedbins_filename::String
+    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -676,6 +732,7 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        forcedsplits_filename = "",
         refit_decay_rate = 0.9,
         linear_tree = false,
         max_bin = 255,
@@ -684,8 +741,15 @@ end
         is_enable_sparse = true,
         use_missing = true,
         feature_pre_filter = true,
+        two_round = false,
+        header = false,
+        label_column = "",
+        weight_column = "",
+        ignore_column = "",
         group_column = ""
         categorical_feature = Int[],
+        forcedbins_filename = "",
+        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -762,6 +826,7 @@ function LGBMRanking(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    forcedsplits_filename = "",
     refit_decay_rate = 0.9,
     linear_tree = false,
     max_bin = 255,
@@ -770,8 +835,15 @@ function LGBMRanking(;
     is_enable_sparse = true,
     use_missing = true,
     feature_pre_filter = true,
+    two_round = false,
+    header = false,
+    label_column = "",
+    weight_column = "",
+    ignore_column = "",
     group_column = "",
     categorical_feature = Int[],
+    forcedbins_filename = "",
+    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -811,9 +883,9 @@ function LGBMRanking(;
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction, bagging_freq,
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, group_column, categorical_feature, 
-        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
+        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, group_column, categorical_feature, forcedbins_filename,
+        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,

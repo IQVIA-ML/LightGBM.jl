@@ -131,7 +131,21 @@ macro lightgbm(f, params...)
 end
 
 
-# function LGBM_DatasetCreateFromFile()
+function LGBM_DatasetCreateFromFile(
+    filename::String,
+    parameters::String,
+    reference::Dataset = Dataset(C_NULL)
+)
+    out = Ref{DatasetHandle}()
+    @lightgbm(
+        :LGBM_DatasetCreateFromFile,
+        filename => Cstring,
+        parameters => Cstring,
+        reference.handle => DatasetHandle,
+        out => Ref{DatasetHandle}
+    )
+    return Dataset(out[])
+end
 
 
 function LGBM_DatasetCreateFromCSC(

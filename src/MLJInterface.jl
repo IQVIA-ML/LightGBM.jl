@@ -70,6 +70,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    forcedsplits_filename::String = ""
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     
     # Dataset parameters
@@ -80,7 +81,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_enable_sparse::Bool = true
     use_missing::Bool = true
     feature_pre_filter::Bool = true
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
     categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
@@ -166,6 +174,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    forcedsplits_filename::String = ""
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     
     # Dateset parameters
@@ -176,7 +185,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     is_enable_sparse::Bool = true
     use_missing::Bool = true
     feature_pre_filter::Bool = true
-    categorical_feature::Vector{Int} = Vector{Int}();
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
+    categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
