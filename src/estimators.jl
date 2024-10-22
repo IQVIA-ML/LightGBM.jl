@@ -642,8 +642,8 @@ mutable struct LGBMRanking <: LGBMEstimator
     header::Bool
     label_column::String
     weight_column::String
-    ignore_column::String
     group_column::String
+    ignore_column::String
     categorical_feature::Vector{Int}
     forcedbins_filename::String
     precise_float_parser::Bool
@@ -745,8 +745,8 @@ end
         header = false,
         label_column = "",
         weight_column = "",
+        group_column = "",
         ignore_column = "",
-        group_column = ""
         categorical_feature = Int[],
         forcedbins_filename = "",
         precise_float_parser = false,
@@ -839,8 +839,8 @@ function LGBMRanking(;
     header = false,
     label_column = "",
     weight_column = "",
-    ignore_column = "",
     group_column = "",
+    ignore_column = "",
     categorical_feature = Int[],
     forcedbins_filename = "",
     precise_float_parser = false,
@@ -884,7 +884,7 @@ function LGBMRanking(;
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
         uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, group_column, categorical_feature, forcedbins_filename,
+        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, group_column, ignore_column, categorical_feature, forcedbins_filename,
         precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,

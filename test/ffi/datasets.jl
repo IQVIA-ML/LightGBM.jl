@@ -77,10 +77,10 @@ end
 @testset "LGBM_DatasetCreateFromFile" begin
     # Create a sample .csv file with a header row
     sample_data = """
-    feature1,feature2,feature3,feature4,feature5
-    0.1,0.2,0.3,0.4,0.5
-    0.6,0.7,0.8,0.9,1.0
-    1.1,1.2,1.3,1.4,1.5
+    label,feature2,feature3,feature4,group_id
+    0.1,0.2,0.3,0.4,1
+    0.6,0.7,0.8,0.9,2
+    1.1,1.2,1.3,1.4,2
     """
     sample_file = "sample_data.csv"
     open(sample_file, "w") do f
@@ -89,27 +89,33 @@ end
 
     # Define dataset parameters as strings
     params = [
-        # this shows a bug or un undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw an error
-        # or the ignore_column parameter is not considered at all
+        # This shows a bug or un undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw an error
+        # or the ignore_column parameter is not considered at all but no error is thrown
         "header=true ignore_column=0,1,2,3,4,5,6,7,8,9,10",
-        # this also shows an unexpected behaviour as it should return 3 rows (num_data) 3 columns (2 num_features + label_column)
-        # as the feature2 and feature3 columns are ignored but it doesn't
-        "header=true ignore_column=name:feature2, feature3",
-        # given the above here the ignore_column seems to be somehow working as an error is thrown: "Could not find ignore column feature1 in data file"
-        "header=true ignore_column=name:feature1",
-        # expected to have 3 rows (num_data) and 4 columns (3 num_features + label_column) as default label_column is 0 so it's not used as a feature
+        # This also shows an unexpected behaviour as it should return 3 rows (num_data) 3 columns (2 num_features + label_column)
+        # as the feature2 and feature3 columns should be ignored but they're not
+        "header=true ignore_column=name:feature2,feature3",
+        # Expected to have 3 rows (num_data) and 4 columns (3 num_features + label_column) as default label_column is 0 so it's not used as a feature
         "two_round=false header=true",
-        # this should cause an error as there is a header in the file so the header should be set to true
-        "two_round=true header=false"  
     ]
 
-    expected_num_data = [3, 3, 3, 3, 3]
-    expected_num_feature = [4, 4, 4, 4, 4]
+    params_fail = [
+        # Given the above the `ignore_column`` parameter seems to be at least recognised but a misleading error is thrown and one that shouldn't happen for a csv file type:
+        # "Could not find ignore column label in data file". This error is expected for .bin type of files but shouldn't be the case for .csv files.
+        "header=true ignore_column=name:label",
+        # This should cause an error as there is a header in the file so the header should be set to true
+        "two_round=true header=false" ,
+        # This should cause an error as the query parameter which is called `group_column` in docs is not a valid name
+        "header=true query=name:some_column"
+    ]
+
+    params_group_column = "header=true query=name:group_id"
+
+    expected_num_data = [3, 3, 3]
+    expected_num_feature = [4, 4, 4]
+    expected_label_col = Float32[0.1, 0.6, 1.1]
 
     for (i, param) in enumerate(params)
-        if i == 5 || i == 3
-            @test_throws ErrorException LightGBM.LGBM_DatasetCreateFromFile(sample_file, param)
-        else
             # Create dataset from file
             dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, param)
 
@@ -119,10 +125,24 @@ end
             # Check the number of rows and columns
             num_data = LightGBM.LGBM_DatasetGetNumData(dataset)
             num_feature = LightGBM.LGBM_DatasetGetNumFeature(dataset)
+            label_col = LightGBM.LGBM_DatasetGetField(dataset, "label")
             @test num_data == expected_num_data[i]
             @test num_feature == expected_num_feature[i]
-        end
+            @test label_col == expected_label_col
     end
+
+    for param in params_fail
+        @test_throws ErrorException LightGBM.LGBM_DatasetCreateFromFile(sample_file, param)
+    end
+
+    dataset_group_info = LightGBM.LGBM_DatasetCreateFromFile(sample_file, params_group_column)
+    @test dataset_group_info != C_NULL
+    # Check the group column: `LGBM_DatasetGetField` returns the cumulative sum of group sizes
+    # In this case the first row belons to group 1 and two next rows to group 2
+    @test LightGBM.LGBM_DatasetGetField(dataset_group_info, "group") == [0, 1, 3]
+    # It also works with the `query` parameter...
+    @test LightGBM.LGBM_DatasetGetField(dataset_group_info, "query") == [0, 1, 3]
+
 
     # Clean up
     rm(sample_file)
