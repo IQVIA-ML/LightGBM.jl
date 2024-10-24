@@ -14,6 +14,8 @@ mutable struct LGBMRegression <: LGBMEstimator
     tree_learner::String
     num_threads::Int
     device_type::String
+    seed::Int
+    deterministic::Bool
 
     # Learning control parameters
     force_col_wise::Bool
@@ -31,9 +33,11 @@ mutable struct LGBMRegression <: LGBMEstimator
     extra_trees::Bool
     extra_seed::Int
     early_stopping_round::Int
+    first_metric_only::Bool
     max_delta_step::Float64
     lambda_l1::Float64
     lambda_l2::Float64
+    linear_lambda::Float64
     min_gain_to_split::Float64
     drop_rate::Float64
     max_drop::Int
@@ -47,17 +51,34 @@ mutable struct LGBMRegression <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    max_cat_to_onehot::Int
+    top_k::Int
+    monotone_constraints::Vector{Int}
+    monotone_constraints_method::String
+    monotone_penalty::Float64
+    feature_contri::Vector{Float64}
     forcedsplits_filename::String
     refit_decay_rate::Float64
+    cegb_tradeoff::Float64
+    cegb_penalty_split::Float64
+    cegb_penalty_feature_lazy::Vector{Float64}
+    cegb_penalty_feature_coupled::Vector{Float64}
+    path_smooth::Float64
+    interaction_constraints::String
     
     # Dataset parameters
     linear_tree::Bool
     max_bin::Int
+    max_bin_by_feature::Vector{Int}
+    min_data_in_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
     is_enable_sparse::Bool
+    enable_bundle::Bool
     use_missing::Bool
+    zero_as_missing::Bool
     feature_pre_filter::Bool
+    pre_partition::Bool
     two_round::Bool
     header::Bool
     label_column::String
@@ -79,7 +100,11 @@ mutable struct LGBMRegression <: LGBMEstimator
     num_class::Int 
     is_unbalance::Bool
     boost_from_average::Bool
+    reg_sqrt::Bool
     alpha::Float64
+    fair_c::Float64
+    poisson_max_delta_step::Float64
+    tweedie_variance_power::Float64
 
     # Metric parameters
     metric::Vector{String}
@@ -92,6 +117,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     local_listen_port::Int
     time_out::Int
     machine_list_filename::String
+    machines::String
 
     # GPU parameters
     gpu_platform_id::Int
@@ -110,6 +136,8 @@ end
         tree_learner = \"serial\",
         num_threads = 0,
         device_type=\"cpu\",
+        seed = 0,
+        deterministic = false,
         force_col_wise = false
         force_row_wise = false
         histogram_pool_size = -1.,
@@ -125,9 +153,11 @@ end
         extra_trees = false
         extra_seed = 6,
         early_stopping_round = 0,
+        first_metric_only = false,
         max_delta_step = 0.,
         lambda_l1 = 0.,
         lambda_l2 = 0.,
+        linear_lambda = 0.,
         min_gain_to_split = 0.,
         drop_rate = 0.1,
         max_drop = 50,
@@ -141,15 +171,32 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        max_cat_to_onehot = 4,
+        top_k = 20,
+        monotone_constraints = Int[],
+        monotone_constraints_method = "basic",
+        monotone_penalty = 0.,
+        feature_contri = Float64[],
         forcedsplits_filename = "",
         refit_decay_rate = 0.9,
+        cegb_tradeoff = 1.0,
+        cegb_penalty_split = 0.,
+        cegb_penalty_feature_lazy = Float64[],
+        cegb_penalty_feature_coupled = Float64[],
+        path_smooth = 0.,
+        interaction_constraints = "",
         linear_tree = false,
         max_bin = 255,
+        max_bin_by_feature = Int[],
+        min_data_in_bin = 3
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
         is_enable_sparse = true,
+        enable_bundle = true,
         use_missing = true,
+        zero_as_missing = false,
         feature_pre_filter = true,
+        pre_partition = false,
         two_round = false,
         header = false,
         label_column = "",
@@ -166,7 +213,11 @@ end
         predict_disable_shape_check = false,
         is_unbalance = false,
         boost_from_average = true,
+        reg_sqrt = false,
         alpha = 0.9,
+        fair_c = 1.0,
+        poisson_max_delta_step = 0.7,
+        tweedie_variance_power = 1.5,
         metric = [""],
         metric_freq = 1,
         is_provide_training_metric = false,
@@ -175,6 +226,7 @@ end
         local_listen_port = 12400,
         time_out = 120,
         machine_list_filename = \"\",
+        machines = \"\",
         gpu_platform_id = -1,
         gpu_device_id = -1,
         gpu_use_dp = false,
@@ -192,6 +244,8 @@ function LGBMRegression(;
     tree_learner = "serial",
     num_threads = 0,
     device_type="cpu",
+    seed = 0,
+    deterministic = false,
     force_col_wise = false,
     force_row_wise = false,
     histogram_pool_size = -1.,
@@ -207,9 +261,11 @@ function LGBMRegression(;
     extra_trees = false,
     extra_seed = 6,
     early_stopping_round = 0,
+    first_metric_only = false,
     max_delta_step = 0.,
     lambda_l1 = 0.,
     lambda_l2 = 0.,
+    linear_lambda = 0.,
     min_gain_to_split = 0.,
     drop_rate = 0.1,
     max_drop = 50,
@@ -223,15 +279,32 @@ function LGBMRegression(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    max_cat_to_onehot = 4,
+    top_k = 20,
+    monotone_constraints = Int[],
+    monotone_constraints_method = "basic",
+    monotone_penalty = 0.,
+    feature_contri = Float64[],
     forcedsplits_filename = "",
     refit_decay_rate = 0.9,
+    cegb_tradeoff = 1.0,
+    cegb_penalty_split = 0.,
+    cegb_penalty_feature_lazy = Float64[],
+    cegb_penalty_feature_coupled = Float64[],
+    path_smooth = 0.,
+    interaction_constraints = "",
     linear_tree = false,
     max_bin = 255,
+    max_bin_by_feature = Int[],
+    min_data_in_bin = 3,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
     is_enable_sparse = true,
+    enable_bundle = true,
     use_missing = true,
+    zero_as_missing = false,
     feature_pre_filter = true,
+    pre_partition = false,
     two_round = false,
     header = false,
     label_column = "",
@@ -248,7 +321,11 @@ function LGBMRegression(;
     predict_disable_shape_check = false,
     is_unbalance = false,
     boost_from_average = true,
+    reg_sqrt = false,
     alpha = 0.9,
+    fair_c = 1.0,
+    poisson_max_delta_step = 0.7,
+    tweedie_variance_power = 1.5,
     metric = [""],
     metric_freq = 1,
     is_provide_training_metric = false,
@@ -257,6 +334,7 @@ function LGBMRegression(;
     local_listen_port = 12400,
     time_out = 120,
     machine_list_filename = "",
+    machines = "",
     gpu_platform_id = -1,
     gpu_device_id = -1,
     gpu_use_dp = false,
@@ -265,17 +343,19 @@ function LGBMRegression(;
 
     return LGBMRegression(
         Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves,
-        tree_learner, num_threads, device_type, force_col_wise, force_row_wise, histogram_pool_size,
+        tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
         max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
         bagging_fraction, bagging_freq, bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees,
-        extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
+        extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
         min_gain_to_split, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
-        cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt, data_random_seed,
-        is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
+        cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, feature_contri, forcedsplits_filename, refit_decay_rate, 
+        cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
+        interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
+        is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
         precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
-        1, is_unbalance, boost_from_average, alpha, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
+        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
 
@@ -293,6 +373,8 @@ mutable struct LGBMClassification <: LGBMEstimator
     tree_learner::String
     num_threads::Int
     device_type::String
+    seed::Int
+    deterministic::Bool
 
     # Learning control parameters
     force_col_wise::Bool
@@ -312,9 +394,11 @@ mutable struct LGBMClassification <: LGBMEstimator
     extra_trees::Bool
     extra_seed::Int
     early_stopping_round::Int
+    first_metric_only::Bool
     max_delta_step::Float64
     lambda_l1::Float64
     lambda_l2::Float64
+    linear_lambda::Float64
     min_gain_to_split::Float64
     drop_rate::Float64
     max_drop::Int
@@ -328,17 +412,34 @@ mutable struct LGBMClassification <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    max_cat_to_onehot::Int
+    top_k::Int
+    monotone_constraints::Vector{Int}
+    monotone_constraints_method::String
+    monotone_penalty::Float64
+    feature_contri::Vector{Float64}
     forcedsplits_filename::String
     refit_decay_rate::Float64
+    cegb_tradeoff::Float64
+    cegb_penalty_split::Float64
+    cegb_penalty_feature_lazy::Vector{Float64}
+    cegb_penalty_feature_coupled::Vector{Float64}
+    path_smooth::Float64
+    interaction_constraints::String
 
     # Dataset parameters
     linear_tree::Bool
     max_bin::Int
+    max_bin_by_feature::Vector{Int}
+    min_data_in_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
     is_enable_sparse::Bool
+    enable_bundle::Bool
     use_missing::Bool
+    zero_as_missing::Bool
     feature_pre_filter::Bool
+    pre_partition::Bool
     two_round::Bool
     header::Bool
     label_column::String
@@ -371,12 +472,15 @@ mutable struct LGBMClassification <: LGBMEstimator
     metric_freq::Int
     is_provide_training_metric::Bool
     eval_at::Vector{Int}
+    multi_error_top_k::Int
+    auc_mu_weights::Vector{Float64}
 
     # Network parameters
     num_machines::Int
     local_listen_port::Int
     time_out::Int
     machine_list_filename::String
+    machines::String
 
     # GPU parameters
     gpu_platform_id::Int
@@ -395,6 +499,8 @@ end
         tree_learner = \"serial\",
         num_threads = 0,
         device_type=\"cpu\",
+        seed = 0,
+        deterministic = false,
         force_col_wise = false,
         force_row_wise = false,
         histogram_pool_size = -1.,
@@ -412,9 +518,11 @@ end
         extra_trees = false,
         extra_seed = 6,
         early_stopping_round = 0,
+        first_metric_only = false,
         max_delta_step = 0.,
         lambda_l1 = 0.,
         lambda_l2 = 0.,
+        linear_lambda = 0.,
         min_gain_to_split = 0.,
         drop_rate = 0.1,
         max_drop = 50,
@@ -428,15 +536,32 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        max_cat_to_onehot = 4,
+        top_k = 20,
+        monotone_constraints = Int[],
+        monotone_constraints_method = "basic",
+        monotone_penalty = 0.,
+        feature_contri = Float64[],
         forcedsplits_filename = "",
         refit_decay_rate = 0.9,
+        cegb_tradeoff = 1.0,
+        cegb_penalty_split = 0.,
+        cegb_penalty_feature_lazy = Float64[],
+        cegb_penalty_feature_coupled = Float64[],
+        path_smooth = 0.
+        interaction_constraints = "",  
         linear_tree = false,
         max_bin = 255,
+        max_bin_by_feature = Int[],
+        min_data_in_bin = 3,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
         is_enable_sparse = true,
+        enable_bundle = true,
         use_missing = true,
+        zero_as_missing = false,
         feature_pre_filter = true,
+        pre_partition = false,
         two_round = false,
         header = false,
         label_column = "",
@@ -463,10 +588,13 @@ end
         metric_freq = 1,
         is_provide_training_metric = false,
         eval_at = Int[1, 2, 3, 4, 5],
+        multi_error_top_k = 1,
+        auc_mu_weights = Float64[],
         num_machines = 1,
         local_listen_port = 12400,
         time_out = 120,
         machine_list_filename = \"\",
+        machines = \"\",
         gpu_platform_id = -1,
         gpu_device_id = -1,
         gpu_use_dp = false,
@@ -484,6 +612,8 @@ function LGBMClassification(;
     tree_learner = "serial",
     num_threads = 0,
     device_type="cpu",
+    seed = 0,
+    deterministic = false,
     force_col_wise = false,
     force_row_wise = false,
     histogram_pool_size = -1.,
@@ -501,9 +631,11 @@ function LGBMClassification(;
     extra_trees = false,
     extra_seed = 6,
     early_stopping_round = 0,
+    first_metric_only = false,
     max_delta_step = 0.,
     lambda_l1 = 0.,
     lambda_l2 = 0.,
+    linear_lambda = 0.,
     min_gain_to_split = 0.,
     drop_rate = 0.1,
     max_drop = 50,
@@ -517,15 +649,32 @@ function LGBMClassification(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    max_cat_to_onehot = 4,
+    top_k = 20,
+    monotone_constraints = Int[],
+    monotone_constraints_method = "basic",
+    monotone_penalty = 0.,
+    feature_contri = Float64[],
     forcedsplits_filename = "",
     refit_decay_rate = 0.9,
+    cegb_tradeoff = 1.0,
+    cegb_penalty_split = 0.,
+    cegb_penalty_feature_lazy = Float64[],
+    cegb_penalty_feature_coupled = Float64[],
+    path_smooth = 0.,
+    interaction_constraints = "",
     linear_tree = false,
     max_bin = 255,
+    max_bin_by_feature = Int[],
+    min_data_in_bin = 3,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
     is_enable_sparse = true,
+    enable_bundle = true,
     use_missing = true,
+    zero_as_missing = false,
     feature_pre_filter = true,
+    pre_partition = false,
     two_round = false,
     header = false,
     label_column = "",
@@ -552,10 +701,13 @@ function LGBMClassification(;
     metric_freq = 1,
     is_provide_training_metric = false,
     eval_at = Int[1, 2, 3, 4, 5],
+    multi_error_top_k = 1,
+    auc_mu_weights = Float64[],
     num_machines = 1,
     local_listen_port = 12400,
     time_out = 120,
     machine_list_filename = "",
+    machines = "",
     gpu_platform_id = -1,
     gpu_device_id = -1,
     gpu_use_dp = false,
@@ -564,18 +716,20 @@ function LGBMClassification(;
 
     return LGBMClassification(
         Booster(), "", objective, boosting, num_iterations, learning_rate,
-        num_leaves, tree_learner, num_threads, device_type, force_col_wise, force_row_wise, histogram_pool_size,
+        num_leaves, tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
         max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
-        bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
+        bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
+        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
+        feature_contri, forcedsplits_filename, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, 
+        path_smooth, interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
+        data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename,
         precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
-        metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        metric, metric_freq, is_provide_training_metric, eval_at, multi_error_top_k, auc_mu_weights, num_machines, local_listen_port, time_out,
+        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
 
@@ -592,6 +746,8 @@ mutable struct LGBMRanking <: LGBMEstimator
     tree_learner::String
     num_threads::Int
     device_type::String
+    seed::Int
+    deterministic::Bool
 
     # Learning control parameters
     force_col_wise::Bool
@@ -611,9 +767,11 @@ mutable struct LGBMRanking <: LGBMEstimator
     extra_trees::Bool
     extra_seed::Int
     early_stopping_round::Int
+    first_metric_only::Bool
     max_delta_step::Float64
     lambda_l1::Float64
     lambda_l2::Float64
+    linear_lambda::Float64
     min_gain_to_split::Float64
     drop_rate::Float64
     max_drop::Int
@@ -627,23 +785,40 @@ mutable struct LGBMRanking <: LGBMEstimator
     max_cat_threshold::Int
     cat_l2::Float64
     cat_smooth::Float64
+    max_cat_to_onehot::Int
+    top_k::Int
+    monotone_constraints::Vector{Int}
+    monotone_constraints_method::String
+    monotone_penalty::Float64
+    feature_contri::Vector{Float64}
     forcedsplits_filename::String
     refit_decay_rate::Float64
+    cegb_tradeoff::Float64
+    cegb_penalty_split::Float64
+    cegb_penalty_feature_lazy::Vector{Float64}
+    cegb_penalty_feature_coupled::Vector{Float64}
+    path_smooth::Float64
+    interaction_constraints::String
 
     # Dataset parameters
     linear_tree::Bool
     max_bin::Int
+    max_bin_by_feature::Vector{Int}
+    min_data_in_bin::Int
     bin_construct_sample_cnt::Int
     data_random_seed::Int
     is_enable_sparse::Bool
+    enable_bundle::Bool
     use_missing::Bool
+    zero_as_missing::Bool
     feature_pre_filter::Bool
+    pre_partition::Bool
     two_round::Bool
     header::Bool
     label_column::String
     weight_column::String
-    ignore_column::String
     group_column::String
+    ignore_column::String
     categorical_feature::Vector{Int}
     forcedbins_filename::String
     precise_float_parser::Bool
@@ -681,6 +856,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     local_listen_port::Int
     time_out::Int
     machine_list_filename::String
+    machines::String
 
     # GPU parameters
     gpu_platform_id::Int
@@ -699,6 +875,8 @@ end
         tree_learner = \"serial\",
         num_threads = 0,
         device_type=\"cpu\",
+        seed = 0,
+        deterministic = false,
         force_col_wise = false,
         force_row_wise = false,
         histogram_pool_size = -1.,
@@ -716,9 +894,11 @@ end
         extra_trees = false,
         extra_seed = 6,
         early_stopping_round = 0,
+        first_metric_only = false,
         max_delta_step = 0.,
         lambda_l1 = 0.,
         lambda_l2 = 0.,
+        linear_lambda = 0.,
         min_gain_to_split = 0.,
         drop_rate = 0.1,
         max_drop = 50,
@@ -732,21 +912,38 @@ end
         max_cat_threshold = 32,
         cat_l2 = 10.,
         cat_smooth = 10.,
+        max_cat_to_onehot = 4,
+        top_k = 20,
+        monotone_constraints = Int[],
+        monotone_constraints_method = "basic",
+        monotone_penalty = 0.,
+        feature_contri = Float64[],
         forcedsplits_filename = "",
         refit_decay_rate = 0.9,
+        cegb_tradeoff = 1.0,
+        cegb_penalty_split = 0.,
+        cegb_penalty_feature_lazy = Float64[],
+        cegb_penalty_feature_coupled = Float64[],
+        path_smooth = 0.,
+        interaction_constraints = "",
         linear_tree = false,
         max_bin = 255,
+        max_bin_by_feature = Int[],
+        min_data_in_bin = 3,
         bin_construct_sample_cnt = 200000,
         data_random_seed = 1,
         is_enable_sparse = true,
+        enable_bundle = true,
         use_missing = true,
+        zero_as_missing = false,
         feature_pre_filter = true,
+        pre_partition = false,
         two_round = false,
         header = false,
         label_column = "",
         weight_column = "",
+        group_column = "",
         ignore_column = "",
-        group_column = ""
         categorical_feature = Int[],
         forcedbins_filename = "",
         precise_float_parser = false,
@@ -776,6 +973,7 @@ end
         local_listen_port = 12400,
         time_out = 120,
         machine_list_filename = \"\",
+        machines = \"\",
         gpu_platform_id = -1,
         gpu_device_id = -1,
         gpu_use_dp = false,
@@ -793,6 +991,8 @@ function LGBMRanking(;
     tree_learner = "serial",
     num_threads = 0,
     device_type="cpu",
+    seed = 0,
+    deterministic = false,
     force_col_wise = false,
     force_row_wise = false,
     histogram_pool_size = -1.,
@@ -810,9 +1010,11 @@ function LGBMRanking(;
     extra_trees = false,
     extra_seed = 6,
     early_stopping_round = 0,
+    first_metric_only = false,
     max_delta_step = 0.,
     lambda_l1 = 0.,
     lambda_l2 = 0.,
+    linear_lambda = 0.,
     min_gain_to_split = 0.,
     drop_rate = 0.1,
     max_drop = 50,
@@ -826,21 +1028,38 @@ function LGBMRanking(;
     max_cat_threshold = 32,
     cat_l2 = 10.,
     cat_smooth = 10.,
+    max_cat_to_onehot = 4,
+    top_k = 20,
+    monotone_constraints = Int[],
+    monotone_constraints_method = "basic",
+    monotone_penalty = 0.,
+    feature_contri = Float64[],
     forcedsplits_filename = "",
     refit_decay_rate = 0.9,
+    cegb_tradeoff = 1.0,
+    cegb_penalty_split = 0.,
+    cegb_penalty_feature_lazy = Float64[],
+    cegb_penalty_feature_coupled = Float64[],
+    path_smooth = 0.,
+    interaction_constraints = "",
     linear_tree = false,
     max_bin = 255,
+    max_bin_by_feature = Int[],
+    min_data_in_bin = 3,
     bin_construct_sample_cnt = 200000,
     data_random_seed = 1,
     is_enable_sparse = true,
+    enable_bundle = true,
     use_missing = true,
+    zero_as_missing = false,
     feature_pre_filter = true,
+    pre_partition = false,
     two_round = false,
     header = false,
     label_column = "",
     weight_column = "",
-    ignore_column = "",
     group_column = "",
+    ignore_column = "",
     categorical_feature = Int[],
     forcedbins_filename = "",
     precise_float_parser = false,
@@ -870,6 +1089,7 @@ function LGBMRanking(;
     local_listen_port = 12400,
     time_out = 120,
     machine_list_filename = "",
+    machines = "",
     gpu_platform_id = -1,
     gpu_device_id = -1,
     gpu_use_dp = false,
@@ -878,17 +1098,19 @@ function LGBMRanking(;
 
     return LGBMRanking(
         Booster(), "", objective, boosting, num_iterations, learning_rate,
-        num_leaves, tree_learner, num_threads, device_type, force_col_wise, force_row_wise, histogram_pool_size,
+        num_leaves, tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
         max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction, bagging_freq,
-        bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, max_delta_step, lambda_l1, lambda_l2,
+        bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, forcedsplits_filename, refit_decay_rate, linear_tree, max_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, use_missing, feature_pre_filter, two_round, header, label_column, weight_column, ignore_column, group_column, categorical_feature, forcedbins_filename,
+        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
+        feature_contri, forcedsplits_filename, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
+        interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
+        data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, two_round, header, label_column, weight_column, group_column, ignore_column, categorical_feature, forcedbins_filename,
         precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_filename, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
