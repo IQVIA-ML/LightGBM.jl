@@ -89,7 +89,7 @@ end
 
     # Define dataset parameters as strings
     params = [
-        # This shows a bug or un undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw an error
+        # This shows un undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw an error
         # or the ignore_column parameter is not considered at all but no error is thrown
         "header=true ignore_column=0,1,2,3,4,5,6,7,8,9,10",
         # This also shows an unexpected behaviour as it should return 3 rows (num_data) 3 columns (2 num_features + label_column)
@@ -108,7 +108,9 @@ end
         # This should cause an error as the query parameter which is called `group_column` in docs is not a valid name
         "header=true query=name:some_column"
     ]
-
+    # This parameter is used to test the group column functionality
+    # However, the actual parameter name is `group_column` as per the documentation and `query` and `group` are aliases
+    # But the C++ LGBM_DatasetCreateFromFile accepts `query` or `group` as a valid parameter name and not `group_column`
     params_group_column = "header=true query=name:group_id"
 
     expected_num_data = [3, 3, 3]
@@ -137,10 +139,12 @@ end
 
     dataset_group_info = LightGBM.LGBM_DatasetCreateFromFile(sample_file, params_group_column)
     @test dataset_group_info != C_NULL
-    # Check the group column: `LGBM_DatasetGetField` returns the cumulative sum of group sizes
-    # In this case the first row belons to group 1 and two next rows to group 2
+    # Check the group column: `LGBM_DatasetGetField` returns the expected group boundaries/indices of the groups
+    # In the sample dataset there are only 2 groups: [1, 2] where the first row belongs to group 1 and two next rows to group 2
+    # The output [0, 1, 3] means that Group 1 starts at index 0 and ends at index 1 and Group 2 starts at index 1 and ends at index 3
     @test LightGBM.LGBM_DatasetGetField(dataset_group_info, "group") == [0, 1, 3]
-    # It also works with the `query` parameter...
+    # It also works with the `query` parameter (and the actual parameter name as per documentation is `group_column` 
+    # so both `query` and `group` are not quite correct and they're considered aliases)
     @test LightGBM.LGBM_DatasetGetField(dataset_group_info, "query") == [0, 1, 3]
 
 
