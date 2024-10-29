@@ -405,6 +405,44 @@ end
 end
 
 
+@testset "parameters -- monotone constraints" begin
+
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+    X_test = randn(500, 20)
+
+    # Define the parameters for monotone constraints
+    # The constraints are defined for each feature in the dataset
+    # The pattern below is for 20 features where the first feature has a positive monotone constraint,
+    # the second feature has a negative monotone constraint, and the third feature has no constraint.
+    monotone_constraints = [1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1]
+    monotone_constraints_method = "basic"
+    monotone_penalty = 0.1
+
+    # Create and fit the estimator with monotone constraints
+    estimator_with_constraints = LightGBM.LGBMClassification(
+        objective = "binary",
+        monotone_constraints = monotone_constraints,
+        monotone_constraints_method = monotone_constraints_method,
+        monotone_penalty = monotone_penalty,
+        num_class = 1
+    )
+    LightGBM.fit!(estimator_with_constraints, X_train, y_train, verbosity = -1)
+
+    # Create and fit the estimator without monotone constraints
+    estimator_without_constraints = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    LightGBM.fit!(estimator_without_constraints, X_train, y_train, verbosity = -1)
+
+    # Generate predictions
+    prediction_with_constraints = LightGBM.predict(estimator_with_constraints, X_test, verbosity = -1)
+    prediction_without_constraints = LightGBM.predict(estimator_without_constraints, X_test, verbosity = -1)
+
+    # Test that the predictions are different
+    @test prediction_with_constraints != prediction_without_constraints
+
+end
+
 @testset "parameters -- refit with refit decay rate" begin
     # Create sample data, labels and estimator
     featuresdata = randn(1000, 20)
