@@ -405,7 +405,7 @@ end
 end
 
 
-@testset "parameters -- monotone constraints" begin
+@testset "parameters -- monotone and interaction constraints" begin
 
     # Generate random data
     X_train = randn(1000, 20)
@@ -419,29 +419,45 @@ end
     monotone_constraints = [1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1]
     monotone_constraints_method = "basic"
     monotone_penalty = 0.1
+    # The below interaction constraints are defined so that features in each vector are allowed to interact with each other
+    # The model can consider interactions between those grouped features when buiding trees.
+    # Features that are no included in any interaction constraing group are treated as independent.
+    interaction_constraints = "[1,2],[3,4,5],[6,7,8,9,10]"
 
     # Create and fit the estimator with monotone constraints
-    estimator_with_constraints = LightGBM.LGBMClassification(
+    estimator_with_monotone_constraints = LightGBM.LGBMClassification(
         objective = "binary",
         monotone_constraints = monotone_constraints,
         monotone_constraints_method = monotone_constraints_method,
         monotone_penalty = monotone_penalty,
         num_class = 1
     )
-    LightGBM.fit!(estimator_with_constraints, X_train, y_train, verbosity = -1)
+    LightGBM.fit!(estimator_with_monotone_constraints, X_train, y_train, verbosity = -1)
+
+    # Create and fit the estimator with interaction constraints
+    estimator_with_interaction_constraints = LightGBM.LGBMClassification(
+        objective = "binary",
+        interaction_constraints = interaction_constraints,
+        num_class = 1
+    )
+    LightGBM.fit!(estimator_with_interaction_constraints, X_train, y_train, verbosity = -1)
 
     # Create and fit the estimator without monotone constraints
     estimator_without_constraints = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
     LightGBM.fit!(estimator_without_constraints, X_train, y_train, verbosity = -1)
 
     # Generate predictions
-    prediction_with_constraints = LightGBM.predict(estimator_with_constraints, X_test, verbosity = -1)
-    prediction_without_constraints = LightGBM.predict(estimator_without_constraints, X_test, verbosity = -1)
+    predictions_with_monotone_constraints = LightGBM.predict(estimator_with_monotone_constraints, X_test, verbosity = -1)
+    predictions_without_constraints = LightGBM.predict(estimator_without_constraints, X_test, verbosity = -1)
+    predictions_with_interaction_constraints = LightGBM.predict(estimator_with_interaction_constraints, X_test, verbosity = -1)
 
     # Test that the predictions are different
-    @test prediction_with_constraints != prediction_without_constraints
+    @test predictions_with_monotone_constraints != predictions_without_constraints
+    @test predictions_with_interaction_constraints != predictions_without_constraints
+    @test predictions_with_monotone_constraints != predictions_with_interaction_constraints
 
 end
+
 
 @testset "parameters -- refit with refit decay rate" begin
     # Create sample data, labels and estimator
