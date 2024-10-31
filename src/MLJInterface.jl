@@ -212,7 +212,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     feature_contri::Vector{Float64} = Vector{Float64}()
     forcedsplits_filename::String = ""
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
-    cegb_tradeoff::Float64 = 1.0::(_ > 0.0)
+    cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
     cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
     cegb_penalty_feature_lazy::Vector{Float64} = Vector{Float64}()
     cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
