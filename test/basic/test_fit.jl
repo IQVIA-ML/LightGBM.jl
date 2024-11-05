@@ -360,6 +360,63 @@ end
     @test expected_indices == classifier.categorical_feature
 end
 
+    
+@testset "test fit! with filepaths" begin
+    # Create a sample .csv file with a header row
+    train_filepath = "train_sample_data.csv"
+    test_filepath = "test_sample_data.csv"
+
+    # Generate sample csv data for training matchhing the same data as in the matrix test fixtures
+    open(train_filepath, "w") do f
+        write(f, "label," * join(["feature$i" for i in 1:70], ",") * "\n")
+        for i in 1:5000
+            label = train_labels[i]
+            features = train_matrix[i, :]
+            write(f, "$label," * join(features, ",") * "\n")
+        end
+    end
+
+    # Generate sample data for testing matchhing the same data as in the matrix test fixtures
+    open(test_filepath, "w") do f
+        write(f, "label," * join(["feature$i" for i in 1:70], ",") * "\n")
+        for i in 1:2000
+            label = test_labels[i]
+            features = test_matrix[i, :]
+            write(f, "$label," * join(features, ",") * "\n")
+        end
+    end
+
+    # Estimator to fit with files
+    estimator = LightGBM.LGBMClassification(
+        num_class = 1,
+        num_iterations = 10,
+        metric = ["auc"],
+        objective = "binary",
+        header = true
+    )
+
+    # Fitting with filepaths
+    output_with_files = LightGBM.fit!(estimator, train_filepath; test_filepath=test_filepath, verbosity=-1)
+
+    # Estimator to fit with matrices
+    estimator_matrix = LightGBM.LGBMClassification(
+        num_class = 1,
+        num_iterations = 10,
+        metric = ["auc"],
+        objective = "binary",
+    )
+
+    # Fitting with matrices
+    output_with_matrix = LightGBM.fit!(estimator_matrix, train_matrix, train_labels, (test_matrix, test_labels); verbosity=-1)
+
+    # Test that the outputs for fitting with filepath and matrices are the same
+    @test output_with_files["metrics"]["test_1"]["auc"] == output_with_matrix["metrics"]["test_1"]["auc"]
+    @test LightGBM.LGBM_BoosterGetCurrentIteration(estimator.booster) == LightGBM.LGBM_BoosterGetCurrentIteration(estimator_matrix.booster)
+
+    # Cleanup
+    rm(train_filepath)
+    rm(test_filepath)
+end
 
 
 end # module

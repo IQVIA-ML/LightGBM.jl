@@ -31,6 +31,9 @@ array that holds the validation metric's value at each iteration.
 * or
     * `train_dataset::Dataset`: prepared train_dataset
     * `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
+* or
+    * `train_filepath::String`: path to the training data file.
+    * `test_filepath::String`: (optional) path to the test data file.
 ## Keyword Arguments
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
@@ -109,13 +112,39 @@ function fit!(
 end
 
 
+# Pass filepaths and set Dataset parameters including label, group and weights via the estimator.
+function fit!(
+    estimator::LGBMEstimator, train_filepath::String;
+    test_filepath::String = "",
+    verbosity::Integer = 1,
+    truncate_booster::Bool=true,
+)
+
+    start_time = now()
+
+    log_debug(verbosity, "Started creating LGBM training dataset\n")
+    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
+    train_ds = dataset_constructor(train_filepath, ds_parameters)
+
+    test_dss = []
+
+    if test_filepath != ""
+        test_ds = dataset_constructor(test_filepath, ds_parameters, train_ds)
+        push!(test_dss, test_ds)
+    end
+
+    return fit!(estimator, train_ds, test_dss..., verbosity=verbosity, truncate_booster=truncate_booster)
+end
+
+
 dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromMat(mat, params, ds, rm)
 dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool, d::Dataset) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
-
+dataset_constructor(filepath::String, params::String, ds::Dataset) = LGBM_DatasetCreateFromFile(filepath, params, ds)
+dataset_constructor(filepath::String, params::String) = LGBM_DatasetCreateFromFile(filepath, params)
 
 function train!(
     estimator::LGBMEstimator,
