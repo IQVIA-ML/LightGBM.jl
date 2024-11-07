@@ -55,8 +55,6 @@ function fit!(
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
-    start_time = now()
-
     log_debug(verbosity, "Started creating LGBM training dataset\n")
     ds_parameters = stringifyparams(estimator; verbosity=verbosity)
     train_ds = dataset_constructor(X, ds_parameters, is_row_major)
@@ -119,8 +117,6 @@ function fit!(
     verbosity::Integer = 1,
     truncate_booster::Bool=true,
 )
-
-    start_time = now()
 
     log_debug(verbosity, "Started creating LGBM training dataset\n")
     ds_parameters = stringifyparams(estimator; verbosity=verbosity)
