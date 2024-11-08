@@ -79,7 +79,6 @@ mutable struct LGBMRegression <: LGBMEstimator
     feature_pre_filter::Bool
     pre_partition::Bool
     categorical_feature::Vector{Int}
-    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -190,7 +189,6 @@ end
         feature_pre_filter = true,
         pre_partition = false,
         categorical_feature = Int[],
-        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -291,7 +289,6 @@ function LGBMRegression(;
     feature_pre_filter = true,
     pre_partition = false,
     categorical_feature = Int[],
-    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -332,7 +329,7 @@ function LGBMRegression(;
         cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
         interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
-        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
         1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
         machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
@@ -419,7 +416,6 @@ mutable struct LGBMClassification <: LGBMEstimator
     feature_pre_filter::Bool
     pre_partition::Bool
     categorical_feature::Vector{Int}
-    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -534,7 +530,6 @@ end
         feature_pre_filter = true,
         pre_partition = false,
         categorical_feature = Int[],
-        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -640,7 +635,6 @@ function LGBMClassification(;
     feature_pre_filter = true,
     pre_partition = false,
     categorical_feature = Int[],
-    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -683,7 +677,7 @@ function LGBMClassification(;
         feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, 
         path_smooth, interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
         data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
-        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
         metric, metric_freq, is_provide_training_metric, eval_at, multi_error_top_k, auc_mu_weights, num_machines, local_listen_port, time_out,
@@ -772,7 +766,6 @@ mutable struct LGBMRanking <: LGBMEstimator
     pre_partition::Bool
     group_column::String
     categorical_feature::Vector{Int}
-    precise_float_parser::Bool
 
     # Predict parameters
     start_iteration_predict::Int
@@ -890,7 +883,6 @@ end
         pre_partition = false,
         group_column = "",
         categorical_feature = Int[],
-        precise_float_parser = false,
         start_iteration_predict = 0,
         num_iteration_predict = -1,
         predict_raw_score = false,
@@ -999,7 +991,6 @@ function LGBMRanking(;
     pre_partition = false,
     group_column = "",
     categorical_feature = Int[],
-    precise_float_parser = false,
     start_iteration_predict = 0,
     num_iteration_predict = -1,
     predict_raw_score = false,
@@ -1044,7 +1035,7 @@ function LGBMRanking(;
         feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
         interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
         data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, group_column, categorical_feature,
-        precise_float_parser, start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
         predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
         metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,

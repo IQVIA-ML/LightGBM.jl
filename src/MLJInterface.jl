@@ -102,7 +102,6 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     feature_pre_filter::Bool = true
     pre_partition::Bool = false
     categorical_feature::Vector{Int} = Vector{Int}()
-    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
@@ -225,7 +224,6 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     feature_pre_filter::Bool = true
     pre_partition::Bool = false
     categorical_feature::Vector{Int} = Vector{Int}()
-    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
