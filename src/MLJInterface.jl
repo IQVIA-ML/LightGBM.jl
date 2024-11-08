@@ -37,6 +37,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
     num_threads::Int  = 0::(_ >= 0)
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    seed::Int = 0
+    deterministic::Bool = false
 
     # Learning control parameters
     force_col_wise::Bool = false
@@ -54,9 +56,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     extra_trees::Bool = false
     extra_seed::Int = 6
     early_stopping_round::Int = 0
+    first_metric_only::Bool = false
     max_delta_step::Float64 = 0.0
     lambda_l1::Float64 = 0.0::(_ >= 0.0)
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
+    linear_lambda::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
@@ -70,16 +74,33 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    max_cat_to_onehot::Int = 4::(_ > 0)
+    top_k::Int = 20::(_ > 0)
+    monotone_constraints::Vector{Int} = Vector{Int}()
+    monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
+    monotone_penalty::Float64 = 0.0::(_ >= 0.0)
+    feature_contri::Vector{Float64} = Vector{Float64}()
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
+    cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
+    cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
+    cegb_penalty_feature_lazy::Vector{Float64} = Vector{Float64}()
+    cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
+    path_smooth::Float64 = 0.0::(_ >= 0.0)
+    interaction_constraints::String = ""
     
     # Dataset parameters
     linear_tree::Bool = false
     max_bin::Int = 255::(_ > 1)
+    max_bin_by_feature::Vector{Int} = Vector{Int}()
+    min_data_in_bin::Int = 3::(_ > 0)
     bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
+    enable_bundle::Bool = true
     use_missing::Bool = true
+    zero_as_missing::Bool = false
     feature_pre_filter::Bool = true
+    pre_partition::Bool = false
     categorical_feature::Vector{Int} = Vector{Int}()
 
     # Predict parameters
@@ -93,7 +114,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     # Objective parameters
     is_unbalance::Bool = false
     boost_from_average::Bool = true
+    reg_sqrt::Bool = false
     alpha::Float64 = 0.9::(_ > 0.0 )
+    fair_c::Float64 = 1.0::(_ > 0.0 )
+    poisson_max_delta_step::Float64 = 0.7::(_ > 0.0 )
+    tweedie_variance_power::Float64 = 1.5::(1.0 <= _ < 2.0)
 
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -106,6 +131,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
+    machines::String = ""
 
     # GPU parameters
     gpu_platform_id::Int = -1
@@ -131,6 +157,8 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
     num_threads::Int  = 0::(_ >= 0)
     device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    seed::Int = 0
+    deterministic::Bool = false
     
     # Learning control parameters
     force_col_wise::Bool = false
@@ -150,9 +178,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     extra_trees::Bool = false
     extra_seed::Int = 6
     early_stopping_round::Int = 0
+    first_metric_only::Bool = false
     max_delta_step::Float64 = 0.0
     lambda_l1::Float64 = 0.0::(_ >= 0.0)
     lambda_l2::Float64 = 0.0::(_ >= 0.0)
+    linear_lambda::Float64 = 0.0::(_ >= 0.0)
     min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
@@ -166,17 +196,34 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
+    max_cat_to_onehot::Int = 4::(_ > 0)
+    top_k::Int = 20::(_ > 0)
+    monotone_constraints::Vector{Int} = Vector{Int}()
+    monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
+    monotone_penalty::Float64 = 0.0::(_ >= 0.0)
+    feature_contri::Vector{Float64} = Vector{Float64}()
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
+    cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
+    cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
+    cegb_penalty_feature_lazy::Vector{Float64} = Vector{Float64}()
+    cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
+    path_smooth::Float64 = 0.0::(_ >= 0.0)
+    interaction_constraints::String = ""
     
     # Dateset parameters
     linear_tree::Bool = false
     max_bin::Int = 255::(_ > 1)
+    max_bin_by_feature::Vector{Int} = Vector{Int}()
+    min_data_in_bin::Int = 3::(_ > 0)
     bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
+    enable_bundle::Bool = true
     use_missing::Bool = true
+    zero_as_missing::Bool = false
     feature_pre_filter::Bool = true
-    categorical_feature::Vector{Int} = Vector{Int}();
+    pre_partition::Bool = false
+    categorical_feature::Vector{Int} = Vector{Int}()
 
     # Predict parameters
     start_iteration_predict::Int = 0
@@ -201,12 +248,15 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     metric_freq::Int = 1::(_ > 0)
     is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
+    multi_error_top_k::Int = 1::(_ > 0)
+    auc_mu_weights::Vector{Float64} = Vector{Float64}()
 
     # Network parameters
     num_machines::Int = 1::(_ > 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
+    machines::String = ""
 
     # GPU parameters
     gpu_platform_id::Int = -1
