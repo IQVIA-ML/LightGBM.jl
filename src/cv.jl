@@ -24,10 +24,11 @@ last valid iteration.
 """
 function cv(
     estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
-    verbosity::Integer = 1, truncate_booster::Bool = true,
+    verbosity::Integer = nothing, truncate_booster::Bool = true,
 ) where {TX<:Real,Ty<:Real}
 
-    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
+    ds_parameters = stringifyparams(estimator)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
 
@@ -35,11 +36,12 @@ function cv(
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
-function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = 1, truncate_booster::Bool=true)
+function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = nothing, truncate_booster::Bool=true)
 
     start_time = now()
     num_data = LGBM_DatasetGetNumData(dataset)
-    parameters = stringifyparams(estimator; verbosity=verbosity)
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
+    parameters = stringifyparams(estimator)
 
     split_scores = Dict{String,Dict{String,Vector{Float64}}}()
     for (split_idx, train_inds) in enumerate(splits)
