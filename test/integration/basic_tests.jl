@@ -48,6 +48,7 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
         max_bin = 255,
         min_sum_hessian_in_leaf = 0.,
         min_data_in_leaf = 1,
+        verbosity = -1,
     )
 
     estimator_equiv = LightGBM.LGBMClassification(
@@ -65,6 +66,7 @@ LGBM_PATH = if isabspath(LGBM_PATH) LGBM_PATH else abspath(joinpath(pwd(), "..",
         max_bin = 255,
         min_sum_hessian_in_leaf = 0.,
         min_data_in_leaf = 1,
+        verbosity = -1,
     )
 
     # Test fitting.
@@ -185,6 +187,7 @@ end
         min_sum_hessian_in_leaf = 5.,
         min_data_in_leaf = 100,
         max_depth = -1,
+        verbosity = -1,
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
@@ -218,6 +221,7 @@ end
         min_data_in_leaf = 100,
         num_class = 5,
         early_stopping_round = 10,
+        verbosity = -1,
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1)
@@ -242,6 +246,7 @@ end
         min_data_in_leaf = 100,
         num_class = 5,
         early_stopping_round = 10,
+        verbosity = -1,
     )
 
     scores = LightGBM.fit!(estimator, X_train, y_train, (X_test, y_test), verbosity = -1, is_row_major = true)

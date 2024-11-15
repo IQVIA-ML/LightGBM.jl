@@ -409,7 +409,7 @@ end
     y_train = rand([0, 1], 1000)
     
     # Create an estimator with predict_leaf_index set to true to obtain leaf index predictions
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, predict_leaf_index = true, num_iterations = 20)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, predict_leaf_index = true, num_iterations = 20, verbosity = -1)
     
     # Fit the estimator with the training data
     LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)

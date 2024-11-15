@@ -44,18 +44,17 @@ array that holds the validation metric's value at each iteration.
 """
 function fit!(
     estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
-    verbosity::Integer = 1,
-    is_row_major = false,
+    verbosity::Integer = nothing,
+    is_row_major::Bool = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
     group::Vector{Int} = Int[],
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
-    start_time = now()
-
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
     log_debug(verbosity, "Started creating LGBM training dataset\n")
-    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
+    ds_parameters = stringifyparams(estimator)
     train_ds = dataset_constructor(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
     if length(weights) > 0
@@ -85,13 +84,13 @@ function fit!(
     estimator::LGBMEstimator,
     train_dataset::Dataset,
     test_datasets::Dataset...;
-    verbosity::Integer = 1,
+    verbosity::Integer = nothing,
     truncate_booster::Bool=true,
 )
-
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
     start_time = now()
     log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = stringifyparams(estimator; verbosity=verbosity)
+    bst_parameters = stringifyparams(estimator)
     estimator.booster = LGBM_BoosterCreate(train_dataset, bst_parameters)
 
     n_tests = length(test_datasets)
@@ -305,7 +304,7 @@ function merge_metrics(
 end
 
 
-function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
+function stringifyparams(estimator::LGBMEstimator)
 
     paramstring = ""
 
@@ -336,5 +335,5 @@ function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
         end
 
     end
-    return paramstring[1:end - 1] * " verbosity=$verbosity"
+    return paramstring[1:end - 1]
 end

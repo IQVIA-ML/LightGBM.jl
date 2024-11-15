@@ -64,6 +64,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
     
     # Dataset parameters
     linear_tree::Bool
@@ -176,6 +177,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
         interaction_constraints = "",
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -276,6 +278,7 @@ function LGBMRegression(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -318,20 +321,20 @@ function LGBMRegression(;
 )
 
     return LGBMRegression(
-        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves,
-        tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
-        max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
-        bagging_fraction, bagging_freq, bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees,
-        extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
-        min_gain_to_split, drop_rate, max_drop, skip_drop,
+        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves, tree_learner, num_threads, device_type, seed, deterministic, 
+        force_col_wise, force_row_wise, histogram_pool_size, max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
+        bagging_fraction, bagging_freq, bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, 
+        extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, 
+        lambda_l1, lambda_l2, linear_lambda, min_gain_to_split, drop_rate, max_drop, skip_drop,
         xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, feature_contri, refit_decay_rate, 
-        cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
-        interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
+        cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, interaction_constraints, verbosity,
+        linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
-        1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, 
+        metric, metric_freq, is_provide_training_metric, eval_at, 
+        num_machines, local_listen_port, time_out, machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
 
@@ -401,6 +404,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
 
     # Dataset parameters
     linear_tree::Bool
@@ -517,6 +521,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.
         interaction_constraints = "",  
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -622,6 +627,7 @@ function LGBMClassification(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -667,21 +673,21 @@ function LGBMClassification(;
 )
 
     return LGBMClassification(
-        Booster(), "", objective, boosting, num_iterations, learning_rate,
-        num_leaves, tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
-        max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
-        bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq,
-        bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
-        min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
-        feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, 
-        path_smooth, interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
-        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
-        predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
+        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves, tree_learner, num_threads, device_type, seed, deterministic, 
+        force_col_wise, force_row_wise, histogram_pool_size, max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
+        bagging_fraction, pos_bagging_fraction, neg_bagging_fraction,bagging_freq, bagging_seed, 
+        feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, 
+        lambda_l1, lambda_l2, linear_lambda, min_gain_to_split, drop_rate, max_drop, skip_drop, 
+        xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, 
+        cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
+        feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, interaction_constraints, verbosity,
+        linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed, 
+        is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average,
-        metric, metric_freq, is_provide_training_metric, eval_at, multi_error_top_k, auc_mu_weights, num_machines, local_listen_port, time_out,
-        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        metric, metric_freq, is_provide_training_metric, eval_at, multi_error_top_k, auc_mu_weights, 
+        num_machines, local_listen_port, time_out, machine_list_filename, 
+        machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end
 
@@ -750,6 +756,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
 
     # Dataset parameters
     linear_tree::Bool
@@ -869,6 +876,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
         interaction_constraints = "",
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -977,6 +985,7 @@ function LGBMRanking(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -1025,20 +1034,20 @@ function LGBMRanking(;
 )
 
     return LGBMRanking(
-        Booster(), "", objective, boosting, num_iterations, learning_rate,
-        num_leaves, tree_learner, num_threads, device_type, seed, deterministic, force_col_wise, force_row_wise, histogram_pool_size,
-        max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
+        Booster(), "", objective, boosting, num_iterations, learning_rate, num_leaves, tree_learner, num_threads, device_type, seed, deterministic, 
+        force_col_wise, force_row_wise, histogram_pool_size, max_depth, min_data_in_leaf, min_sum_hessian_in_leaf, 
         bagging_fraction, pos_bagging_fraction, neg_bagging_fraction, bagging_freq,
         bagging_seed, feature_fraction, feature_fraction_bynode, feature_fraction_seed, extra_trees, extra_seed, early_stopping_round, first_metric_only, max_delta_step, lambda_l1, lambda_l2, linear_lambda,
-        min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode,
-        uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
-        feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, 
-        interaction_constraints, linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt,
-        data_random_seed, is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, group_column, categorical_feature,
-        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib,
-        predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
+        min_gain_to_split, drop_rate, max_drop, skip_drop, 
+        xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold, 
+        cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
+        feature_contri, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, interaction_constraints, verbosity, 
+        linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed, 
+        is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, group_column, categorical_feature,
+        start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, pred_early_stop, pred_early_stop_freq, pred_early_stop_margin,
         objective_seed, num_class, is_unbalance, scale_pos_weight, sigmoid, boost_from_average, lambdarank_truncation_level, lambdarank_norm, label_gain,
-        metric, metric_freq, is_provide_training_metric, eval_at, num_machines, local_listen_port, time_out,
-        machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
+        metric, metric_freq, is_provide_training_metric, eval_at, 
+        num_machines, local_listen_port, time_out, machine_list_filename, machines, 
+        gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
 end

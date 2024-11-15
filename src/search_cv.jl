@@ -32,11 +32,12 @@ function search_cv(
     y::Vector{Ty},
     splits,
     params;
-    verbosity::Integer = 1,
+    verbosity::Integer = nothing,
     truncate_booster::Bool=true
 ) where {TX<:Real,Ty<:Real}
 
-    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
+    ds_parameters = stringifyparams(estimator)
     full_ds = LGBM_DatasetCreateFromMat(X, ds_parameters)
     LGBM_DatasetSetField(full_ds, "label", y)
 

@@ -14,7 +14,7 @@ import LightGBM
 N = 5
 Nsamples = 3000
 
-model = LightGBM.MLJInterface.LGBMClassifier(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMClassifier(num_iterations=100, verbosity = -1)
 
 X       = (x1=rand(Nsamples), x2=rand(Nsamples), x3=rand(Nsamples))
 ycat    = string.(mod.(round.(Int, X.x1 * 10), N)) |> MLJBase.categorical
@@ -57,7 +57,7 @@ expected_return_type = Tuple{
 
 # Provided by Anthony Blaom as a simple integration test
 X, y = @load_iris;
-model = LightGBM.MLJInterface.LGBMClassifier()
+model = LightGBM.MLJInterface.LGBMClassifier(verbosity = -1)
 yhat = fit!(machine(model, X, y); verbosity=0) |> predict;
 @test scitype(mode.(yhat)) <: AbstractVector{Multiclass{3}}
 @test mean(cross_entropy(yhat, y)) < 0.6  # or do proper out-of-sample test
