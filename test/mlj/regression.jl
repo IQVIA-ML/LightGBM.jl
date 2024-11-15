@@ -12,7 +12,7 @@ import LightGBM
 Nsamples = 3000
 calc_rmse(p, t) = sqrt(sum((p - t) .^ 2) / length(p))
 
-model = LightGBM.MLJInterface.LGBMRegressor(num_iterations=100)
+model = LightGBM.MLJInterface.LGBMRegressor(num_iterations=100, verbosity = -1)
 
 X       = rand(Nsamples, 5)
 y       = sqrt.(sum(X .^ 2, dims=2)) # make the targets the L2 norm of the vectors
@@ -51,7 +51,7 @@ expected_return_type = Tuple{
 
 # Provided by Anthony Blaom as a simple integration test
 X, y = @load_boston;
-model = LightGBM.MLJInterface.LGBMRegressor()
+model = LightGBM.MLJInterface.LGBMRegressor(verbosity = -1)
 yhat = fit!(machine(model, X, y); verbosity=0) |> predict;
 scitype(yhat) == AbstractVector{Continuous}
 @test rms(yhat, y) < 6  # or do proper out-of-sample test

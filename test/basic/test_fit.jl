@@ -25,7 +25,7 @@ LightGBM.LGBM_DatasetSetField(test2_dataset, "label", test2_labels)
 
 @testset "test fit! with dataset -- binary" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     # Act
     LightGBM.fit!(estimator, train_dataset, test_dataset, verbosity = -1);
@@ -41,7 +41,7 @@ end
 
 @testset "test fit! with dataset without testset -- binary" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     # Act
     LightGBM.fit!(estimator, train_dataset, verbosity = -1);
@@ -57,8 +57,8 @@ end
 
 @testset "test fit! with sparse matches dense" begin
 
-    estimator_dense = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
-    estimator_sparse = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator_dense = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
+    estimator_sparse = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     LightGBM.fit!(estimator_dense, train_matrix, train_labels, verbosity = -1)
     LightGBM.fit!(estimator_sparse, train_sparse, train_labels, verbosity = -1)
@@ -261,7 +261,7 @@ end
 
 @testset "test truncate_model!" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(num_iterations = 100)
+    estimator = LightGBM.LGBMClassification(num_iterations = 100, verbosity = -1)
     verbosity = "verbose=-1"
 
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, verbosity)
@@ -287,6 +287,7 @@ end
         early_stopping_round = 5,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 
@@ -308,6 +309,7 @@ end
         early_stopping_round = 5,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 
@@ -330,6 +332,7 @@ end
         early_stopping_round = 0,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 

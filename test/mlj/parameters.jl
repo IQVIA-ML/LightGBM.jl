@@ -26,7 +26,7 @@ parameters = Dict(
     X, y = @MLJBase.load_boston;
     
     # Passed the dictionary of parameters to the regressor model 
-    model = LightGBM.MLJInterface.LGBMRegressor(;parameters...)
+    model = LightGBM.MLJInterface.LGBMRegressor(;verbosity = -1, parameters...)
 
     # Extract the estimator
     fit_result, _, _ = MLJBase.fit(model, 0, X, y)
@@ -42,7 +42,7 @@ end
 @testset "MLJ parameters -- classifier" begin
 
     X, y = @MLJBase.load_iris;
-    model = LightGBM.MLJInterface.LGBMClassifier(;parameters...)
+    model = LightGBM.MLJInterface.LGBMClassifier(;verbosity = -1, parameters...)
     fit_result, _, _ = MLJBase.fit(model, 0, X, y)
     estimator, _, _ = fit_result
 

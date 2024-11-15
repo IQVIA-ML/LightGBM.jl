@@ -25,12 +25,12 @@ norm(x) = sqrt(sum(x .^ 2))
     # and default learning rate is 0.1, so we need to make sure models are going for at least
     # enough time to be different.
 
-    classifier_gdbt = LightGBM.LGBMClassification(boosting = "gbdt", num_iterations=12)
-    classifier_dart = LightGBM.LGBMClassification(boosting = "dart", num_iterations=12)
-    classifier_goss = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12)
-    regressor_gbdt = LightGBM.LGBMRegression(boosting = "gbdt", num_iterations=12)
-    regressor_dart = LightGBM.LGBMRegression(boosting = "dart", num_iterations=12)
-    regressor_goss = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12)
+    classifier_gdbt = LightGBM.LGBMClassification(boosting = "gbdt", num_iterations=12, verbosity = -1)
+    classifier_dart = LightGBM.LGBMClassification(boosting = "dart", num_iterations=12, verbosity = -1)
+    classifier_goss = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, verbosity = -1)
+    regressor_gbdt = LightGBM.LGBMRegression(boosting = "gbdt", num_iterations=12, verbosity = -1)
+    regressor_dart = LightGBM.LGBMRegression(boosting = "dart", num_iterations=12, verbosity = -1)
+    regressor_goss = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, verbosity = -1)
 
     LightGBM.fit!(classifier_dart, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(classifier_gdbt, X_train, y_train_binary, verbosity = -1)
@@ -64,13 +64,13 @@ end
     # the scheme is to set up a DART classifier and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    dart_default = LightGBM.LGBMClassification(boosting = "dart")
-    dart_drop_rate = LightGBM.LGBMClassification(boosting = "dart", drop_rate = 0.9)
-    dart_max_drop = LightGBM.LGBMClassification(boosting = "dart", max_drop = 1)
-    dart_skip_drop = LightGBM.LGBMClassification(boosting = "dart", skip_drop = 1.0)
-    dart_xdm = LightGBM.LGBMClassification(boosting = "dart", xgboost_dart_mode = true)
-    dart_uniform_drop = LightGBM.LGBMClassification(boosting = "dart", uniform_drop = true)
-    dart_drop_seed = LightGBM.LGBMClassification(boosting = "dart", drop_seed = 20)
+    dart_default = LightGBM.LGBMClassification(boosting = "dart", verbosity = -1)
+    dart_drop_rate = LightGBM.LGBMClassification(boosting = "dart", drop_rate = 0.9, verbosity = -1)
+    dart_max_drop = LightGBM.LGBMClassification(boosting = "dart", max_drop = 1, verbosity = -1)
+    dart_skip_drop = LightGBM.LGBMClassification(boosting = "dart", skip_drop = 1.0, verbosity = -1)
+    dart_xdm = LightGBM.LGBMClassification(boosting = "dart", xgboost_dart_mode = true, verbosity = -1)
+    dart_uniform_drop = LightGBM.LGBMClassification(boosting = "dart", uniform_drop = true, verbosity = -1)
+    dart_drop_seed = LightGBM.LGBMClassification(boosting = "dart", drop_seed = 20, verbosity = -1)
 
     LightGBM.fit!(dart_default, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(dart_drop_rate, X_train, y_train_binary, verbosity = -1)
@@ -103,13 +103,13 @@ end
     # the scheme is to set up a DART regressor and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    dart_default = LightGBM.LGBMRegression(boosting = "dart")
-    dart_drop_rate = LightGBM.LGBMRegression(boosting = "dart", drop_rate = 0.9)
-    dart_max_drop = LightGBM.LGBMRegression(boosting = "dart", max_drop = 1)
-    dart_skip_drop = LightGBM.LGBMRegression(boosting = "dart", skip_drop = 1.0)
-    dart_xdm = LightGBM.LGBMRegression(boosting = "dart", xgboost_dart_mode = true)
-    dart_uniform_drop = LightGBM.LGBMRegression(boosting = "dart", uniform_drop = true)
-    dart_drop_seed = LightGBM.LGBMRegression(boosting = "dart", drop_seed = 20)
+    dart_default = LightGBM.LGBMRegression(boosting = "dart", verbosity = -1)
+    dart_drop_rate = LightGBM.LGBMRegression(boosting = "dart", drop_rate = 0.9, verbosity = -1)
+    dart_max_drop = LightGBM.LGBMRegression(boosting = "dart", max_drop = 1, verbosity = -1)
+    dart_skip_drop = LightGBM.LGBMRegression(boosting = "dart", skip_drop = 1.0, verbosity = -1)
+    dart_xdm = LightGBM.LGBMRegression(boosting = "dart", xgboost_dart_mode = true, verbosity = -1)
+    dart_uniform_drop = LightGBM.LGBMRegression(boosting = "dart", uniform_drop = true, verbosity = -1)
+    dart_drop_seed = LightGBM.LGBMRegression(boosting = "dart", drop_seed = 20, verbosity = -1)
 
     LightGBM.fit!(dart_default, X_train, y_train_regression, verbosity = -1)
     LightGBM.fit!(dart_drop_rate, X_train, y_train_regression, verbosity = -1)
@@ -141,9 +141,9 @@ end
     # the scheme is to set up a goss classifier and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    goss_default = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12)
-    goss_top_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, top_rate = 0.01)
-    goss_other_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, other_rate = 0.01)
+    goss_default = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, verbosity = -1)
+    goss_top_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, top_rate = 0.01, verbosity = -1)
+    goss_other_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, other_rate = 0.01, verbosity = -1)
 
 
     LightGBM.fit!(goss_default, X_train, y_train_binary, verbosity = -1)
@@ -167,9 +167,9 @@ end
     # the scheme is to set up a goss regressor and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    goss_default = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12)
-    goss_top_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, top_rate = 0.01)
-    goss_other_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, other_rate = 0.01)
+    goss_default = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, verbosity = -1)
+    goss_top_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, top_rate = 0.01, verbosity = -1)
+    goss_other_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, other_rate = 0.01, verbosity = -1)
 
 
     LightGBM.fit!(goss_default, X_train, y_train_regression, verbosity = -1)
@@ -220,6 +220,7 @@ end
                 predict_contrib = predict_contrib,
                 predict_disable_shape_check = false,
                 num_iterations = 100,
+                verbosity = -1
             )
             if model_type == LightGBM.LGBMClassification
                 estimator.num_class = 1
@@ -302,12 +303,14 @@ end
             predict_raw_score = false,
             predict_leaf_index = false,
             predict_contrib = false,
-            num_class = 1
+            num_class = 1,
+            verbosity = -1
         )
         estimator_raw = LightGBM.LGBMClassification(
             objective = "binary",
             predict_raw_score = true,
-            num_class = 1
+            num_class = 1, 
+            verbosity = -1
         )
         LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
         LightGBM.fit!(estimator_raw, X_train, y_train, verbosity = -1)
@@ -363,6 +366,7 @@ end
                 pred_early_stop_freq = pred_early_stop_freq,
                 pred_early_stop_margin = pred_early_stop_margin,
                 num_iterations = 100,
+                verbosity = -1
             )
             LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
             push!(estimators, estimator)
@@ -430,7 +434,8 @@ end
         monotone_constraints = monotone_constraints,
         monotone_constraints_method = monotone_constraints_method,
         monotone_penalty = monotone_penalty,
-        num_class = 1
+        num_class = 1,
+        verbosity = -1
     )
     LightGBM.fit!(estimator_with_monotone_constraints, X_train, y_train, verbosity = -1)
 
@@ -438,12 +443,13 @@ end
     estimator_with_interaction_constraints = LightGBM.LGBMClassification(
         objective = "binary",
         interaction_constraints = interaction_constraints,
-        num_class = 1
+        num_class = 1,
+        verbosity = -1
     )
     LightGBM.fit!(estimator_with_interaction_constraints, X_train, y_train, verbosity = -1)
 
     # Create and fit the estimator without monotone constraints
-    estimator_without_constraints = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator_without_constraints = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
     LightGBM.fit!(estimator_without_constraints, X_train, y_train, verbosity = -1)
 
     # Generate predictions
@@ -463,7 +469,7 @@ end
     # Create sample data, labels and estimator
     featuresdata = randn(1000, 20)
     labels = rand([0, 1], 1000)
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
     LightGBM.fit!(estimator, featuresdata, labels, verbosity = -1)
     
     # Refit with a default refit_decay_rate

@@ -18,7 +18,7 @@ w = abs.(randn(nrows))
 w = w / sum(w)
 
 # setup MLJ machinery -- will be used in several testsets
-r = LightGBM.MLJInterface.LGBMRegressor(num_iterations=1, min_data_in_leaf=20)
+r = LightGBM.MLJInterface.LGBMRegressor(num_iterations=1, min_data_in_leaf=20, verbosity = -1)
 m = MLJBase.machine(r, X, y)
 
 # initial fit
@@ -91,7 +91,7 @@ end
 
 @testset "MLJ User provided weights" begin
 # check with user provided weights
-    r = LightGBM.MLJInterface.LGBMRegressor(num_iterations=1, min_data_in_leaf=20)
+    r = LightGBM.MLJInterface.LGBMRegressor(num_iterations=1, min_data_in_leaf=20, verbosity = -1)
     weights_machine = MLJBase.machine(r, X, y, w)
 
     MLJBase.fit!(weights_machine; verbosity=0)
