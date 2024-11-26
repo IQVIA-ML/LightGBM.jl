@@ -25,7 +25,7 @@ LightGBM.LGBM_DatasetSetField(test2_dataset, "label", test2_labels)
 
 @testset "test fit! with dataset -- binary" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     # Act
     LightGBM.fit!(estimator, train_dataset, test_dataset, verbosity = -1);
@@ -41,7 +41,7 @@ end
 
 @testset "test fit! with dataset without testset -- binary" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     # Act
     LightGBM.fit!(estimator, train_dataset, verbosity = -1);
@@ -57,8 +57,8 @@ end
 
 @testset "test fit! with sparse matches dense" begin
 
-    estimator_dense = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
-    estimator_sparse = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    estimator_dense = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
+    estimator_sparse = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
 
     LightGBM.fit!(estimator_dense, train_matrix, train_labels, verbosity = -1)
     LightGBM.fit!(estimator_sparse, train_sparse, train_labels, verbosity = -1)
@@ -77,9 +77,10 @@ end
         num_class = 1,
         is_provide_training_metric = true,
         metric = ["auc"],
+        verbosity = -1
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
+    bst_parameters = LightGBM.stringifyparams(estimator)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -100,9 +101,10 @@ end
         num_class = 1,
         is_provide_training_metric = true,
         metric = ["auc", "l2"],
+        verbosity = -1
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
+    bst_parameters = LightGBM.stringifyparams(estimator)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test2_dataset)
@@ -129,9 +131,10 @@ end
         num_class = 1,
         is_provide_training_metric = true,
         metric = ["auc", "l2"],
+        verbosity = -1
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
+    bst_parameters = LightGBM.stringifyparams(estimator)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test2_dataset)
@@ -182,10 +185,11 @@ end
     estimator = LightGBM.LGBMClassification(
         num_iterations = 10, objective = "binary", num_class = 1,
         is_provide_training_metric = false, metric = ["auc"],
-        early_stopping_round = 0 # default value, but stating explicitly to test!
+        early_stopping_round = 0, # default value, but stating explicitly to test!
+        verbosity = -1
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
+    bst_parameters = LightGBM.stringifyparams(estimator)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -222,10 +226,11 @@ Criteria: early_stopping should kick in on round 6
     estimator = LightGBM.LGBMClassification(
         num_iterations = 10, objective = "binary", num_class = 1,
         is_provide_training_metric = false, metric = ["auc"],
-        early_stopping_round = 5
+        early_stopping_round = 5,
+        verbosity = -1
     )
 
-    bst_parameters = LightGBM.stringifyparams(estimator; verbosity=-1)
+    bst_parameters = LightGBM.stringifyparams(estimator)
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, bst_parameters)
     LightGBM.LGBM_BoosterAddValidData(estimator.booster, test_dataset)
 
@@ -256,7 +261,7 @@ end
 
 @testset "test truncate_model!" begin
     # Arrange
-    estimator = LightGBM.LGBMClassification(num_iterations = 100)
+    estimator = LightGBM.LGBMClassification(num_iterations = 100, verbosity = -1)
     verbosity = "verbose=-1"
 
     estimator.booster = LightGBM.LGBM_BoosterCreate(train_dataset, verbosity)
@@ -282,6 +287,7 @@ end
         early_stopping_round = 5,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 
@@ -303,6 +309,7 @@ end
         early_stopping_round = 5,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 
@@ -325,6 +332,7 @@ end
         early_stopping_round = 0,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1,
     )
     verbosity = "verbose=-1"
 
@@ -341,8 +349,8 @@ end
 
 @testset "stringifyparams -- convert to zero-based" begin
     indices = [1, 3, 5, 7, 9]
-    classifier = LightGBM.LGBMClassification(categorical_feature = indices)
-    ds_parameters = LightGBM.stringifyparams(classifier; verbosity=-1)
+    classifier = LightGBM.LGBMClassification(categorical_feature = indices, verbosity = -1)
+    ds_parameters = LightGBM.stringifyparams(classifier)
 
     expected = "categorical_feature=0,2,4,6,8"
     @test occursin(expected, ds_parameters)
@@ -350,13 +358,13 @@ end
 
 @testset "stringifyparams -- multiple calls won't mutate fields" begin
     indices = [1, 3, 5, 7, 9]
-    classifier = LightGBM.LGBMClassification(categorical_feature = indices)
+    classifier = LightGBM.LGBMClassification(categorical_feature = indices, verbosity = -1)
     expected_indices = deepcopy(classifier.categorical_feature)
 
-    LightGBM.stringifyparams(classifier; verbosity=-1)
+    LightGBM.stringifyparams(classifier)
     @test expected_indices == classifier.categorical_feature
 
-    LightGBM.stringifyparams(classifier; verbosity=-1)
+    LightGBM.stringifyparams(classifier)
     @test expected_indices == classifier.categorical_feature
 end
 
@@ -392,11 +400,12 @@ end
         num_iterations = 10,
         metric = ["auc"],
         objective = "binary",
-        header = true
+        header = true, 
+        verbosity = -1
     )
 
     # Fitting with filepaths
-    output_with_files = LightGBM.fit!(estimator, train_filepath; test_filepath=test_filepath, verbosity=-1)
+    output_with_files = LightGBM.fit!(estimator, train_filepath; test_filepath=test_filepath, verbosity = -1)
 
     # Estimator to fit with matrices
     estimator_matrix = LightGBM.LGBMClassification(
@@ -404,10 +413,11 @@ end
         num_iterations = 10,
         metric = ["auc"],
         objective = "binary",
+        verbosity = -1
     )
 
     # Fitting with matrices
-    output_with_matrix = LightGBM.fit!(estimator_matrix, train_matrix, train_labels, (test_matrix, test_labels); verbosity=-1)
+    output_with_matrix = LightGBM.fit!(estimator_matrix, train_matrix, train_labels, (test_matrix, test_labels), verbosity = -1)
 
     # Test that the outputs for fitting with filepath and matrices are the same
     @test output_with_files["metrics"]["test_1"]["auc"] == output_with_matrix["metrics"]["test_1"]["auc"]

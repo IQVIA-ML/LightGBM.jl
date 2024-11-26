@@ -10,7 +10,7 @@ import LightGBM
 
 ## CLASSIFIER -- shamelessly copied from MLJModels/test/XGBoost.jl
 
-model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=100)
+model = LightGBM.MLJInterface.LGBMClassifier(objective="binary", num_iterations=100, verbosity = -1)
 
 # test binary case:
 N = 2

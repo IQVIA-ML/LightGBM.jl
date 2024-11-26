@@ -91,28 +91,28 @@ end
     params = [
         # This shows an undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw some warning
         # or the ignore_column parameter is silently ignored
-        "header=true ignore_column=0,1,2,3,4,5,6,7,8,9,10",
+        "header=true ignore_column=0,1,2,3,4,5,6,7,8,9,10 verbosity=-1",
         # This also shows an unexpected behaviour as it should return 3 rows (num_data) and 2 columns (num_features)
         # as the feature2 and feature3 columns should be ignored but they're not
-        "header=true ignore_column=name:feature2,feature3",
+        "header=true ignore_column=name:feature2,feature3 verbosity=-1",
         # Expected to have 3 rows (num_data) and 4 columns as default label_column is 0 so it's not used as a feature
-        "two_round=false header=true",
+        "two_round=false header=true verbosity=-1",
     ]
 
     params_fail = [
         # Given the above the `ignore_column`` parameter seems to be at least recognised when the column to be ignored is the label column
         # "Could not find ignore column label in data file" and the error is thrown
-        "header=true ignore_column=name:label",
+        "header=true ignore_column=name:label verbosity=-1",
         # This should throw an error as there is a header in the file so the header should be set to true
-        "two_round=true header=false" ,
+        "two_round=true header=false verbosity=-1", 
         # This should throw an error as the query parameter which is called `group_column` in docs is not a valid name
-        "header=true query=name:some_column"
+        "header=true query=name:some_column verbosity=-1",
     ]
     # This parameter is used to test the group column functionality
     # However, the actual parameter name is `group_column` as per the documentation and `query` and `group` are aliases
     # But the C++ LGBM_DatasetCreateFromFile accepts `query` or `group` as a valid parameter name and not `group_column`
     # Which can be tricky when passing this parameter directly from estimator.group_column
-    params_group_column = "header=true query=name:group_id"
+    params_group_column = "header=true query=name:group_id verbosity=-1"
 
     expected_num_data = [3, 3, 3]
     expected_num_feature = [4, 4, 4]

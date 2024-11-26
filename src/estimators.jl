@@ -65,6 +65,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
     
     # Dataset parameters
     linear_tree::Bool
@@ -185,6 +186,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
         interaction_constraints = "",
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -293,6 +295,7 @@ function LGBMRegression(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -350,7 +353,7 @@ function LGBMRegression(;
         xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, min_data_per_group, max_cat_threshold,
         cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
         feature_contri, forcedsplits_filename, refit_decay_rate, 
-        cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, interaction_constraints, 
+        cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, path_smooth, interaction_constraints, verbosity,
         linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, 
         two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename, precise_float_parser,
@@ -429,6 +432,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
 
     # Dataset parameters
     linear_tree::Bool
@@ -553,6 +557,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.
         interaction_constraints = "",  
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -666,6 +671,7 @@ function LGBMClassification(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -725,7 +731,7 @@ function LGBMClassification(;
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, 
         min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
         feature_contri,  forcedsplits_filename, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, 
-        path_smooth, interaction_constraints, 
+        path_smooth, interaction_constraints, verbosity,
         linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed, 
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, 
         two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename, precise_float_parser, 
@@ -803,6 +809,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
     interaction_constraints::String
+    verbosity::Int
 
     # Dataset parameters
     linear_tree::Bool
@@ -930,6 +937,7 @@ end
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
         interaction_constraints = "",
+        verbosity = 1,
         linear_tree = false,
         max_bin = 255,
         max_bin_by_feature = Int[],
@@ -1047,6 +1055,7 @@ function LGBMRanking(;
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
     interaction_constraints = "",
+    verbosity = 1,
     linear_tree = false,
     max_bin = 255,
     max_bin_by_feature = Int[],
@@ -1109,7 +1118,7 @@ function LGBMRanking(;
         min_gain_to_split, drop_rate, max_drop, skip_drop, xgboost_dart_mode, uniform_drop, drop_seed, top_rate, other_rate, 
         min_data_per_group, max_cat_threshold, cat_l2, cat_smooth, max_cat_to_onehot, top_k, monotone_constraints, monotone_constraints_method, monotone_penalty, 
         feature_contri, forcedsplits_filename, refit_decay_rate, cegb_tradeoff, cegb_penalty_split, cegb_penalty_feature_lazy, cegb_penalty_feature_coupled, 
-        path_smooth, interaction_constraints, 
+        path_smooth, interaction_constraints, verbosity,
         linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed, 
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, 
         two_round, header, label_column, weight_column, group_column, ignore_column, categorical_feature, forcedbins_filename, precise_float_parser, 

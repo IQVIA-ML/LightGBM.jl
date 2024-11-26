@@ -40,6 +40,7 @@ using LightGBM
             min_sum_hessian_in_leaf = 5.,
             min_data_in_leaf = 100,
             max_depth = -1,
+            verbosity = -1,
         )
 
         LightGBM.fit!(estimator, X_train, y_train, verbosity = -1, init_score=regression_train_init);

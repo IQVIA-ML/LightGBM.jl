@@ -88,6 +88,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
     path_smooth::Float64 = 0.0::(_ >= 0.0)
     interaction_constraints::String = ""
+    verbosity::Int = 1
     
     # Dataset parameters
     linear_tree::Bool = false
@@ -218,6 +219,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
     path_smooth::Float64 = 0.0::(_ >= 0.0)
     interaction_constraints::String = ""
+    verbosity::Int = 1
     
     # Dateset parameters
     linear_tree::Bool = false
