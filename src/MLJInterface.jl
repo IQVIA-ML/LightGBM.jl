@@ -80,6 +80,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
     monotone_penalty::Float64 = 0.0::(_ >= 0.0)
     feature_contri::Vector{Float64} = Vector{Float64}()
+    forcedsplits_filename::String = ""
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
     cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
@@ -102,7 +103,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     zero_as_missing::Bool = false
     feature_pre_filter::Bool = true
     pre_partition::Bool = false
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
     categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
@@ -203,6 +211,7 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
     monotone_penalty::Float64 = 0.0::(_ >= 0.0)
     feature_contri::Vector{Float64} = Vector{Float64}()
+    forcedsplits_filename::String = ""
     refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
     cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
     cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
@@ -225,7 +234,14 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     zero_as_missing::Bool = false
     feature_pre_filter::Bool = true
     pre_partition::Bool = false
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
     categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
 
     # Predict parameters
     start_iteration_predict::Int = 0
