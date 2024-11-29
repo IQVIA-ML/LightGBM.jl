@@ -63,7 +63,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
     
     # Dataset parameters
@@ -176,7 +176,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
-        interaction_constraints = "",
+        interaction_constraints = Vector{Int}[],
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -277,7 +277,7 @@ function LGBMRegression(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,
@@ -403,7 +403,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
 
     # Dataset parameters
@@ -520,7 +520,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.
-        interaction_constraints = "",  
+        interaction_constraints = Vector{Int}[],  
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -626,7 +626,7 @@ function LGBMClassification(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,
@@ -755,7 +755,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
 
     # Dataset parameters
@@ -875,7 +875,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
-        interaction_constraints = "",
+        interaction_constraints = Vector{Int}[],
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -984,7 +984,7 @@ function LGBMRanking(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,
