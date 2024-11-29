@@ -59,7 +59,9 @@ the parameters or data of the estimator whose model was saved as `filename`.
 """
 function loadmodel!(estimator::LGBMEstimator, filename::String)
     estimator.booster = LGBM_BoosterCreateFromModelfile(filename)
-    estimator.num_class = LGBM_BoosterGetNumClasses(estimator.booster)
+    if !(estimator isa LGBMRegression)
+        estimator.num_class = LGBM_BoosterGetNumClasses(estimator.booster)
+    end
     return nothing
 end
 
