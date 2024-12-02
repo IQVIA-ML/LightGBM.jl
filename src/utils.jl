@@ -1,5 +1,5 @@
 
-const INDEXPARAMS = [:categorical_feature]
+const INDEXPARAMS = [:categorical_feature, :interaction_constraints]
 
 const MAXIMIZE_METRICS = ["auc", "ndcg", "average_precision"]
 
