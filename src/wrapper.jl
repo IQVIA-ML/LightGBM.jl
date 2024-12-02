@@ -616,7 +616,7 @@ end
 
 function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
     out_len = Ref{Int64}()
-    num_class = bst isa LGBMRegression ? 1 : LGBM_BoosterGetNumClasses(bst)
+    num_class = LGBM_BoosterGetNumClasses(bst)
     num_data = LGBM_BoosterGetNumPredict(bst, data_idx)
     out_results = Array{Cdouble}(undef, num_class * num_data)
     @lightgbm(:LGBM_BoosterGetPredict,
