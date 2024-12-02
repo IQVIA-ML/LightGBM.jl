@@ -349,11 +349,17 @@ end
 
 @testset "stringifyparams -- convert to zero-based" begin
     indices = [1, 3, 5, 7, 9]
-    classifier = LightGBM.LGBMClassification(categorical_feature = indices, verbosity = -1)
+    interaction_constraints = [[1, 3], [5, 7], [9]]
+    classifier = LightGBM.LGBMClassification(
+        categorical_feature = indices, 
+        interaction_constraints = interaction_constraints, 
+        verbosity = -1)
     ds_parameters = LightGBM.stringifyparams(classifier)
 
     expected = "categorical_feature=0,2,4,6,8"
+    expected_constraints = "interaction_constraints=[0,2],[4,6],[8]"
     @test occursin(expected, ds_parameters)
+    @test occursin(expected_constraints, ds_parameters)
 end
 
 @testset "stringifyparams -- multiple calls won't mutate fields" begin

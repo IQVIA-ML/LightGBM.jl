@@ -425,8 +425,8 @@ end
     monotone_penalty = 0.1
     # The below interaction constraints are defined so that features in each vector are allowed to interact with each other
     # The model can consider interactions between those grouped features when buiding trees.
-    # Features that are no included in any interaction constraing group are treated as independent.
-    interaction_constraints = "[1,2],[3,4,5],[6,7,8,9,10]"
+    # Features that are not included in any interaction constraint group are treated as independent.
+    interaction_constraints = [[1,2],[3,4,5],[6,7,8,9,10]]
 
     # Create and fit the estimator with monotone constraints
     estimator_with_monotone_constraints = LightGBM.LGBMClassification(
