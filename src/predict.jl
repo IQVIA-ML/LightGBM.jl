@@ -84,7 +84,7 @@ function predict(
 
     # This works the same one way or another because when n=1, (regression) reshaping is basically no-op
     # except for adding the extra dim
-    prediction = transpose(reshape(prediction, estimator.num_class, :))
+    prediction = transpose(reshape(prediction, estimator isa LGBMRegression ? 1 : estimator.num_class, :))
 
     return prediction
 

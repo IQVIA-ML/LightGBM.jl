@@ -339,9 +339,44 @@ end
 
 
 @testset "LGBM_BoosterGetPredict" begin
+    # Regression test
+    numdata = 1000
+    mymat = randn(numdata, 2)
+    labels = dropdims(sum(mymat .^2; dims=2); dims=2)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=regression $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_regression = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to 1 * numdata for regression
+    @test length(preds_regression) == numdata
 
-    # Needs implementing
-    @test_broken false
+    # Classification test
+    labels = rand([0, 1], numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary num_class=1 $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_classification = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (1 * numdata for binary classification)
+    @test length(preds_classification) == numdata
+
+    # Multi-class test
+    num_classes = 3
+    labels = rand(0:num_classes-1, numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$num_classes $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_multiclass = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (3 * numdata for this example multi-class classification)
+    @test length(preds_multiclass) == num_classes * numdata
 
 end
 

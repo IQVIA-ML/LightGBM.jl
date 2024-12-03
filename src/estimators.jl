@@ -90,7 +90,6 @@ mutable struct LGBMRegression <: LGBMEstimator
     predict_disable_shape_check::Bool
 
     # Objective parameters
-    num_class::Int 
     is_unbalance::Bool
     boost_from_average::Bool
     reg_sqrt::Bool
@@ -332,7 +331,7 @@ function LGBMRegression(;
         linear_tree, max_bin, max_bin_by_feature, min_data_in_bin, bin_construct_sample_cnt, data_random_seed,
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, categorical_feature,
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
-        1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, 
+        is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, 
         metric, metric_freq, is_provide_training_metric, eval_at, 
         num_machines, local_listen_port, time_out, machine_list_filename, machines, gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
     )
