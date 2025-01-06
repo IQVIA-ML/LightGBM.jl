@@ -391,17 +391,24 @@ end
         "4.0,5.0,1"
     ]
     data_filename = "dummy_data.csv"
-    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
     result_filename = "dummy_predictions.txt"
     open(data_filename, "w") do f
         for line in data
             println(f, line)
         end
     end
-   # Setup booster
-    mymat = [1. 2.; 3. 4.; 5. 6.]
+
+    # Setup booster with a more representative dataset
+    mymat = [1.0 2.0; 2.0 3.0; 3.0 4.0; 4.0 5.0]
+    labels = [0.0, 1.0, 0.0, 1.0]
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
     booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # Train the booster for more iterations 
+    for i in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
 
     # Call the LGBM_BoosterPredictForFile function
     LightGBM.LGBM_BoosterPredictForFile(
@@ -424,6 +431,7 @@ end
         scores = parse.(Float64, lines)
         @test length(scores) == 4
         @test all(0 .<= scores .<= 1)
+        @test any(scores .!= 0)  # Ensure that not all scores are zero
     end
 
     # Clean up
