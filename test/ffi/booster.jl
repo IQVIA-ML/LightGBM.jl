@@ -391,7 +391,8 @@ end
         "4.0,5.0,1"
     ]
     data_filename = "dummy_data.csv"
-    result_filename = "dummy_predictions.csv"
+    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
+    result_filename = "dummy_predictions.txt"
     open(data_filename, "w") do f
         for line in data
             println(f, line)
@@ -416,6 +417,14 @@ end
 
     # Check if the result file is created
     @test isfile(result_filename)
+
+    # Read the results file and check the scores
+    open(result_filename, "r") do f
+        lines = readlines(f)
+        scores = parse.(Float64, lines)
+        @test length(scores) == 4
+        @test all(0 .<= scores .<= 1)
+    end
 
     # Clean up
     rm(data_filename, force=true)
