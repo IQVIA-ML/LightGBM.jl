@@ -391,6 +391,7 @@ end
         "4.0,5.0,1"
     ]
     data_filename = "dummy_data.csv"
+    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
     result_filename = "dummy_predictions.txt"
     open(data_filename, "w") do f
         for line in data
@@ -398,7 +399,7 @@ end
         end
     end
 
-    # Setup booster with a more representative dataset
+    # Setup booster with labels
     mymat = [1.0 2.0; 2.0 3.0; 3.0 4.0; 4.0 5.0]
     labels = [0.0, 1.0, 0.0, 1.0]
     dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
