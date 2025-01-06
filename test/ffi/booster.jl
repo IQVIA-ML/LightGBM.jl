@@ -381,6 +381,67 @@ end
 end
 
 
+@testset "LGBM_BoosterPredictForFile" begin
+    # Setup test data from file
+    data = [
+        "feature1,feature2,label",
+        "1.0,2.0,0",
+        "2.0,3.0,1",
+        "3.0,4.0,0",
+        "4.0,5.0,1"
+    ]
+    data_filename = "dummy_data.csv"
+    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
+    result_filename = "dummy_predictions.txt"
+    open(data_filename, "w") do f
+        for line in data
+            println(f, line)
+        end
+    end
+
+    # Setup booster with labels
+    mymat = [1.0 2.0; 2.0 3.0; 3.0 4.0; 4.0 5.0]
+    labels = [0.0, 1.0, 0.0, 1.0]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # Train the booster for more iterations 
+    for i in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Call the LGBM_BoosterPredictForFile function
+    LightGBM.LGBM_BoosterPredictForFile(
+        booster, 
+        data_filename, 
+        true,  # data_has_header
+        0,  # predict_type (0 for raw score)
+        0,  # start_iteration
+        0,  # num_iteration
+        "", # no parameters
+        result_filename, 
+    )
+
+    # Check if the result file is created
+    @test isfile(result_filename)
+
+    # Read the results file and check the scores
+    open(result_filename, "r") do f
+        lines = readlines(f)
+        scores = parse.(Float64, lines)
+        @test length(scores) == 4
+        @test all(0 .<= scores .<= 1)
+        @test any(scores .!= 0)  # Ensure that not all scores are zero
+    end
+
+    # Clean up
+    rm(data_filename, force=true)
+    rm(result_filename, force=true)
+
+end
+
+
 @testset "LGBM_BoosterCalcNumPredict" begin
     # Setup train data and booster
     mymat = rand(100, 10)  # 100 rows and 10 features
