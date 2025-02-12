@@ -478,10 +478,62 @@ end
     new_booster_custom = LightGBM.refit(estimator, featuresdata, labels, refit_decay_rate = 0.5)
     
     # Verify the returned booster
-    @test new_booster != nothing
+    @test !isnothing(new_booster)
     @test new_booster != estimator
     @test new_booster_custom != new_booster
 
+end
+
+
+@testset "parameters -- missing features" begin
+
+    # Generate random data with missing values
+    X_train = Array{Union{Missing, Float64}}(randn(1000, 20))
+    y_train = rand([0, 1], 1000)
+    X_test = Array{Union{Missing, Float64}}(randn(500, 20))
+    # Introduce missing values in train set and test set (for predictions)
+    X_train[rand(1:1000, 100), rand(1:20, 5)] .= missing
+    X_test[rand(1:500, 50), rand(1:20, 5)] .= missing
+
+    # Function to train and evaluate the model with combinations of use_missing and zero_as_missing
+    function train_and_evaluate(X_train, y_train, X_test, params)
+        # Define the model
+        model = LightGBM.LGBMClassification(
+            objective = "binary",
+            use_missing = params["use_missing"],
+            zero_as_missing = params["zero_as_missing"],
+            num_class = 1,
+            verbosity = -1
+        )
+        
+        # Train model
+        LightGBM.fit!(model, X_train, y_train, verbosity = -1)
+        
+        # Predict
+        y_pred = LightGBM.predict(model, X_test)
+        
+        return y_pred
+    end
+
+    # Test combinations of use_missing and zero_as_missing
+    for use_missing in [true, false]
+        for zero_as_missing in [true, false]
+            params = Dict("use_missing" => use_missing, "zero_as_missing" => zero_as_missing)
+            
+            @testset "use_missing=$use_missing, zero_as_missing=$zero_as_missing" begin
+                y_pred = train_and_evaluate(X_train, y_train, X_test, params)
+                
+                # Check if predictions are not missing/nans
+                @test !any(isnan.(y_pred))
+                
+                # Check for the output in expected format
+                @test typeof(y_pred) == Matrix{Float64}
+
+                # Check if predictions are within 0 to 1 range
+                @test all(0 .<= y_pred .<= 1)
+            end
+        end
+    end
 end
 
 

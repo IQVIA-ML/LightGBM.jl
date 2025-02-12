@@ -29,6 +29,20 @@ function get_predict_type(
     return predict_type
 end
 
+function convert_to_nan(mat::AbstractMatrix{Union{Missing, T}}) where {T<:Real}
+    # If the type is Int, cast to Float64
+    if T <: Int
+        mat = Float64.(mat)
+    end
+    
+    # Replace missing values with NaN required by LightGBM C API
+    mat = replace(mat, missing => NaN)
+    
+    return mat
+end
+
+convert_to_nan(mat::AbstractMatrix{T}) where {T<:Real} = mat
+
 """
     predict(estimator, X; [num_iterations = -1, verbosity = 1,
     is_row_major = false, num_threads = -1, predict_raw_score = false, predict_leaf_index = false, predict_contrib = false])
@@ -38,7 +52,9 @@ Use `dropdims` if a vector is required.
 
 # Arguments
 * `estimator::LGBMEstimator`: the estimator to use in the prediction.
-* `X::Matrix{T<:Real}`: the features data.
+* `X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}`: the features data.
+    If `X` is of type `Union{Float, Missing}`, missing values will be replaced with `NaN`.
+    If `X` is of type `Int`, missing values will be replaced with `NaN` after casting to `Float64`.
 * `predict_type::Integer`: keyword argument that controls the prediction type. `0` for normal
     scores with transform (if needed), `1` for raw scores, `2` for leaf indices, `3` for SHAP contributions.
 * `num_iterations::Integer`: keyword argument that sets the number of iterations of the model to
@@ -55,7 +71,8 @@ Use `dropdims` if a vector is required.
 
 """
 function predict(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX};
+    estimator::LGBMEstimator, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}};
     start_iteration::Integer = 0, num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false, 
     num_threads::Integer = -1,
@@ -79,7 +96,7 @@ function predict(
     end
 
     prediction = LGBM_BoosterPredictForMat(
-        estimator.booster, X, predict_type, start_iteration, num_iterations, is_row_major, parameter
+        estimator.booster, convert_to_nan(X), predict_type, start_iteration, num_iterations, is_row_major, parameter
     )
 
     # This works the same one way or another because when n=1, (regression) reshaping is basically no-op
@@ -92,7 +109,8 @@ end
 
 
 function predict_classes(
-    estimator::LGBMClassification, X::AbstractMatrix{TX};
+    estimator::LGBMClassification, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}};
     num_iterations::Integer = -1, verbosity::Integer = 1,
     is_row_major::Bool = false, binary_threshold::Float64 = 0.5,
     num_threads::Integer = -1,
@@ -100,7 +118,7 @@ function predict_classes(
 
     # pass through, get probabilities
     predicted_probabilities = predict(
-        estimator, X; num_iterations=num_iterations,
+        estimator, convert_to_nan(X); num_iterations=num_iterations,
         verbosity=verbosity, is_row_major=is_row_major, num_threads=num_threads,
     )
 
