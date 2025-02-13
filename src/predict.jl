@@ -29,19 +29,6 @@ function get_predict_type(
     return predict_type
 end
 
-function convert_to_nan(mat::AbstractMatrix{Union{Missing, T}}) where {T<:Real}
-    # If the type is Int, cast to Float64
-    if T <: Int
-        mat = Float64.(mat)
-    end
-    
-    # Replace missing values with NaN required by LightGBM C API
-    mat = replace(mat, missing => NaN)
-    
-    return mat
-end
-
-convert_to_nan(mat::AbstractMatrix{T}) where {T<:Real} = mat
 
 """
     predict(estimator, X; [num_iterations = -1, verbosity = 1,

@@ -116,25 +116,15 @@ function fit!(
     return results
 end
 
-function prepare_matrix(mat::AbstractMatrix{Union{Missing, T}}) where {T<:Real}
-    # If the type is Int, cast to Float64
-    if T <: Int
-        mat = Float64.(mat)
-    end
-    
-    # Replace missing values with NaN required by LightGBM C API
-    mat = replace(mat, missing => NaN)
-    
-    return mat
-end
+
 dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromMat(mat, params, ds, rm)
 dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
-dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool, ds::Dataset) where T<:Real = LGBM_DatasetCreateFromMat(prepare_matrix(mat), params, ds, rm)
-dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool) where T<:Real = LGBM_DatasetCreateFromMat(prepare_matrix(mat), params, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool, ds::Dataset) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, ds, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, rm)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
-dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(prepare_matrix(mat), params)
-dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool, ds::Dataset) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(prepare_matrix(mat), params, ds)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool, ds::Dataset) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params, ds)
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool, d::Dataset) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 
