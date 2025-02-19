@@ -120,3 +120,18 @@ gain_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator
 """
 split_importance(estimator::LGBMEstimator, num_iteration::Integer) = feature_importance_wrapper(estimator, 0, num_iteration)
 split_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator, 0, 0)
+
+
+function convert_to_nan(mat::AbstractMatrix{Union{Missing, T}}) where {T<:Real}
+    # If the type is Int, cast to Float64
+    if T <: Int
+        mat = Float64.(mat)
+    end
+    
+    # Replace missing values with NaN required by LightGBM C API
+    mat = replace(mat, missing => NaN)
+    
+    return mat
+end
+
+convert_to_nan(mat::AbstractMatrix{T}) where {T<:Real} = mat
