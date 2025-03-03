@@ -2,6 +2,7 @@ module TestBinaryLGBM
 
 
 using MLJBase
+using StatisticalMeasures
 using Test
 
 import CategoricalArrays

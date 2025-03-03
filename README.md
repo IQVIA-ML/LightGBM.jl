@@ -21,7 +21,7 @@ Additionally, the package automatically converts all LightGBM parameters that re
 A majority of the C-interfaces are implemented. A few are known to be missing and are
 [tracked.](https://github.com/IQVIA-ML/LightGBM.jl/issues)
 
-All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia versions 1.0+ are supported.
+All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia versions 1.6+ are supported.
 
 # Table of Contents
 1. [Installation](#installation)
@@ -29,21 +29,17 @@ All major operating systems (Windows, Linux, and Mac OS X) are supported. Julia 
 1. [MLJ](#mlj-support)
 
 # Installation
-Please ensure your system meets the pre-requisites for LightGBM. This generally means ensuring
-that `libomp` is installed and linkable on your system. See here for [Microsoft's installation guide.](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
-
-Please note that the package actually downloads a [precompiled binary](https://github.com/microsoft/LightGBM/releases)
-so you do not need to install LightGBM first. This is done as a user convenience, and support
-will be added for supplying ones own LightGBM binary (for GPU acceleration, etc).
 
 To add the package to Julia:
 ```julia
 Pkg.add("LightGBM")
 ```
+This package uses [LightGBM_jll](https://github.com/JuliaBinaryWrappers/LightGBM_jll.jl) to package `lightgbm` binaries
+so it works out-of-the-box.
 ## Tests
 Running tests for the package requires the use of the LightGBM example files,
-download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v2.3.1.zip)
-and set the enviroment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
+download and extract the [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
+and set the environment variable `LIGHTGBM_EXAMPLES_PATH` to the root of the source installation.
 Then you can run the tests by simply doing
 ```julia
 Pkg.test("LightGBM")
@@ -53,20 +49,20 @@ To skip MLJ testing when running tests, set the env var `DISABLE_MLJ_TESTS` to a
 
 # A simple example using LightGBM example files
 
-First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.2.0.zip)
+First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
 and untar it somewhere.
 
 ```bash
 cd ~
-wget https://github.com/microsoft/LightGBM/archive/v3.2.0.tar.gz
-tar -xf v3.2.0.tar.gz
+wget https://github.com/microsoft/LightGBM/archive/v3.3.5.tar.gz
+tar -xf v3.3.5.tar.gz
 ```
 
 ```julia
 using LightGBM
 using DelimitedFiles
 
-LIGHTGBM_SOURCE = abspath("~/LightGBM-3.2.0")
+LIGHTGBM_SOURCE = abspath("~/LightGBM-3.3.5")
 
 # Load LightGBM's binary classification example.
 binary_test = readdlm(joinpath(LIGHTGBM_SOURCE, "examples", "binary_classification", "binary.test"), '\t')
@@ -113,6 +109,60 @@ filename = pwd() * "/finished.model"
 savemodel(estimator, filename)
 loadmodel!(estimator, filename)
 ```
+# LGBM Ranking Support
+
+LightGBM.jl core includes a separate estimator `LGBMRanking` with parameters suitable for ranking applications as described in [group query](https://lightgbm.readthedocs.io/en/v3.3.5/Parameters.html#query-data). Similar to other
+wrapper libraries it is possible to pass a one-dimensional array with `group` information parameter.
+
+Here's an example of how to use `LGBMRanking`:
+
+
+```julia
+using LightGBM
+
+# Create X_train Matrix
+X_train = [
+    0.3 0.6 0.9;
+    0.1 0.4 0.7;
+    0.5 0.8 1.1;
+    0.3 0.6 0.9;
+    0.7 1.0 1.3;
+    0.2 0.5 0.8;
+    0.1 0.4 0.7;
+    0.4 0.7 1.0;
+]
+
+# Create X_test Matrix
+X_test = [
+    0.6 0.9 1.2;
+    0.2 0.5 0.8;
+]
+
+# Create y_train and y_test arrays
+y_train = [0, 0, 0, 0, 1, 0, 1, 1]
+y_test = [0, 1]
+
+# Create group_train and group_test arrays
+group_train = [2, 2, 4]
+group_test = [1, 1]
+
+# Create ranker model
+ranker = LightGBM.LGBMRanking(
+    num_class = 1,
+    objective = "lambdarank",
+    metric = ["ndcg"],
+    eval_at = [1, 3, 5, 10],
+    learning_rate = 0.1,
+    num_leaves = 31,
+    min_data_in_leaf = 1,
+)
+
+# Fit the model
+LightGBM.fit!(ranker, X_train, Vector(y_train), group = group_train)
+
+# Predict the relevance scores for the test set
+y_pred = LightGBM.predict(ranker, X_test)
+   ```
 
 # MLJ Support
 
@@ -133,21 +183,11 @@ and integrated as part of a larger MLJ pipeline. [An example is provided](https:
 MLJ Is only officially supported on 1.6+ (because this is what MLJ supports). Using older versions of the MLJ package may work, but your mileage may vary.
 
 # Custom LightGBM binaries
-Though this package comes with a precompiled binary (`lib_lightgbm.so` for linux, `lib_lightgbm.dylib` for macos, `lib_lightgbm.dll` for windows, refer to [Microsoft's LightGBM release page](https://github.com/microsoft/LightGBM/releases)), a custom binary can be used with this package (we use `Libdl.dlopen` to do this). In order to do so, either:
 
-  - Add the directory of your custom binary to the `Libdl.DL_LOAD_PATH` before calling `import LightGBM`, e.g.
-      ```
-      import Libdl
-      push!(Libdl.DL_LOAD_PATH, "/path/to/your/lib_lightgbm/directory")
-
-      import LightGBM
-      ...
-      ```
-  - Specify the directory of your custom binary in the environment variables `LD_LIBRARY_PATH` (for linux), `DYLD_LIBRARY_PATH` (macos), `PATH` (windows), or place the custom binary file in the system search path
-
-Note: `Libdl.DL_LOAD_PATH` will be first searched and used, then the system library paths. If no binaries are found, the program will fallback to using the precompiled binary
+This package uses [LightGBM_jll](https://github.com/JuliaBinaryWrappers/LightGBM_jll.jl) to package `lightgbm` binaries.
+JLL packages use the [Artifacts system](https://pkgdocs.julialang.org/v1/artifacts/) to provide the files.
+If you would like to override the existing files with your own binaries, you can follow the [overriding the artifacts](https://docs.binarybuilder.org/stable/jll/#Overriding-the-artifacts-in-JLL-packages) guidance.
 
 ## Contributors ✨
 
-The list of our Contributors can be found [here](CONTRIBUTORS.md).
-Please don't hesitate to add yourself when you contribute.
+Please don't hesitate to add yourself when you contribute to CONTRIBUTORS.md.

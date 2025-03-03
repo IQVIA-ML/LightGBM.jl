@@ -6,7 +6,10 @@ import Libdl
 import SparseArrays
 import Statistics
 
-
+if !((VERSION ∈ (v"1.8.4", v"1.8.5")) && Sys.iswindows())
+    # See https://github.com/JuliaLang/julia/issues/48187
+    import LightGBM_jll
+end
 
 const LGBM_library = Ref{Ptr{Cvoid}}(C_NULL)
 
@@ -40,6 +43,16 @@ end
 
 function __init__()
     LGBM_library[] = Libdl.dlopen(find_library("lib_lightgbm", [@__DIR__]))
+    if (VERSION ∈ (v"1.8.4", v"1.8.5")) && Sys.iswindows()
+        printstyled(stdout,
+        """
+        \nIncompatibility warning: LightGBM
+
+        LightGBM_jll does not work correctly for julia v1.8.4-v1.8.5 in windows, precompiled libraries will be downloaded instead
+        See https://github.com/JuliaLang/julia/issues/48187
+        \n
+        """; color = :light_magenta)
+    end
     return nothing
 end
 

@@ -100,4 +100,8 @@ end
         include("integration/initScoreTest.jl")
     end
 
+    @testset "Group Query Test" begin
+        include("integration/groupQueryTest.jl")
+    end
+
 end

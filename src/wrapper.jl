@@ -319,24 +319,11 @@ function _LGBM_DatasetSetField(ds::Dataset, field_name::String,
     return nothing
 end
 
-function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Float32})
-    if field_name == "label" || field_name == "weight"
-        _LGBM_DatasetSetField(ds, field_name, field_data)
-    else
-        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Int32}, field_data))
-    end
-    return nothing
-end
-
-function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{Int32})
-    if field_name == "group"
-        _LGBM_DatasetSetField(ds, field_name, field_data)
-    else
-        _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
-    end
-    return nothing
-end
-
+# the below type conversions are required by C API for the different fieldnames
+# ideally we should enforce the correct types through signature and multiple dispatch accordingly
+# but this would restrict the inputs from MLJInterface which don't necessarily have
+# exact matching data types for these fields hence leaving the conversions here before passing to the
+# wrapper function
 function LGBM_DatasetSetField(ds::Dataset, field_name::String, field_data::Vector{T}) where T<:Real
     if field_name == "label" || field_name == "weight"
         _LGBM_DatasetSetField(ds, field_name, convert(Vector{Float32}, field_data))
@@ -668,7 +655,8 @@ function LGBM_BoosterPredictForMat(
     predict_type::Integer,
     start_iteration::Integer,
     num_iteration::Integer,
-    is_row_major::Bool = false
+    is_row_major::Bool = false,
+    num_threads::Integer = -1
 ) where T<:Union{Float32,Float64}
 
     lgbm_data_type = jltype_to_lgbmid(T)
@@ -678,6 +666,9 @@ function LGBM_BoosterPredictForMat(
     out_result = Array{Cdouble}(undef, alloc_len)
 
     parameter = ""  # full prediction, no early stopping
+    if num_threads > 0
+        parameter = "num_threads=$num_threads"
+    end
     @lightgbm(
         :LGBM_BoosterPredictForMat,
         bst.handle => BoosterHandle,
