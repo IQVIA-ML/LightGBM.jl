@@ -4,5 +4,5 @@
 ```
 
 ```@autodocs
-Modules = [LightGBM]
+Modules = [LightGBM, LightGBM.MLJInterface]
 ```
