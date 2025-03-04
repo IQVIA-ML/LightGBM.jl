@@ -397,7 +397,7 @@ MLJModelInterface.metadata_model(
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{<:MLJModelInterface.Finite},
     weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Classifier",
+    human_name="LightGBM classifier",
 )
 
 MLJModelInterface.metadata_model(
@@ -406,20 +406,26 @@ MLJModelInterface.metadata_model(
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{MLJModelInterface.Continuous},
     weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Regressor",
+    human_name="LightGBM regressor",
 )
 
 """
 $(MLJModelInterface.doc_header(LGBMRegressor))
 
-`LightGBMRegressor`: LightGBM, short for light gradient-boosting machine, is a
+LightGBM, short for light gradient-boosting machine, is a
 framework for gradient boosting based on decision tree algorithms and used for
-ranking, classification and other machine learning tasks, with a focus on
+classification, regression and other machine learning tasks, with a focus on
 performance and scalability. This model in particular is used for various types of
-regression
+regression tasks.
 
-# Training data In MLJ or MLJBase, bind an instance `model` to data with mach =
-machine(model, X, y) Here:
+# Training data 
+
+In MLJ or MLJBase, bind an instance `model` to data with 
+
+  mach = machine(model, X, y) 
+
+Here:
+
 - `X` is any table of input features (eg, a `DataFrame`) whose columns are of
   scitype `Continuous`; check the column scitypes with `schema(X)`; alternatively,
   `X` is any `AbstractMatrix` with `Continuous` elements; check the scitype with
@@ -572,18 +578,21 @@ The fields of `report(mach)` are:
 
 ```julia
 
-using DataFrames: DataFrame using MLJ
+using DataFrames
+using MLJ
 
-
+# load the model (make sure to Pkg.add LightGBM to the environment)
 LGBMRegressor = @load LGBMRegressor
 
-X, y = @load_boston # a table and a vector X = DataFrame(X) train, test =
-partition(collect(eachindex(y)), 0.70, shuffle=true)
+X, y = @load_boston # a table and a vector 
+X = DataFrame(X)
+train, test = partition(collect(eachindex(y)), 0.70, shuffle=true)
 
-first(X, 3) |> pretty lgb = LGBMRegressor() #initialised a model with default
-params lgbm = machine(lgb, X[train, :], y[train, 1]) |> MLJ.fit!
+first(X, 3)
+lgb = LGBMRegressor() #initialised a model with default params
+mach = machine(lgb, X[train, :], y[train]) |> fit!
 
-predict(lgbm, X[test, :]) ```
+predict(mach, X[test, :]) ```
 
 """
 LGBMRegressor
@@ -592,14 +601,18 @@ LGBMRegressor
 """
 $(MLJModelInterface.doc_header(LGBMClassifier))
 
-`LightGBMClassifier`: LightGBM, short for light gradient-boosting machine, is a
+`LightGBM, short for light gradient-boosting machine, is a
 framework for gradient boosting based on decision tree algorithms and used for
-ranking, classification and other machine learning tasks, with a focus on
+classification and other machine learning tasks, with a focus on
 performance and scalability. This model in particular is used for various types of
-regression
+classification tasks.
 
-# Training data In MLJ or MLJBase, bind an instance `model` to data with mach =
-machine(model, X, y) Here:
+# Training data In MLJ or MLJBase, bind an instance `model` to data with 
+
+  mach = machine(model, X, y) 
+
+Here:
+
 - `X` is any table of input features (eg, a `DataFrame`) whose columns are of
   scitype `Continuous`; check the column scitypes with `schema(X)`; alternatively,
   `X` is any `AbstractMatrix` with `Continuous` elements; check the scitype with
@@ -612,7 +625,7 @@ Train the machine using `fit!(mach, rows=...)`.
 # Operations
 
 - `predict(mach, Xnew)`: return predictions of the target given new features
-  `Xnew` having the same Scitype as `X` above.
+  `Xnew`, which should have the same scitype as `X` above.
 
 # Hyper-parameters
 
@@ -753,17 +766,21 @@ The fields of `report(mach)` are:
 
 ```julia
 
-using DataFrames: DataFrame using MLJ
+using DataFrames
+using MLJ
 
+# load the model (make sure to Pkg.add LightGBM to the environment)
 LGBMClassifier = @load LGBMClassifier
 
-X, y = @load_iris X = DataFrame(X) train, test = partition(collect(eachindex(y)),
-0.70, shuffle=true)
+X, y = @load_iris 
+X = DataFrame(X)
+train, test = partition(collect(eachindex(y)), 0.70, shuffle=true)
 
-first(X, 3) |> pretty lgb = LGBMClassifier() #initialised a model with default
-params lgbm = machine(lgb, X[train, :], y[train, 1]) |> MLJ.fit!
+first(X, 3)
+lgb = LGBMClassifier() #initialised a model with default params
+mach = machine(lgb, X[train, :], y[train]) |> fit!
 
-predict(lgbm, train) ```
+predict(mach, X[test, :])```
 
 """
 LGBMClassifier
