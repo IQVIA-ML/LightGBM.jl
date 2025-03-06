@@ -447,10 +447,10 @@ Train the machine using `fit!(mach, rows=...)`.
     - rf: random forest
     - dart: dropout additive regression trees
     - goss: gradient one side sampling
-- `num_iterations::Int = 10`: Number of iterations to run the boosting algorithm.
-- `learning_rate::Float64 = 0.1`: The update or shrinkage rate. In `dart`
+- `num_iterations::Int = 10::(_ >= 0)`: Number of iterations to run the boosting algorithm.
+- `learning_rate::Float64 = 0.1::(_ > 0.)`: The update or shrinkage rate. In `dart`
   boosting, also affects the normalization weights of dropped trees.
-- `num_leaves::Int = 31`: The maximum number of leaves in one tree.
+- `num_leaves::Int = 31::(1 < _ <= 131072)`: The maximum number of leaves in one tree.
 - `max_depth::Int = -1`: The limit on the maximum depth of a tree. Used to reduce
   overfitting. Set to `≤0` for unlimited depth
 - `tree_learner::String = "serial"`: The tree learning mode. One of:
@@ -463,25 +463,28 @@ Train the machine using `fit!(mach, rows=...)`.
       for details
 - `histogram_pool_size::Float64 = -1.0`: Max size in MB for the historical
   histogram. Set to `≤0` for an unlimited size.
-- `min_data_in_leaf::Int = 20`: Minimal number of data in one leaf. Can be used to
+- `min_data_in_leaf::Int = 20::(_ >= 0)`: Minimal number of data in one leaf. Can be used to
   deal with over-fitting.
-- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like
+- `min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)`: Minimal sum hessian in one leaf. Like
   `min_data_in_leaf`, it can be used to deal with over-fitting.
 - `max_delta_step::Float64 = 0.0`: Used to limit the max output of tree leaves.
   The final maximum amount of leaves is `max_delta_step * learning_rate`. A value
   less than 0 means no limit on the max output.
-- `lambda_l1::Float64 = 0.0`: L1 regularization.
-- `lambda_l2::Float64 = 0.0`: L2 regularization.
-- `min_gain_to_split::Float64 = 0.0`: The minimal gain required to perform a
+- `lambda_l1::Float64 = 0.0::(_ >= 0.0)`: L1 regularization.
+- `lambda_l2::Float64 = 0.0::(_ >= 0.0)`: L2 regularization.
+- `min_gain_to_split::Float64 = 0.0::(_ >= 0.0)`: The minimal gain required to perform a
   split. Can be used to speed up training.
-- `feature_fraction::Float64 = 1.0`: The fraction of features to select before
+- `feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of features to select before
   fitting a tree. Can be used to speed up training and reduce over-fitting.
-- `feature_fraction_bynode::Float64 = 1.0`: The fraction of features to select for
+- `feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of features to select for
   each tree node. Can be used to reduce over-fitting.
 - `feature_fraction_seed::Int = 2`: Random seed to use for the gesture fraction
-- `bagging_fraction::Float64 = 1.0`: The fraction of samples to use before
-  fitting a tree. Can be used to speed up training and reduce over-fitting.
-- `bagging_freq::Int = 0`: The frequency to perform bagging at. At frequency `k`,
+- `bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of samples to use before
+- `pos_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of positive samples to use
+  before fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `neg_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of negative samples to use
+  before fitting a tree. Can be used to speed up training and reduce over-fitting.
+- `bagging_freq::Int = 0::(_ >= 0)`: The frequency to perform bagging at. At frequency `k`,
   every `k` samples select `bagging_fraction` of the data and use that data for
   the next `k` iterations.
 - `bagging_seed::Int = 3`: The random seed to use for bagging.
@@ -491,27 +494,27 @@ Train the machine using `fit!(mach, rows=...)`.
   check one randomly chosen threshold before splitting. Can be used to speed up
   training and reduce over-fitting.
 - `extra_seed::Int = 6`: The random seed to use for `extra_trees`.
-- `max_bin::Int = 255`: Number of bins feature values will be bucketed in. Smaller
+- `max_bin::Int = 255::(_ > 1)`: Number of bins feature values will be bucketed in. Smaller
   values may reduce training accuracy and help alleviate over-fitting.
-- `bin_construct_sample_cnt = 200000`: Number of samples to use to construct bins.
+- `bin_construct_sample_cnt = 200000::(_ > 0)`: Number of samples to use to construct bins.
   Larger values will give better results but may increase data loading time.
-- `init_score::String = ""`: The initial score to try and correct in the first
-  boosting iteration.
-- `drop_rate::Float64 = 0.1`: The dropout rate for `dart`.
+- `drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)`: The dropout rate for `dart`.
 - `max_drop::Int = 50`: The maximum number of trees to drop in `dart`.
-- `skip_drop:: Float64 = 0.5`: Probability of skipping dropout in `dart`.
+- `skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)`: Probability of skipping dropout in `dart`.
 - `xgboost_dart_mode::Bool`: Set to true if you want to use xgboost dart mode in
   dart.
 - `uniform_drop::Bool`: Set to true if you want to use uniform dropout in `dart`.
 - `drop_seed::Int = 4`: Random seed for `dart` dropout.
-- `top_rate::Float64 = 0.2`: The retain ratio of large gradient data in `goss`.
-- `other_rate::Float64 = 0.1`: The retain ratio of large gradient data in `goss`.
-- `min_data_per_group::Int = 100`: Minimal amount of data per categorical group.
-- `max_cat_threshold::Int = 32`: Limits the number of split points considered for
+- `top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)`: The retain ratio of large gradient data in `goss`.
+- `other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)`: The retain ratio of large gradient data in `goss`.
+- `min_data_per_group::Int = 100::(_ > 0)`: Minimal amount of data per categorical group.
+- `max_cat_threshold::Int = 32::(_ > 0)`: Limits the number of split points considered for
   categorical features.
-- `cat_l2::Float64 = 10.0`: L2 regularization for categorical splits
-- `cat_smooth::Float64 = 10.0`: Reduces noise in categorical features,
+- `cat_l2::Float64 = 10.0::(_ >= 0)`: L2 regularization for categorical splits
+- `cat_smooth::Float64 = 10.0::(_ >= 0)`: Reduces noise in categorical features,
   particularly useful when there are categories with little data
+- `sigmoid::Float64 = 1.0::(_ > 0.0 )`: A calibration scaling factor for the output 
+  probabilities for binary and multiclass OVA
 - `objective::String = "regression"`: The objective function to use. One of:
     - "regression": L2 loss or mse.
     - "regression_l1": L1 loss or mae.
@@ -530,28 +533,35 @@ Train the machine using `fit!(mach, rows=...)`.
 - `is_unbalance::Bool = false`: Set to true if training data is unbalanced.
 - `boost_from_average::Bool = true`: Adjusts the initial score to the mean of
   labels for faster convergence.
+- `scale_pos_weight::Float64 = 1.0`: Control the balance of positive and negative
+  weights. Useful for unbalanced classes.
 - `use_missing::Bool = true`: Whether or not to handle missing values.
+- `linear_tree::Bool = false`: Set to true to use linear splits.
 - `feature_pre_filter::Bool = true`: Whether or not to ignore unsplittable
   features.
-- `alpha::Float64 = 0.9`: Parameter used for huber and quantile regression.
+- `alpha::Float64 = 0.9::(_ > 0.0 )`: Parameter used for huber and quantile regression.
 - `metric::Vector{String} = ["l2"]`: Metric(s) to be used when evaluating on
   evaluation set. For detailed information, see [the official
   documentation](https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric-parameters)
-- `metric_freq::Int = 1`: The frequency to run metric evaluation at.
-- `is_training_metric::Bool = false`: Set to `true` to output metric result on
+- `metric_freq::Int = 1::(_ > 0)`: The frequency to run metric evaluation at.
+- `is_provide_training_metric::Bool = false`: Set to `true` to output metric result on
   training dataset.
-- `ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])`: Evaluation positions for
+- `eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))`: Evaluation positions for
   ndcg and map metrics.
-- `num_machines::Int = 1`: Number of machines to use when doing distributed
+- `num_machines::Int = 1::(_ > 0)`: Number of machines to use when doing distributed
   learning.
-- `num_threads::Int  = 0`: Number of threads to use.
-- `local_listen_port::Int = 12400`: TCP listen port.
-- `time_out::Int = 120`: Socket timeout.
+- `num_threads::Int  = 0::(_ >= 0)`: Number of threads to use.
+- `local_listen_port::Int = 12400::(_ > 0)`: TCP listen port.
+- `time_out::Int = 120::(_ > 0)`: Socket timeout.
 - `machine_list_file::String = ""`: Path of files that lists the machines used for
   distributed learning.
 - `save_binary::Bool = false`: Whether or not to save the dataset to a binary file
 - `device_type::String = "cpu"`: The type of device being used. One of `cpu` or
   `gpu`
+- `gpu_use_dp::Bool = false`: Whether or not to use double precision on the GPU.
+- `gpu_platform_id::Int = -1`: The platform ID of the GPU to use.
+- `gpu_device_id::Int = -1`: The device ID of the GPU to use.
+- `num_gpu::Int = 1`: The number of GPUs to use.
 - `force_col_wise::Bool = false`: Force column wise histogram building. Only
   applicable on cpu.
 - `force_row_wise::Bool = false`: Force row wise histogram building. Only
@@ -592,7 +602,13 @@ first(X, 3)
 lgb = LGBMRegressor() #initialised a model with default params
 mach = machine(lgb, X[train, :], y[train]) |> fit!
 
-predict(mach, X[test, :]) ```
+predict(mach, X[test, :])
+
+# Access feature importances
+model_report = report(mach)
+gain_importance = model_report.importance.gain
+split_importance = model_report.importance.split
+```
 
 """
 LGBMRegressor
@@ -634,10 +650,10 @@ Train the machine using `fit!(mach, rows=...)`.
     - rf: random forest
     - dart: dropout additive regression trees
     - goss: gradient one side sampling
-- `num_iterations::Int = 10`: Number of iterations to run the boosting algorithm.
-- `learning_rate::Float64 = 0.1`: The update or shrinkage rate. In `dart`
+- `num_iterations::Int = 10::(_ >= 0)`: Number of iterations to run the boosting algorithm.
+- `learning_rate::Float64 = 0.1::(_ > 0.)`: The update or shrinkage rate. In `dart`
   boosting, also affects the normalization weights of dropped trees.
-- `num_leaves::Int = 31`: The maximum number of leaves in one tree.
+- `num_leaves::Int = 31::(1 < _ <= 131072)`: The maximum number of leaves in one tree.
 - `max_depth::Int = -1`: The limit on the maximum depth of a tree.
 - `tree_learner::String = "serial"`: The tree learning mode. One of:
     - serial: Single machine tree learner.
@@ -648,24 +664,24 @@ Train the machine using `fit!(mach, rows=...)`.
       for details
 - `histogram_pool_size::Float64 = -1.0`: Max size in MB for the historical
   histogram.
-- `min_data_in_leaf::Int = 20`: Minimal number of data in one leaf. Can be used to
+- `min_data_in_leaf::Int = 20::(_ >= 0)`: Minimal number of data in one leaf. Can be used to
   deal with over-fitting.
-- `min_sum_hessian_in_leaf::Float64 = 1e-3`: Minimal sum hessian in one leaf. Like
+- `min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)`: Minimal sum hessian in one leaf. Like
   min_data_in_leaf, it can be used to deal with over-fitting.
 - `max_delta_step::Float64 = 0.0`: Used to limit the max output of tree leaves.
   The final maximum amount of leaves is `max_delta_step * learning_rate`.
-- `lambda_l1::Float64 = 0.0`: L1 regularization.
-- `lambda_l2::Float64 = 0.0`: L2 regularization.
-- `min_gain_to_split::Float64 = 0.0`: The minimal gain required to perform a
+- `lambda_l1::Float64 = 0.0::(_ >= 0.0)`: L1 regularization.
+- `lambda_l2::Float64 = 0.0::(_ >= 0.0)`: L2 regularization.
+- `min_gain_to_split::Float64 = 0.0::(_ >= 0.0)`: The minimal gain required to perform a
   split. Can be used to speed up training.
-- `feature_fraction::Float64 = 1.0`: The fraction of features to select before
+- `feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of features to select before
   fitting a tree. Can be used to speed up training and reduce over-fitting.
-- `feature_fraction_bynode::Float64 = 1.0`: The fraction of features to select for
+- `feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)`: The fraction of features to select for
   each tree node. Can be used to reduce over-fitting.
 - `feature_fraction_seed::Int = 2`: Random seed to use for the gesture fraction
 - `bagging_fraction::Float64 = 1.0`: The fraction of samples to use before
   fitting a tree. Can be used to speed up training and reduce over-fitting.
-- `bagging_freq::Int = 0`: The frequency to perform bagging at. At frequency `k`,
+- `bagging_freq::Int = 0::(_ >= 0)`: The frequency to perform bagging at. At frequency `k`,
   every `k` samples select `bagging_fraction` of the data and use that data for
   the next `k` iterations.
 - `bagging_seed::Int = 3`: The random seed to use for bagging.
@@ -675,26 +691,24 @@ Train the machine using `fit!(mach, rows=...)`.
   check one randomly chosen threshold before splitting. Can be used to speed up
   training and reduce over-fitting.
 - `extra_seed::Int = 6`: The random seed to use for `extra_trees`.
-- `max_bin::Int = 255`: Number of bins feature values will be bucketed in. Smaller
+- `max_bin::Int = 255::(_ > 1)`: Number of bins feature values will be bucketed in. Smaller
   values may reduce training accuracy and help alleviate over-fitting.
-- `bin_construct_sample_cnt = 200000`: Number of samples to use to construct bins.
+- `bin_construct_sample_cnt = 200000::(_ > 0)`: Number of samples to use to construct bins.
   Larger values will give better results but may increase data loading time.
-- `init_score::String = ""`: The initial score to try and correct in the first
-  boosting iteration.
-- `drop_rate::Float64 = 0.1`: The dropout rate for `dart`.
+- `drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)`: The dropout rate for `dart`.
 - `max_drop::Int = 50`: The maximum number of trees to drop in `dart`.
-- `skip_drop:: Float64 = 0.5`: Probability of skipping dropout in `dart`.
+- `skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)`: Probability of skipping dropout in `dart`.
 - `xgboost_dart_mode::Bool`: Set to true if you want to use xgboost dart mode in
   dart.
 - `uniform_drop::Bool`: Set to true if you want to use uniform dropout in `dart`.
 - `drop_seed::Int = 4`: Random seed for `dart` dropout.
-- `top_rate::Float64 = 0.2`: The retain ratio of large gradient data in `goss`.
-- `other_rate::Float64 = 0.1`: The retain ratio of large gradient data in `goss`.
-- `min_data_per_group::Int = 100`: Minimal amount of data per categorical group.
-- `max_cat_threshold::Int = 32`: Limits the number of split points considered for
+- `top_rate::Float64 = 0.2::(0.0 <= _ <= 1.0)`: The retain ratio of large gradient data in `goss`.
+- `other_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)`: The retain ratio of large gradient data in `goss`.
+- `min_data_per_group::Int = 100::(_ > 0)`: Minimal amount of data per categorical group.
+- `max_cat_threshold::Int = 32::(_ > 0)`: Limits the number of split points considered for
   categorical features.
-- `cat_l2::Float64 = 10.0`: L2 regularization for categorical splits
-- `cat_smooth::Float64 = 10.0`: Reduces noise in categorical features,
+- `cat_l2::Float64 = 10.0::(_ >= 0)`: L2 regularization for categorical splits
+- `cat_smooth::Float64 = 10.0::(_ >= 0)`: Reduces noise in categorical features,
   particularly useful when there are categories with little data
 - `objective::String = "multiclass"`: The objective function to use. One of:
     - binary: Binary log loss classification.
@@ -717,27 +731,31 @@ Train the machine using `fit!(mach, rows=...)`.
 - `boost_from_average::Bool = true`: Adjusts the initial score to the mean of
   labels for faster convergence.
 - `use_missing::Bool = true`: Whether or not to handle missing values.
+- `linear_tree::Bool = false`: Set to true to use linear splits.
 - `feature_pre_filter::Bool = true`: Whether or not to ignore unsplittable
   features.
-- `alpha::Float64 = 0.9`: Parameter used for huber and quantile regression.
 - `metric::Vector{String} = ["none"]`: Metric(s) to be used when evaluating on
   evaluation set. For detailed information, see [the official
   documentation](https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric-parameters)
-- `metric_freq::Int = 1`: The frequency to run metric evaluation at.
-- `is_training_metric::Bool = false`: Set true to output metric result on training
+- `metric_freq::Int = 1::(_ > 0)`: The frequency to run metric evaluation at.
+- `is_provide_training_metric::Bool = false`: Set true to output metric result on training
   dataset.
-- `ndcg_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])`: Evaluation positions for
+  - `eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))`: Evaluation positions for
   ndcg and map metrics.
-- `num_machines::Int = 1`: Number of machines to use when doing distributed
+- `num_machines::Int = 1::(_ > 0)`: Number of machines to use when doing distributed
   learning.
-- `num_threads::Int  = 0`: Number of threads to use.
-- `local_listen_port::Int = 12400`: TCP listen port.
-- `time_out::Int = 120`: Socket timeout.
+- `num_threads::Int  = 0::(_ >= 0)`: Number of threads to use.
+- `local_listen_port::Int = 12400::(_ > 0)`: TCP listen port.
+- `time_out::Int = 120::(_ > 0)`: Socket timeout.
 - `machine_list_file::String = ""`: Path of files that lists the machines used for
   distributed learning.
 - `save_binary::Bool = false`: Whether or not to save the dataset to a binary file
 - `device_type::String = "cpu"`: The type of device being used. One of `cpu` or
   `gpu`
+- `gpu_use_dp::Bool = false`: Whether or not to use double precision on the GPU.
+- `gpu_platform_id::Int = -1`: The platform ID of the GPU to use.
+- `gpu_device_id::Int = -1`: The device ID of the GPU to use.
+- `num_gpu::Int = 1`: The number of GPUs to use.
 - `force_col_wise::Bool = false`: Force column wise histogram building. Only
   applicable on cpu.
 - `force_row_wise::Bool = false`: Force row wise histogram building. Only
@@ -780,7 +798,13 @@ first(X, 3)
 lgb = LGBMClassifier() #initialised a model with default params
 mach = machine(lgb, X[train, :], y[train]) |> fit!
 
-predict(mach, X[test, :])```
+predict(mach, X[test, :])
+
+# Access feature importances
+model_report = report(mach)
+gain_importance = model_report.importance.gain
+split_importance = model_report.importance.split
+```
 
 """
 LGBMClassifier
