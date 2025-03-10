@@ -604,12 +604,16 @@ mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
 
-# Access feature importances
+# access feature importances
 model_report = report(mach)
 gain_importance = model_report.importance.gain
 split_importance = model_report.importance.split
 ```
 
+See also
+[LightGBM.jl](https://github.com/IQVIA-ML/LightGBM.jl)and
+the unwrapped model type
+[`LightGBM.LGBMRegression`](@ref)
 """
 LGBMRegressor
 
@@ -800,11 +804,16 @@ mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
 
-# Access feature importances
+# access feature importances
 model_report = report(mach)
 gain_importance = model_report.importance.gain
 split_importance = model_report.importance.split
 ```
+
+See also
+[LightGBM.jl](https://github.com/IQVIA-ML/LightGBM.jl) and
+the unwrapped model type
+[`LightGBM.LGBMClassification`](@ref)
 
 """
 LGBMClassifier
