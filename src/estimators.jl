@@ -64,7 +64,7 @@ mutable struct LGBMRegression <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
     
     # Dataset parameters
@@ -98,7 +98,6 @@ mutable struct LGBMRegression <: LGBMEstimator
     predict_disable_shape_check::Bool
 
     # Objective parameters
-    num_class::Int 
     is_unbalance::Bool
     boost_from_average::Bool
     reg_sqrt::Bool
@@ -185,7 +184,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
-        interaction_constraints = "",
+        interaction_constraints = Vector{Int}[],
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -294,7 +293,7 @@ function LGBMRegression(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,
@@ -358,7 +357,7 @@ function LGBMRegression(;
         is_enable_sparse, enable_bundle, use_missing, zero_as_missing, feature_pre_filter, pre_partition, 
         two_round, header, label_column, weight_column, ignore_column, categorical_feature, forcedbins_filename, precise_float_parser,
         start_iteration_predict, num_iteration_predict, predict_raw_score, predict_leaf_index, predict_contrib, predict_disable_shape_check, 
-        1, is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, 
+        is_unbalance, boost_from_average, reg_sqrt, alpha, fair_c, poisson_max_delta_step, tweedie_variance_power, 
         metric, metric_freq, is_provide_training_metric, eval_at, 
         num_machines, local_listen_port, time_out, machine_list_filename, machines, 
         gpu_platform_id, gpu_device_id, gpu_use_dp, num_gpu,
@@ -431,7 +430,7 @@ mutable struct LGBMClassification <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
 
     # Dataset parameters
@@ -556,7 +555,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.
-        interaction_constraints = "",  
+        interaction_constraints = Vector{Int}[],  
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -670,7 +669,7 @@ function LGBMClassification(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,
@@ -808,7 +807,7 @@ mutable struct LGBMRanking <: LGBMEstimator
     cegb_penalty_feature_lazy::Vector{Float64}
     cegb_penalty_feature_coupled::Vector{Float64}
     path_smooth::Float64
-    interaction_constraints::String
+    interaction_constraints::Vector{Vector{Int}}
     verbosity::Int
 
     # Dataset parameters
@@ -936,7 +935,7 @@ end
         cegb_penalty_feature_lazy = Float64[],
         cegb_penalty_feature_coupled = Float64[],
         path_smooth = 0.,
-        interaction_constraints = "",
+        interaction_constraints = Vector{Int}[],
         verbosity = 1,
         linear_tree = false,
         max_bin = 255,
@@ -1054,7 +1053,7 @@ function LGBMRanking(;
     cegb_penalty_feature_lazy = Float64[],
     cegb_penalty_feature_coupled = Float64[],
     path_smooth = 0.,
-    interaction_constraints = "",
+    interaction_constraints = Vector{Int}[],
     verbosity = 1,
     linear_tree = false,
     max_bin = 255,

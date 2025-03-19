@@ -641,7 +641,29 @@ function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
     return out_results[1:out_len[]]
 end
 
-# function LGBM_BoosterPredictForFile()
+function LGBM_BoosterPredictForFile(
+    bst::Booster, 
+    data_filename::String, 
+    data_has_header::Bool, 
+    predict_type::Integer, 
+    start_iteration::Integer,
+    num_iteration::Integer, 
+    parameter::String,
+    result_filename::String)
+
+    @lightgbm(
+        :LGBM_BoosterPredictForFile,
+        bst.handle => BoosterHandle,
+        data_filename => Cstring,
+        data_has_header => Cint,
+        predict_type => Cint,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        parameter => Cstring,
+        result_filename => Cstring,
+    )
+    return nothing
+end
 
 function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer, start_iteration::Integer,
                                     num_iteration::Int)

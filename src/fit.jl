@@ -1,6 +1,9 @@
 """
     fit!(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
+    estimator::LGBMEstimator, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, 
+    y::Vector{Ty}, 
+    test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...;
     verbosity::Integer = 1,
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
@@ -23,11 +26,14 @@ array that holds the validation metric's value at each iteration.
 ## Positional Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
 * and either
-    * `X::AbstractMatrix{TX<:Real}`: the features data. May be a `SparseArrays.SparseMatrixCSC`
+    * `X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}`: the features data. May be a `SparseArrays.SparseMatrixCSC`
+    If `X` is of type `Union{Float, Missing}`, missing values will be replaced with `NaN`.
+    If `X` is of type `Int`, missing values will be replaced with `NaN` after casting to `Float64`.
     * `y::Vector{Ty<:Real}`: the labels.
-    * `test::Tuple{AbstractMatrix{TX},Vector{Ty}}...`: (optional) contains one or more tuples of X-y pairs of
-        the same types as `X` and `y` that should be used as validation sets. May be a `SparseArrays.SparseMatrixCSC`
-        and can mix-and-match sparse/dense among these test and the train.
+    * `test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...`: (optional) 
+        contains one or more tuples of X-y pairs of the same types as `X` and `y` that should be used as validation sets. 
+        May be a `SparseArrays.SparseMatrixCSC` and contain missing values. 
+        Supports mix-and-match sparse/dense among these test and the train.
 * or
     * `train_dataset::Dataset`: prepared train_dataset
     * `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
@@ -46,7 +52,10 @@ array that holds the validation metric's value at each iteration.
 * `truncate_booster::Bool`: allows to reduce the size of the model by removing less impactful trees. Default is `true`.
 """
 function fit!(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
+    estimator::LGBMEstimator, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, 
+    y::Vector{Ty}, 
+    test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...;
     verbosity::Integer = nothing,
     is_row_major::Bool = false,
     weights::Vector{Tw} = Float32[],
@@ -137,8 +146,12 @@ end
 
 dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromMat(mat, params, ds, rm)
 dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool, ds::Dataset) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, ds, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, rm)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool, ds::Dataset) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params, ds)
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool, d::Dataset) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 dataset_constructor(filepath::String, params::String, ds::Dataset) = LGBM_DatasetCreateFromFile(filepath, params, ds)
@@ -344,8 +357,10 @@ function stringifyparams(estimator::LGBMEstimator)
 
         if !isempty(param_value)
             # Convert parameters that contain indices to C's zero-based indices.
-            if in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
-                param_value = param_value .- one(eltype(param_value))
+            if param_name == :interaction_constraints && typeof(param_value) <: Vector{Vector{Int}}
+            param_value = "[" * join(map(x -> join(x .- 1, ","), param_value), "],[") * "]"
+            elseif in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
+            param_value = param_value .- one(eltype(param_value))
             end
 
             if typeof(param_value) <: Array

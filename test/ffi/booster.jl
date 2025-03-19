@@ -339,9 +339,105 @@ end
 
 
 @testset "LGBM_BoosterGetPredict" begin
+    # Regression test
+    numdata = 1000
+    mymat = randn(numdata, 2)
+    labels = dropdims(sum(mymat .^2; dims=2); dims=2)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=regression $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_regression = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to 1 * numdata for regression
+    @test length(preds_regression) == numdata
 
-    # Needs implementing
-    @test_broken false
+    # Classification test
+    labels = rand([0, 1], numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary num_class=1 $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_classification = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (1 * numdata for binary classification)
+    @test length(preds_classification) == numdata
+
+    # Multi-class test
+    num_classes = 3
+    labels = rand(0:num_classes-1, numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$num_classes $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_multiclass = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (3 * numdata for this example multi-class classification)
+    @test length(preds_multiclass) == num_classes * numdata
+
+end
+
+
+@testset "LGBM_BoosterPredictForFile" begin
+    # Setup test data from file
+    data = [
+        "feature1,feature2,label",
+        "1.0,2.0,0",
+        "2.0,3.0,1",
+        "3.0,4.0,0",
+        "4.0,5.0,1"
+    ]
+    data_filename = "dummy_data.csv"
+    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
+    result_filename = "dummy_predictions.txt"
+    open(data_filename, "w") do f
+        for line in data
+            println(f, line)
+        end
+    end
+
+    # Setup booster with labels
+    mymat = [1.0 2.0; 2.0 3.0; 3.0 4.0; 4.0 5.0]
+    labels = [0.0, 1.0, 0.0, 1.0]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # Train the booster for more iterations 
+    for i in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Call the LGBM_BoosterPredictForFile function
+    LightGBM.LGBM_BoosterPredictForFile(
+        booster, 
+        data_filename, 
+        true,  # data_has_header
+        0,  # predict_type (0 for raw score)
+        0,  # start_iteration
+        0,  # num_iteration
+        "", # no parameters
+        result_filename, 
+    )
+
+    # Check if the result file is created
+    @test isfile(result_filename)
+
+    # Read the results file and check the scores
+    open(result_filename, "r") do f
+        lines = readlines(f)
+        scores = parse.(Float64, lines)
+        @test length(scores) == 4
+        @test all(0 .<= scores .<= 1)
+        @test any(scores .!= 0)  # Ensure that not all scores are zero
+    end
+
+    # Clean up
+    rm(data_filename, force=true)
+    rm(result_filename, force=true)
 
 end
 
