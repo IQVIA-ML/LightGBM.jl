@@ -73,8 +73,80 @@ end
 
 end
 
+@testset "LGBM_DatasetCreateFromFile - ignore_column parse logs" begin
+    # Create a small sample dataset
+    header = "label,feature1,feature2,feature3,feature4,feature5,group_id\n"
+    data_points = """
+    1,0.1,0.2,0.3,0.4,0.5,1
+    0,0.2,0.3,0.4,0.5,0.6,1
+    1,0.3,0.4,0.5,0.6,0.7,2
+    0,0.4,0.5,0.6,0.7,0.8,2
+    1,0.5,0.6,0.7,0.8,0.9,3
+    0,0.6,0.7,0.8,0.9,1.0,3
+    """
 
-@testset "LGBM_DatasetCreateFromFile" begin
+    # Write the dataset to a file, repeating only the data points to exceed 40 rows
+    # Due to [LightGBM] [Warning] There are no meaningful features, as all feature values are constant.
+    # For datasets < 40 rows with a small number of features, LightGBM doesn't use any features for training
+    # Despite them being informative for the model
+    sample_file = "sample_data_large.csv"
+    open(sample_file, "w") do f
+        write(f, header)  # Write the header only once
+        for _ in 1:10  # Repeat the data points 10 times (6 rows * 10 = 60 rows)
+            write(f, data_points)
+        end
+    end
+
+    # Define dataset parameters 
+    dataset_params_list = [
+        # Case 1 ignoring feature2 columns and group_id treated as feature (expected 5 features)
+        "header=true ignore_column=name:feature2 verbosity=-1"
+        # Case 2 ignoring feature2 columns and group_id treated as group (expected 4 features)
+        "header=true ignore_column=name:feature2 query=name:group_id verbosity=-1" 
+        # Case 3 ignoring all columns except the label column (expected 0 features)
+        "header=true ignore_column=0,1,2,3,4,5 verbosity=-1"
+        # Case 4 default parameters (expected 6 features, group_id treated as feature)
+        "two_round=false header=true verbosity=-1"
+    ]
+
+    # Expected number of features from the logs
+    expected_features = [5, 4, 0, 6]
+
+    # Test the actual modelling features for both cases by parsing logs due to LGBM_DatasetGetNumFeature
+    # or GBM_BoosterGetFeatureNames getting the data points not the actual features used in training
+    for (i, dataset_params) in enumerate(dataset_params_list)
+        # Redirect standard output to capture logs
+        pipe = Pipe()
+        redirect_stdout(pipe) do
+            # Create dataset
+            dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, dataset_params)
+
+            # Create booster
+            booster_params = "objective=binary metric=binary_logloss verbosity=2"
+            booster = LightGBM.LGBM_BoosterCreate(dataset, booster_params)
+        end
+
+        # Read the captured logs
+        close(pipe.in)  # Close the writing end of the pipe
+        logs = read(pipe, String)
+        close(pipe)  # Close the pipe
+
+        # Parse the captured logs
+        match_result = Base.match(r"Number of data points in the train set: \d+, number of used features: (\d+)", logs)
+
+        # Assert
+        @test !isnothing(match_result)  # Ensure the line exists in the logs
+        num_features = parse(Int, match_result.captures[1])
+
+        @test num_features == expected_features[i]
+    end
+
+    # Clean up
+    rm(sample_file)
+end
+
+
+@testset "LGBM_DatasetCreateFromFile - other dataset params" begin
     # Create a sample .csv file with a header row
     sample_data = """
     label,feature2,feature3,feature4,group_id
@@ -87,57 +159,24 @@ end
         write(f, sample_data)
     end
 
-    # Define dataset parameters as strings
-    params = [
-        # This shows an undocumented behaviour in the C API as there aren't 10 columns/features in the file so it should throw some warning
-        # or the ignore_column parameter is silently ignored
-        "header=true ignore_column=0,1,2,3,4,5,6,7,8,9,10 verbosity=-1",
-        # This also shows an unexpected behaviour as it should return 3 rows (num_data) and 2 columns (num_features)
-        # as the feature2 and feature3 columns should be ignored but they're not
-        "header=true ignore_column=name:feature2,feature3 verbosity=-1",
-        # Expected to have 3 rows (num_data) and 4 columns as default label_column is 0 so it's not used as a feature
-        "two_round=false header=true verbosity=-1",
-    ]
-
+    # Combinations of parameters that should fail
     params_fail = [
-        # Given the above the `ignore_column`` parameter seems to be at least recognised when the column to be ignored is the label column
-        # "Could not find ignore column label in data file" and the error is thrown
-        "header=true ignore_column=name:label verbosity=-1",
+        # This should throw an error as the column to ignore does not exist in the file
+        "header=true ignore_column=name:any_column verbosity=-1",
         # This should throw an error as there is a header in the file so the header should be set to true
         "two_round=true header=false verbosity=-1", 
         # This should throw an error as the query parameter which is called `group_column` in docs is not a valid name
         "header=true query=name:some_column verbosity=-1",
     ]
-    # This parameter is used to test the group column functionality
-    # However, the actual parameter name is `group_column` as per the documentation and `query` and `group` are aliases
-    # But the C++ LGBM_DatasetCreateFromFile accepts `query` or `group` as a valid parameter name and not `group_column`
-    # Which can be tricky when passing this parameter directly from estimator.group_column
-    params_group_column = "header=true query=name:group_id verbosity=-1"
-
-    expected_num_data = [3, 3, 3]
-    expected_num_feature = [4, 4, 4]
-    expected_label_col = Float32[0.1, 0.6, 1.1]
-
-    for (i, param) in enumerate(params)
-            # Create dataset from file
-            dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, param)
-
-            # Check if dataset is created successfully
-            @test dataset != C_NULL
-
-            # Check the number of rows and columns
-            num_data = LightGBM.LGBM_DatasetGetNumData(dataset)
-            num_feature = LightGBM.LGBM_DatasetGetNumFeature(dataset)
-            label_col = LightGBM.LGBM_DatasetGetField(dataset, "label")
-            @test num_data == expected_num_data[i]
-            @test num_feature == expected_num_feature[i]
-            @test label_col == expected_label_col
-    end
-
     for param in params_fail
         @test_throws ErrorException LightGBM.LGBM_DatasetCreateFromFile(sample_file, param)
     end
 
+    # Query/group parameter is used to test the group column functionality
+    # However, the actual parameter name is `group_column` as per the documentation and `query` and `group` are aliases
+    # But the C++ LGBM_DatasetCreateFromFile accepts `query` or `group` as a valid parameter name and not `group_column`
+    # Which can be tricky when passing this parameter directly from estimator.group_column
+    params_group_column = "header=true query=name:group_id verbosity=-1"
     dataset_group_info = LightGBM.LGBM_DatasetCreateFromFile(sample_file, params_group_column)
     @test dataset_group_info != C_NULL
     # Check the group column: `LGBM_DatasetGetField` returns the expected group boundaries/indices of the groups
@@ -148,6 +187,10 @@ end
     # so both `query` and `group` are not quite correct and they're considered aliases)
     @test LightGBM.LGBM_DatasetGetField(dataset_group_info, "query") == [0, 1, 3]
 
+    # Test label column (label is by default the first column but making it explicit)
+    dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, "header=true label_column=name:label verbosity=-1")
+    label_col = LightGBM.LGBM_DatasetGetField(dataset, "label")
+    @test label_col == Float32[0.1, 0.6, 1.1]
 
     # Clean up
     rm(sample_file)
