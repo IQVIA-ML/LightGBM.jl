@@ -104,7 +104,7 @@ end
         "header=true ignore_column=name:feature2 verbosity=-1"
         # Ignoring feature2 column and group_id treated as group (expected 4 features)
         "header=true ignore_column=name:feature2 query=name:group_id verbosity=-1" 
-        # Ignoring all columns except the label column (expected 0 features)
+        # Ignoring all columns (expected 0 features)
         "header=true ignore_column=0,1,2,3,4,5 verbosity=-1"
         # Default parameters (expected 6 features, group_id treated as feature)
         "two_round=false header=true verbosity=-1"
