@@ -125,7 +125,7 @@ end
                 dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, dataset_params)
 
                 # Create booster with debugging verbosity to capture all logs
-                booster_params = "objective=binary metric=binary_logloss verbosity=-2"
+                booster_params = "objective=binary metric=binary_logloss verbosity=2"
                 booster = LightGBM.LGBM_BoosterCreate(dataset, booster_params)
             end
         end
