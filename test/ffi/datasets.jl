@@ -100,21 +100,22 @@ end
 
     # Define dataset parameters 
     dataset_params_list = [
-        # Case 1 ignoring feature2 columns and group_id treated as feature (expected 5 features)
+        # Ignoring feature2 column and group_id treated as feature (expected 5 features)
         "header=true ignore_column=name:feature2 verbosity=-1"
-        # Case 2 ignoring feature2 columns and group_id treated as group (expected 4 features)
+        # Ignoring feature2 column and group_id treated as group (expected 4 features)
         "header=true ignore_column=name:feature2 query=name:group_id verbosity=-1" 
-        # Case 3 ignoring all columns except the label column (expected 0 features)
+        # Ignoring all columns except the label column (expected 0 features)
         "header=true ignore_column=0,1,2,3,4,5 verbosity=-1"
-        # Case 4 default parameters (expected 6 features, group_id treated as feature)
+        # Default parameters (expected 6 features, group_id treated as feature)
         "two_round=false header=true verbosity=-1"
     ]
 
     # Expected number of features from the logs
     expected_features = [5, 4, 0, 6]
 
-    # Test the actual modelling features for both cases by parsing logs due to LGBM_DatasetGetNumFeature
-    # or LGBM_BoosterGetFeatureNames getting the data points not the actual features used in training
+    # Test the actual modelling features for both cases by parsing logs instead of getting them from 
+    # LGBM_DatasetGetNumFeature or LGBM_BoosterGetFeatureNames as these do include the "ignored" columns
+    # because they are not dropped from the dataset just ignored during training 
     for (i, dataset_params) in enumerate(dataset_params_list)
         # Use a temporary file to capture logs (julia 1.6 doesn't support `Pipe` for `redirect_stdout`, later versions do)
         log_file = "temp_log.txt"
@@ -123,8 +124,8 @@ end
                 # Create dataset
                 dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, dataset_params)
 
-                # Create booster
-                booster_params = "objective=binary metric=binary_logloss verbosity=2"
+                # Create booster with debugging verbosity to capture all logs
+                booster_params = "objective=binary metric=binary_logloss verbosity=-2"
                 booster = LightGBM.LGBM_BoosterCreate(dataset, booster_params)
             end
         end
