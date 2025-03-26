@@ -73,6 +73,7 @@ end
 
 end
 
+
 @testset "LGBM_DatasetCreateFromFile - ignore_column parse logs" begin
     # Create a small sample dataset
     header = "label,feature1,feature2,feature3,feature4,feature5,group_id\n"
@@ -113,23 +114,24 @@ end
     expected_features = [5, 4, 0, 6]
 
     # Test the actual modelling features for both cases by parsing logs due to LGBM_DatasetGetNumFeature
-    # or GBM_BoosterGetFeatureNames getting the data points not the actual features used in training
+    # or LGBM_BoosterGetFeatureNames getting the data points not the actual features used in training
     for (i, dataset_params) in enumerate(dataset_params_list)
-        # Redirect standard output to capture logs
-        pipe = Pipe()
-        redirect_stdout(pipe) do
-            # Create dataset
-            dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, dataset_params)
+        # Use a temporary file to capture logs (julia 1.6 doesn't support `Pipe` for `redirect_stdout`, later versions do)
+        log_file = "temp_log.txt"
+        open(log_file, "w") do log_stream
+            redirect_stdout(log_stream) do
+                # Create dataset
+                dataset = LightGBM.LGBM_DatasetCreateFromFile(sample_file, dataset_params)
 
-            # Create booster
-            booster_params = "objective=binary metric=binary_logloss verbosity=2"
-            booster = LightGBM.LGBM_BoosterCreate(dataset, booster_params)
+                # Create booster
+                booster_params = "objective=binary metric=binary_logloss verbosity=2"
+                booster = LightGBM.LGBM_BoosterCreate(dataset, booster_params)
+            end
         end
 
         # Read the captured logs
-        close(pipe.in)  # Close the writing end of the pipe
-        logs = read(pipe, String)
-        close(pipe)  # Close the pipe
+        logs = read(log_file, String)
+        rm(log_file)  # Clean up the temporary log file
 
         # Parse the captured logs
         match_result = Base.match(r"Number of data points in the train set: \d+, number of used features: (\d+)", logs)
