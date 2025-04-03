@@ -358,9 +358,9 @@ function stringifyparams(estimator::LGBMEstimator)
         if !isempty(param_value)
             # Convert parameters that contain indices to C's zero-based indices.
             if param_name == :interaction_constraints && typeof(param_value) <: Vector{Vector{Int}}
-            param_value = "[" * join(map(x -> join(x .- 1, ","), param_value), "],[") * "]"
+                param_value = "[" * join(map(x -> join(x .- 1, ","), param_value), "],[") * "]"
             elseif in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
-            param_value = param_value .- one(eltype(param_value))
+                param_value = param_value .- one(eltype(param_value))
             end
 
             if typeof(param_value) <: Array
