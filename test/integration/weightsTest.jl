@@ -38,6 +38,7 @@ using LightGBM
             max_bin = 255,
             min_sum_hessian_in_leaf = 0.,
             min_data_in_leaf = 1,
+            verbosity = -1,
         )
 
         # Test fitting.

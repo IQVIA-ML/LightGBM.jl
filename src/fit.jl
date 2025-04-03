@@ -1,6 +1,9 @@
 """
     fit!(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
+    estimator::LGBMEstimator, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, 
+    y::Vector{Ty}, 
+    test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...;
     verbosity::Integer = 1,
     is_row_major = false,
     weights::Vector{Tw} = Float32[],
@@ -23,14 +26,20 @@ array that holds the validation metric's value at each iteration.
 ## Positional Arguments
 * `estimator::LGBMEstimator`: the estimator to be fit.
 * and either
-    * `X::AbstractMatrix{TX<:Real}`: the features data. May be a `SparseArrays.SparseMatrixCSC`
+    * `X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}`: the features data. May be a `SparseArrays.SparseMatrixCSC`
+    If `X` is of type `Union{Float, Missing}`, missing values will be replaced with `NaN`.
+    If `X` is of type `Int`, missing values will be replaced with `NaN` after casting to `Float64`.
     * `y::Vector{Ty<:Real}`: the labels.
-    * `test::Tuple{AbstractMatrix{TX},Vector{Ty}}...`: (optional) contains one or more tuples of X-y pairs of
-        the same types as `X` and `y` that should be used as validation sets. May be a `SparseArrays.SparseMatrixCSC`
-        and can mix-and-match sparse/dense among these test and the train.
+    * `test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...`: (optional) 
+        contains one or more tuples of X-y pairs of the same types as `X` and `y` that should be used as validation sets. 
+        May be a `SparseArrays.SparseMatrixCSC` and contain missing values. 
+        Supports mix-and-match sparse/dense among these test and the train.
 * or
     * `train_dataset::Dataset`: prepared train_dataset
     * `test_datasets::Vector{Dataset}`: (optional) prepared test_datasets
+* or
+    * `train_filepath::String`: path to the training data file.
+    * `test_filepath::String`: (optional) path to the test data file.
 ## Keyword Arguments
 * `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
     only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
@@ -43,19 +52,21 @@ array that holds the validation metric's value at each iteration.
 * `truncate_booster::Bool`: allows to reduce the size of the model by removing less impactful trees. Default is `true`.
 """
 function fit!(
-    estimator::LGBMEstimator, X::AbstractMatrix{TX}, y::Vector{Ty}, test::Tuple{AbstractMatrix{TX},Vector{Ty}}...;
-    verbosity::Integer = 1,
-    is_row_major = false,
+    estimator::LGBMEstimator, 
+    X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, 
+    y::Vector{Ty}, 
+    test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...;
+    verbosity::Integer = nothing,
+    is_row_major::Bool = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
     group::Vector{Int} = Int[],
     truncate_booster::Bool=true,
 ) where {TX<:Real,Ty<:Real,Tw<:Real,Ti<:Real}
 
-    start_time = now()
-
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
     log_debug(verbosity, "Started creating LGBM training dataset\n")
-    ds_parameters = stringifyparams(estimator; verbosity=verbosity)
+    ds_parameters = stringifyparams(estimator)
     train_ds = dataset_constructor(X, ds_parameters, is_row_major)
     LGBM_DatasetSetField(train_ds, "label", y)
     if length(weights) > 0
@@ -85,13 +96,13 @@ function fit!(
     estimator::LGBMEstimator,
     train_dataset::Dataset,
     test_datasets::Dataset...;
-    verbosity::Integer = 1,
+    verbosity::Integer = nothing,
     truncate_booster::Bool=true,
 )
-
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
     start_time = now()
     log_debug(verbosity, "Started creating LGBM booster\n")
-    bst_parameters = stringifyparams(estimator; verbosity=verbosity)
+    bst_parameters = stringifyparams(estimator)
     estimator.booster = LGBM_BoosterCreate(train_dataset, bst_parameters)
 
     n_tests = length(test_datasets)
@@ -109,13 +120,42 @@ function fit!(
 end
 
 
+# Pass filepaths and set Dataset parameters including label, group and weights via the estimator.
+function fit!(
+    estimator::LGBMEstimator, train_filepath::String;
+    test_filepath::String = "",
+    verbosity::Integer = nothing,
+    truncate_booster::Bool=true,
+)
+
+    verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
+    log_debug(verbosity, "Started creating LGBM training dataset\n")
+    ds_parameters = stringifyparams(estimator)
+    train_ds = dataset_constructor(train_filepath, ds_parameters)
+
+    test_dss = []
+
+    if test_filepath != ""
+        test_ds = dataset_constructor(test_filepath, ds_parameters, train_ds)
+        push!(test_dss, test_ds)
+    end
+
+    return fit!(estimator, train_ds, test_dss..., verbosity=verbosity, truncate_booster=truncate_booster)
+end
+
+
 dataset_constructor(mat::Matrix, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromMat(mat, params, ds, rm)
 dataset_constructor(mat::Matrix, params::String, rm::Bool) = LGBM_DatasetCreateFromMat(mat, params, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool, ds::Dataset) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, ds, rm)
+dataset_constructor(mat::Matrix{Union{Missing, T}}, params::String, rm::Bool) where T<:Real = LGBM_DatasetCreateFromMat(convert_to_nan(mat), params, rm)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool) = LGBM_DatasetCreateFromCSC(mat, params)
 dataset_constructor(mat::SparseArrays.SparseMatrixCSC, params::String, rm::Bool, ds::Dataset) = LGBM_DatasetCreateFromCSC(mat, params, ds)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params)
+dataset_constructor(mat::SparseArrays.SparseMatrixCSC{Union{Missing, T}, Ti}, params::String, rm::Bool, ds::Dataset) where {T<:Real, Ti} = LGBM_DatasetCreateFromCSC(convert_to_nan(mat), params, ds)
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool, d::Dataset) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
 dataset_constructor(mat::AbstractMatrix, p::String, r::Bool) = throw(TypeError(:fit!, Union{SparseArrays.SparseMatrixCSC, Matrix}, mat))
-
+dataset_constructor(filepath::String, params::String, ds::Dataset) = LGBM_DatasetCreateFromFile(filepath, params, ds)
+dataset_constructor(filepath::String, params::String) = LGBM_DatasetCreateFromFile(filepath, params)
 
 function train!(
     estimator::LGBMEstimator,
@@ -305,7 +345,7 @@ function merge_metrics(
 end
 
 
-function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
+function stringifyparams(estimator::LGBMEstimator)
 
     paramstring = ""
 
@@ -317,7 +357,9 @@ function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
 
         if !isempty(param_value)
             # Convert parameters that contain indices to C's zero-based indices.
-            if in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
+            if param_name == :interaction_constraints && typeof(param_value) <: Vector{Vector{Int}}
+                param_value = "[" * join(map(x -> join(x .- 1, ","), param_value), "],[") * "]"
+            elseif in(param_name, INDEXPARAMS) && typeof(param_value) <: AbstractArray
                 param_value = param_value .- one(eltype(param_value))
             end
 
@@ -336,5 +378,5 @@ function stringifyparams(estimator::LGBMEstimator; verbosity::Int = 1)
         end
 
     end
-    return paramstring[1:end - 1] * " verbosity=$verbosity"
+    return paramstring[1:end - 1]
 end

@@ -49,7 +49,7 @@ y = randn(nrows)
 
 
     # check metrics are right when freq is just 1
-    new_estimator = LightGBM.LGBMRegression(;num_iterations=3, is_provide_training_metric=true, metric=["l2"], metric_freq=1)
+    new_estimator = LightGBM.LGBMRegression(;num_iterations=3, is_provide_training_metric=true, metric=["l2"], metric_freq=1, verbosity=-1)
     freq_metrics = LightGBM.fit!(new_estimator, x, y; verbosity=-1)
 
     report = LightGBM.MLJInterface.user_fitreport(new_estimator, freq_metrics)

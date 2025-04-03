@@ -25,12 +25,12 @@ norm(x) = sqrt(sum(x .^ 2))
     # and default learning rate is 0.1, so we need to make sure models are going for at least
     # enough time to be different.
 
-    classifier_gdbt = LightGBM.LGBMClassification(boosting = "gbdt", num_iterations=12)
-    classifier_dart = LightGBM.LGBMClassification(boosting = "dart", num_iterations=12)
-    classifier_goss = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12)
-    regressor_gbdt = LightGBM.LGBMRegression(boosting = "gbdt", num_iterations=12)
-    regressor_dart = LightGBM.LGBMRegression(boosting = "dart", num_iterations=12)
-    regressor_goss = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12)
+    classifier_gdbt = LightGBM.LGBMClassification(boosting = "gbdt", num_iterations=12, verbosity = -1)
+    classifier_dart = LightGBM.LGBMClassification(boosting = "dart", num_iterations=12, verbosity = -1)
+    classifier_goss = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, verbosity = -1)
+    regressor_gbdt = LightGBM.LGBMRegression(boosting = "gbdt", num_iterations=12, verbosity = -1)
+    regressor_dart = LightGBM.LGBMRegression(boosting = "dart", num_iterations=12, verbosity = -1)
+    regressor_goss = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, verbosity = -1)
 
     LightGBM.fit!(classifier_dart, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(classifier_gdbt, X_train, y_train_binary, verbosity = -1)
@@ -64,13 +64,13 @@ end
     # the scheme is to set up a DART classifier and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    dart_default = LightGBM.LGBMClassification(boosting = "dart")
-    dart_drop_rate = LightGBM.LGBMClassification(boosting = "dart", drop_rate = 0.9)
-    dart_max_drop = LightGBM.LGBMClassification(boosting = "dart", max_drop = 1)
-    dart_skip_drop = LightGBM.LGBMClassification(boosting = "dart", skip_drop = 1.0)
-    dart_xdm = LightGBM.LGBMClassification(boosting = "dart", xgboost_dart_mode = true)
-    dart_uniform_drop = LightGBM.LGBMClassification(boosting = "dart", uniform_drop = true)
-    dart_drop_seed = LightGBM.LGBMClassification(boosting = "dart", drop_seed = 20)
+    dart_default = LightGBM.LGBMClassification(boosting = "dart", verbosity = -1)
+    dart_drop_rate = LightGBM.LGBMClassification(boosting = "dart", drop_rate = 0.9, verbosity = -1)
+    dart_max_drop = LightGBM.LGBMClassification(boosting = "dart", max_drop = 1, verbosity = -1)
+    dart_skip_drop = LightGBM.LGBMClassification(boosting = "dart", skip_drop = 1.0, verbosity = -1)
+    dart_xdm = LightGBM.LGBMClassification(boosting = "dart", xgboost_dart_mode = true, verbosity = -1)
+    dart_uniform_drop = LightGBM.LGBMClassification(boosting = "dart", uniform_drop = true, verbosity = -1)
+    dart_drop_seed = LightGBM.LGBMClassification(boosting = "dart", drop_seed = 20, verbosity = -1)
 
     LightGBM.fit!(dart_default, X_train, y_train_binary, verbosity = -1)
     LightGBM.fit!(dart_drop_rate, X_train, y_train_binary, verbosity = -1)
@@ -103,13 +103,13 @@ end
     # the scheme is to set up a DART regressor and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    dart_default = LightGBM.LGBMRegression(boosting = "dart")
-    dart_drop_rate = LightGBM.LGBMRegression(boosting = "dart", drop_rate = 0.9)
-    dart_max_drop = LightGBM.LGBMRegression(boosting = "dart", max_drop = 1)
-    dart_skip_drop = LightGBM.LGBMRegression(boosting = "dart", skip_drop = 1.0)
-    dart_xdm = LightGBM.LGBMRegression(boosting = "dart", xgboost_dart_mode = true)
-    dart_uniform_drop = LightGBM.LGBMRegression(boosting = "dart", uniform_drop = true)
-    dart_drop_seed = LightGBM.LGBMRegression(boosting = "dart", drop_seed = 20)
+    dart_default = LightGBM.LGBMRegression(boosting = "dart", verbosity = -1)
+    dart_drop_rate = LightGBM.LGBMRegression(boosting = "dart", drop_rate = 0.9, verbosity = -1)
+    dart_max_drop = LightGBM.LGBMRegression(boosting = "dart", max_drop = 1, verbosity = -1)
+    dart_skip_drop = LightGBM.LGBMRegression(boosting = "dart", skip_drop = 1.0, verbosity = -1)
+    dart_xdm = LightGBM.LGBMRegression(boosting = "dart", xgboost_dart_mode = true, verbosity = -1)
+    dart_uniform_drop = LightGBM.LGBMRegression(boosting = "dart", uniform_drop = true, verbosity = -1)
+    dart_drop_seed = LightGBM.LGBMRegression(boosting = "dart", drop_seed = 20, verbosity = -1)
 
     LightGBM.fit!(dart_default, X_train, y_train_regression, verbosity = -1)
     LightGBM.fit!(dart_drop_rate, X_train, y_train_regression, verbosity = -1)
@@ -141,9 +141,9 @@ end
     # the scheme is to set up a goss classifier and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    goss_default = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12)
-    goss_top_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, top_rate = 0.01)
-    goss_other_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, other_rate = 0.01)
+    goss_default = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, verbosity = -1)
+    goss_top_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, top_rate = 0.01, verbosity = -1)
+    goss_other_rate = LightGBM.LGBMClassification(boosting = "goss", num_iterations=12, other_rate = 0.01, verbosity = -1)
 
 
     LightGBM.fit!(goss_default, X_train, y_train_binary, verbosity = -1)
@@ -167,9 +167,9 @@ end
     # the scheme is to set up a goss regressor and show that changing each one of
     # the parameters individually results in a difference to the model
 
-    goss_default = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12)
-    goss_top_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, top_rate = 0.01)
-    goss_other_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, other_rate = 0.01)
+    goss_default = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, verbosity = -1)
+    goss_top_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, top_rate = 0.01, verbosity = -1)
+    goss_other_rate = LightGBM.LGBMRegression(boosting = "goss", num_iterations=12, other_rate = 0.01, verbosity = -1)
 
 
     LightGBM.fit!(goss_default, X_train, y_train_regression, verbosity = -1)
@@ -185,6 +185,355 @@ end
     @test norm(r_goss_default .- r_goss_top_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
     @test norm(r_goss_default .- r_goss_other_rate) >= sqrt(NSAMPLES_TEST) * 1e-5
 
+end
+
+
+@testset "parameters -- prediction" begin
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+
+    # Define combinations of parameters
+    combinations = [
+        # predict_raw_score
+        (true, false, false),
+        # predict_leaf_index
+        (false, true, false),
+        # predict_contrib
+        (false, false, true),
+        # predict_normal
+        (false, false, false),
+        # predict_normal
+        (true, true, true)
+    ]
+
+    # Function to create and fit estimators for each combination
+    function fit_estimators(combinations, model_type, objective)
+        estimators = []
+        for (predict_raw_score, predict_leaf_index, predict_contrib) in combinations
+            estimator = model_type(
+                objective = objective,
+                start_iteration_predict = 0,
+                num_iteration_predict = -1,
+                predict_raw_score = predict_raw_score,
+                predict_leaf_index = predict_leaf_index,
+                predict_contrib = predict_contrib,
+                predict_disable_shape_check = false,
+                num_iterations = 100,
+                verbosity = -1
+            )
+            if model_type == LightGBM.LGBMClassification
+                estimator.num_class = 1
+            end
+            LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+            push!(estimators, estimator)
+        end
+        return estimators
+    end
+
+    # Function to generate predictions for each estimator
+    function generate_predictions(models)
+        predictions = []
+        for model in models
+            prediction = LightGBM.predict(model, X_train, verbosity = -1)
+            push!(predictions, prediction)
+        end
+        return predictions
+    end
+
+    # Fit classifiers and regressors and generate predictions
+    classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
+    regressors = fit_estimators(combinations, LightGBM.LGBMRegression, "regression")
+    regressors_poisson = fit_estimators(combinations, LightGBM.LGBMRegression, "poisson")
+    classifier_predictions = generate_predictions(classifiers)
+    regressor_predictions = generate_predictions(regressors)
+    regressor_poisson_predictions = generate_predictions(regressors_poisson)
+
+    # Test prediction outputs for different parameters for classifier
+    @testset "Classifier predict parameters" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test classifier_predictions[4] == classifier_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test classifier_predictions[1] != classifier_predictions[2]
+        @test classifier_predictions[1] != classifier_predictions[3]
+        @test classifier_predictions[2] != classifier_predictions[3]
+        # 1, 2, 3 should not be equal to 4 (or 5)
+        @test classifier_predictions[1] != classifier_predictions[4]
+        @test classifier_predictions[2] != classifier_predictions[4]
+        @test classifier_predictions[3] != classifier_predictions[4]
+    end
+
+    # Test prediction outputs for different parameters for regressor
+    @testset "Regressor predict parameters with regression objective" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test regressor_predictions[4] == regressor_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test regressor_predictions[1] != regressor_predictions[2]
+        @test regressor_predictions[1] != regressor_predictions[3]
+        @test regressor_predictions[2] != regressor_predictions[3]
+        # 2 and 3 should not be equal to 4 (or 5)
+        @test regressor_predictions[2] != regressor_predictions[4]
+        @test regressor_predictions[3] != regressor_predictions[4]
+        # 1 should be the same as 4 (or 5) as for "regression" objective
+        # there is no transformation so predict_raw_score is the same as predict_normal
+        @test regressor_predictions[1] == regressor_predictions[4]
+    end
+
+    # Test prediction outputs for different parameters for regressor with poisson objective
+    @testset "Regressor predict parameters with poisson objective" begin
+        # 4 and 5 should be the same as they are both predict_normal
+        @test regressor_poisson_predictions[4] == regressor_poisson_predictions[5]
+        # 1, 2, 3 should be different as they are different predict types
+        # 1 is predict_raw_score, 2 is predict_leaf_index, 3 is predict_contrib
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[2]
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[3]
+        @test regressor_poisson_predictions[2] != regressor_poisson_predictions[3]
+        # 1, 2 and 3 should not be equal to 4 (or 5)
+        @test regressor_poisson_predictions[1] != regressor_poisson_predictions[4]
+        @test regressor_poisson_predictions[2] != regressor_poisson_predictions[4]
+        @test regressor_poisson_predictions[3] != regressor_poisson_predictions[4]
+    end
+
+    @testset "Predict parameters precedence" begin
+    # Create a simple estimator with default predict params set to false
+        estimator = LightGBM.LGBMClassification(
+            objective = "binary",
+            predict_raw_score = false,
+            predict_leaf_index = false,
+            predict_contrib = false,
+            num_class = 1,
+            verbosity = -1
+        )
+        estimator_raw = LightGBM.LGBMClassification(
+            objective = "binary",
+            predict_raw_score = true,
+            num_class = 1, 
+            verbosity = -1
+        )
+        LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+        LightGBM.fit!(estimator_raw, X_train, y_train, verbosity = -1)
+    
+        # Generate normal predictions (with default predict params)
+        prediction_default = LightGBM.predict(estimator, X_train, verbosity = -1)
+        prediction_default_raw = LightGBM.predict(estimator_raw, X_train, verbosity = -1)
+    
+        # Generate predictions with predict_raw_score set to true
+        prediction_raw = LightGBM.predict(estimator, X_train; verbosity = -1, predict_raw_score = true)
+        prediction_leaf = LightGBM.predict(estimator, X_train; verbosity = -1, predict_leaf_index = true)
+        prediction_contrib = LightGBM.predict(estimator, X_train; verbosity = -1, predict_contrib = true)
+        prediction_default_raw = LightGBM.predict(estimator_raw, X_train; verbosity = -1)
+    
+        # Test that the default predictions are different (params passed to predict function have precedence)
+        @test prediction_default != prediction_raw
+        @test prediction_default != prediction_leaf
+        @test prediction_default != prediction_contrib
+        # Test that the default predictions with estimator predict_raw_score but no additional predict param 
+        # are the same as the predictions with predict_raw_score set to true
+        @test prediction_default_raw == prediction_raw
+    end
+end
+
+
+@testset "parameters -- prediction with early stopping" begin
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train_classifier = rand([0, 1], 1000)
+
+    # Define combinations of parameters for early stopping
+    # (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin)
+    combinations = [
+        # No early stopping case (full predictions)
+        (false, 0, 0.0),
+        # Early stopping with very low margin case which means very fast predictions but they will be less accurate
+        # Such predictions and predicted probabilities will be different from full predictions and predicted probabilities
+        (true, 10, 0.1),
+        # High margin case (predictions with a 0.5 binary threshold will be the same as full predictions but predicted probabilities will differ)
+        (true, 10, 5.5),
+        # High frequency case (both predictions and predicted probabilities will be the same as full predictions given early stop frequency is 100 and 100 iterations)
+        (true, 100, 0.2),
+    ]
+
+    # Function to create and fit estimators for each combination
+    function fit_estimators(combinations, model_type, objective)
+        estimators = []
+        for (pred_early_stop, pred_early_stop_freq, pred_early_stop_margin) in combinations
+            estimator = model_type(
+                objective = objective,
+                num_class = 1,
+                pred_early_stop = pred_early_stop,
+                pred_early_stop_freq = pred_early_stop_freq,
+                pred_early_stop_margin = pred_early_stop_margin,
+                num_iterations = 100,
+                verbosity = -1
+            )
+            LightGBM.fit!(estimator, X_train, y_train_classifier, verbosity = -1)
+            push!(estimators, estimator)
+        end
+        return estimators
+    end
+
+    # Function to generate predictions and predicted probabilities for each estimator
+    function generate_predictions(models)
+        predictions = []
+        predicted_probabilities = []
+        for model in models
+            prediction = LightGBM.predict_classes(model, X_train, binary_threshold=0.5, verbosity = -1)
+            predicted_probability = LightGBM.predict(model, X_train, verbosity = -1)
+            push!(predictions, prediction)
+            push!(predicted_probabilities, predicted_probability)
+        end
+        return predictions, predicted_probabilities
+    end
+
+    # Fit classifiers and generate predictions
+    classifiers = fit_estimators(combinations, LightGBM.LGBMClassification, "binary")
+    classifier_predictions, classifier_predicted_probabilities = generate_predictions(classifiers)
+
+    # Test prediction outputs for different parameters for classifier
+    @testset "Classifier predict parameters with early stopping" begin
+        # Predictions and predicted probabilities with early stopping will be different from full predictions and predicted probabilities
+        # for very low pred_early_stop_margin as the speed of predictions will be prioritized over accuracy
+        @test all(classifier_predictions[1] != classifier_predictions[2])
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[2])
+        # High margin case should give the same predictions with a threshold of 0.5 but the predicted probabilities values will differ from full predicted probabilities
+        @test all(classifier_predictions[1] == classifier_predictions[3])
+        @test all(classifier_predicted_probabilities[1] != classifier_predicted_probabilities[3])
+        # High frequency case given 100 iterations and 100 frequency check should give the same predictions and predicted probabilities as full predictions and predicted probabilities
+        @test classifier_predictions[1] == classifier_predictions[4]
+        @test classifier_predicted_probabilities[1] == classifier_predicted_probabilities[4]
+        # Ensure all predicted probabilities are within 0 and 1
+        @test all(0.0 .<= prob <= 1.0 for prob in vcat(classifier_predicted_probabilities...))
+    end
+end
+
+
+@testset "parameters -- monotone and interaction constraints" begin
+
+    # Generate random data
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+    X_test = randn(500, 20)
+
+    # Define the parameters for monotone constraints
+    # The constraints are defined for each feature in the dataset
+    # The pattern below is for 20 features where the first feature has a positive monotone constraint,
+    # the second feature has a negative monotone constraint, and the third feature has no constraint.
+    monotone_constraints = [1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1]
+    monotone_constraints_method = "basic"
+    monotone_penalty = 0.1
+    # The below interaction constraints are defined so that features in each vector are allowed to interact with each other
+    # The model can consider interactions between those grouped features when buiding trees.
+    # Features that are not included in any interaction constraint group are treated as independent.
+    interaction_constraints = [[1,2],[3,4,5],[6,7,8,9,10]]
+
+    # Create and fit the estimator with monotone constraints
+    estimator_with_monotone_constraints = LightGBM.LGBMClassification(
+        objective = "binary",
+        monotone_constraints = monotone_constraints,
+        monotone_constraints_method = monotone_constraints_method,
+        monotone_penalty = monotone_penalty,
+        num_class = 1,
+        verbosity = -1
+    )
+    LightGBM.fit!(estimator_with_monotone_constraints, X_train, y_train, verbosity = -1)
+
+    # Create and fit the estimator with interaction constraints
+    estimator_with_interaction_constraints = LightGBM.LGBMClassification(
+        objective = "binary",
+        interaction_constraints = interaction_constraints,
+        num_class = 1,
+        verbosity = -1
+    )
+    LightGBM.fit!(estimator_with_interaction_constraints, X_train, y_train, verbosity = -1)
+
+    # Create and fit the estimator without monotone constraints
+    estimator_without_constraints = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
+    LightGBM.fit!(estimator_without_constraints, X_train, y_train, verbosity = -1)
+
+    # Generate predictions
+    predictions_with_monotone_constraints = LightGBM.predict(estimator_with_monotone_constraints, X_test, verbosity = -1)
+    predictions_without_constraints = LightGBM.predict(estimator_without_constraints, X_test, verbosity = -1)
+    predictions_with_interaction_constraints = LightGBM.predict(estimator_with_interaction_constraints, X_test, verbosity = -1)
+
+    # Test that the predictions are different
+    @test predictions_with_monotone_constraints != predictions_without_constraints
+    @test predictions_with_interaction_constraints != predictions_without_constraints
+    @test predictions_with_monotone_constraints != predictions_with_interaction_constraints
+
+end
+
+
+@testset "parameters -- refit with refit decay rate" begin
+    # Create sample data, labels and estimator
+    featuresdata = randn(1000, 20)
+    labels = rand([0, 1], 1000)
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, verbosity = -1)
+    LightGBM.fit!(estimator, featuresdata, labels, verbosity = -1)
+    
+    # Refit with a default refit_decay_rate
+    new_booster = LightGBM.refit(estimator, featuresdata, labels)
+    # Refit with a custom refit_decay_rate
+    new_booster_custom = LightGBM.refit(estimator, featuresdata, labels, refit_decay_rate = 0.5)
+    
+    # Verify the returned booster
+    @test !isnothing(new_booster)
+    @test new_booster != estimator
+    @test new_booster_custom != new_booster
+
+end
+
+
+@testset "parameters -- missing features" begin
+
+    # Generate random data with missing values
+    X_train = Array{Union{Missing, Float64}}(randn(1000, 20))
+    y_train = rand([0, 1], 1000)
+    X_test = Array{Union{Missing, Float64}}(randn(500, 20))
+    # Introduce missing values in train set and test set (for predictions)
+    X_train[rand(1:1000, 100), rand(1:20, 5)] .= missing
+    X_test[rand(1:500, 50), rand(1:20, 5)] .= missing
+
+    # Function to train and evaluate the model with combinations of use_missing and zero_as_missing
+    function train_and_evaluate(X_train, y_train, X_test, params)
+        # Define the model
+        model = LightGBM.LGBMClassification(
+            objective = "binary",
+            use_missing = params["use_missing"],
+            zero_as_missing = params["zero_as_missing"],
+            num_class = 1,
+            verbosity = -1
+        )
+        
+        # Train model
+        LightGBM.fit!(model, X_train, y_train, verbosity = -1)
+        
+        # Predict
+        y_pred = LightGBM.predict(model, X_test)
+        
+        return y_pred
+    end
+
+    # Test combinations of use_missing and zero_as_missing
+    for use_missing in [true, false]
+        for zero_as_missing in [true, false]
+            params = Dict("use_missing" => use_missing, "zero_as_missing" => zero_as_missing)
+            
+            @testset "use_missing=$use_missing, zero_as_missing=$zero_as_missing" begin
+                y_pred = train_and_evaluate(X_train, y_train, X_test, params)
+                
+                # Check if predictions are not missing/nans
+                @test !any(isnan.(y_pred))
+                
+                # Check for the output in expected format
+                @test typeof(y_pred) == Matrix{Float64}
+
+                # Check if predictions are within 0 to 1 range
+                @test all(0 .<= y_pred .<= 1)
+            end
+        end
+    end
 end
 
 

@@ -28,30 +28,40 @@ const NON_LIGHTGBM_PARAMETERS = (
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    # Core parameters
+    objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
+    num_threads::Int  = 0::(_ >= 0)
+    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    seed::Int = 0
+    deterministic::Bool = false
+
+    # Learning control parameters
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    max_depth::Int = -1;#::(_ != 0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
-    max_delta_step::Float64 = 0.0
-    lambda_l1::Float64 = 0.0::(_ >= 0.0)
-    lambda_l2::Float64 = 0.0::(_ >= 0.0)
-    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
-    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
-    early_stopping_round::Int = 0
+    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_seed::Int = 2
     extra_trees::Bool = false
     extra_seed::Int = 6
-    max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt::Int = 200000::(_ > 0)
+    early_stopping_round::Int = 0
+    first_metric_only::Bool = false
+    max_delta_step::Float64 = 0.0
+    lambda_l1::Float64 = 0.0::(_ >= 0.0)
+    lambda_l2::Float64 = 0.0::(_ >= 0.0)
+    linear_lambda::Float64 = 0.0::(_ >= 0.0)
+    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
@@ -64,19 +74,60 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
-
-    # Model properties
-    objective::String = "regression"::(_ in REGRESSION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}()
+    max_cat_to_onehot::Int = 4::(_ > 0)
+    top_k::Int = 20::(_ > 0)
+    monotone_constraints::Vector{Int} = Vector{Int}()
+    monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
+    monotone_penalty::Float64 = 0.0::(_ >= 0.0)
+    feature_contri::Vector{Float64} = Vector{Float64}()
+    forcedsplits_filename::String = ""
+    refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
+    cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
+    cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
+    cegb_penalty_feature_lazy::Vector{Float64} = Vector{Float64}()
+    cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
+    path_smooth::Float64 = 0.0::(_ >= 0.0)
+    interaction_constraints::Vector{Vector{Int}} = Vector{Vector{Int}}()
+    verbosity::Int = 1
+    
+    # Dataset parameters
+    linear_tree::Bool = false
+    max_bin::Int = 255::(_ > 1)
+    max_bin_by_feature::Vector{Int} = Vector{Int}()
+    min_data_in_bin::Int = 3::(_ > 0)
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
+    enable_bundle::Bool = true
+    use_missing::Bool = true
+    zero_as_missing::Bool = false
+    feature_pre_filter::Bool = true
+    pre_partition::Bool = false
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
+    categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
+
+    # Predict parameters
+    start_iteration_predict::Int = 0
+    num_iteration_predict::Int = -1
+    predict_raw_score::Bool = false
+    predict_leaf_index::Bool = false
+    predict_contrib::Bool = false
+    predict_disable_shape_check::Bool = false
+    
+    # Objective parameters
     is_unbalance::Bool = false
     boost_from_average::Bool = true
-    use_missing::Bool = true
-    linear_tree::Bool = false
-    feature_pre_filter::Bool = true
-
+    reg_sqrt::Bool = false
     alpha::Float64 = 0.9::(_ > 0.0 )
+    fair_c::Float64 = 1.0::(_ > 0.0 )
+    poisson_max_delta_step::Float64 = 0.7::(_ > 0.0 )
+    tweedie_variance_power::Float64 = 1.5::(1.0 <= _ < 2.0)
 
     # Metrics
     metric::Vector{String} = ["l2"]::(all(in.(_, (LGBM_METRICS, ))))
@@ -84,20 +135,20 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
     is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
 
-    # Implementation parameters
+    # Network parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
-    save_binary::Bool = false
-    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
-    gpu_use_dp::Bool = false
+    machines::String = ""
+
+    # GPU parameters
     gpu_platform_id::Int = -1
     gpu_device_id::Int = -1
+    gpu_use_dp::Bool = false
     num_gpu::Int = 1
-    force_col_wise::Bool = false
-    force_row_wise::Bool = false
+
+    # Other (non-lightbm) parameters
     truncate_booster::Bool = true
 
 end
@@ -106,32 +157,42 @@ end
 MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.Probabilistic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
+    # Core parameters
+    objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
     boosting::String = "gbdt"::(_ in ("gbdt", "goss", "rf", "dart"))
     num_iterations::Int = 100::(_ >= 0)
     learning_rate::Float64 = 0.1::(_ > 0.)
     num_leaves::Int = 31::(1 < _ <= 131072)
-    max_depth::Int = -1;#::(_ != 0);
     tree_learner::String = "serial"::(_ in ("serial", "feature", "data", "voting"))
+    num_threads::Int  = 0::(_ >= 0)
+    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
+    seed::Int = 0
+    deterministic::Bool = false
+    
+    # Learning control parameters
+    force_col_wise::Bool = false
+    force_row_wise::Bool = false
     histogram_pool_size::Float64 = -1.0;#::(_ != 0.0);
+    max_depth::Int = -1;#::(_ != 0);
     min_data_in_leaf::Int = 20::(_ >= 0)
     min_sum_hessian_in_leaf::Float64 = 1e-3::(_ >= 0.0)
-    max_delta_step::Float64 = 0.0
-    lambda_l1::Float64 = 0.0::(_ >= 0.0)
-    lambda_l2::Float64 = 0.0::(_ >= 0.0)
-    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
-    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
-    feature_fraction_seed::Int = 2
     bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     pos_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     neg_bagging_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
     bagging_freq::Int = 0::(_ >= 0)
     bagging_seed::Int = 3
-    early_stopping_round::Int = 0
+    feature_fraction::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_bynode::Float64 = 1.0::(0.0 < _ <= 1.0)
+    feature_fraction_seed::Int = 2
     extra_trees::Bool = false
     extra_seed::Int = 6
-    max_bin::Int = 255::(_ > 1)
-    bin_construct_sample_cnt::Int = 200000::(_ > 0)
+    early_stopping_round::Int = 0
+    first_metric_only::Bool = false
+    max_delta_step::Float64 = 0.0
+    lambda_l1::Float64 = 0.0::(_ >= 0.0)
+    lambda_l2::Float64 = 0.0::(_ >= 0.0)
+    linear_lambda::Float64 = 0.0::(_ >= 0.0)
+    min_gain_to_split::Float64 = 0.0::(_ >= 0.0)
     drop_rate::Float64 = 0.1::(0.0 <= _ <= 1.0)
     max_drop::Int = 50
     skip_drop:: Float64 = 0.5::(0.0 <= _ <= 1)
@@ -144,42 +205,84 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
     max_cat_threshold::Int = 32::(_ > 0)
     cat_l2::Float64 = 10.0::(_ >= 0)
     cat_smooth::Float64 = 10.0::(_ >= 0)
-
-    # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
-    sigmoid::Float64 = 1.0::(_ > 0.0 )
-
-    # Model properties
-    objective::String = "multiclass"::(_ in CLASSIFICATION_OBJECTIVES)
-    categorical_feature::Vector{Int} = Vector{Int}();
+    max_cat_to_onehot::Int = 4::(_ > 0)
+    top_k::Int = 20::(_ > 0)
+    monotone_constraints::Vector{Int} = Vector{Int}()
+    monotone_constraints_method::String = "basic"::(_ in ("basic", "intermediate", "advanced"))
+    monotone_penalty::Float64 = 0.0::(_ >= 0.0)
+    feature_contri::Vector{Float64} = Vector{Float64}()
+    forcedsplits_filename::String = ""
+    refit_decay_rate::Float64 = 0.9::(0.0 <= _ <= 1.0)
+    cegb_tradeoff::Float64 = 1.0::(_ >= 0.0)
+    cegb_penalty_split::Float64 = 0.0::(_ >= 0.0)
+    cegb_penalty_feature_lazy::Vector{Float64} = Vector{Float64}()
+    cegb_penalty_feature_coupled::Vector{Float64} = Vector{Float64}()
+    path_smooth::Float64 = 0.0::(_ >= 0.0)
+    interaction_constraints::Vector{Vector{Int}} = Vector{Vector{Int}}()
+    verbosity::Int = 1
+    
+    # Dateset parameters
+    linear_tree::Bool = false
+    max_bin::Int = 255::(_ > 1)
+    max_bin_by_feature::Vector{Int} = Vector{Int}()
+    min_data_in_bin::Int = 3::(_ > 0)
+    bin_construct_sample_cnt::Int = 200000::(_ > 0)
     data_random_seed::Int = 1
     is_enable_sparse::Bool = true
-    is_unbalance::Bool = false
-    boost_from_average::Bool = true
-    scale_pos_weight = 1.0
+    enable_bundle::Bool = true
     use_missing::Bool = true
-    linear_tree::Bool = false
+    zero_as_missing::Bool = false
     feature_pre_filter::Bool = true
+    pre_partition::Bool = false
+    two_round::Bool = false
+    header::Bool = false
+    label_column::String = ""   
+    weight_column::String = ""
+    ignore_column::String  = ""
+    categorical_feature::Vector{Int} = Vector{Int}()
+    forcedbins_filename::String = ""
+    precise_float_parser::Bool = false
 
-    # Metrics
+    # Predict parameters
+    start_iteration_predict::Int = 0
+    num_iteration_predict::Int = -1
+    predict_raw_score::Bool = false
+    predict_leaf_index::Bool = false
+    predict_contrib::Bool = false
+    predict_disable_shape_check::Bool = false
+    pred_early_stop::Bool = false
+    pred_early_stop_freq::Int = 10
+    pred_early_stop_margin::Float64 = 10.0
+    
+    # Objective parameters
+    is_unbalance::Bool = false
+    scale_pos_weight = 1.0
+    # For documentation purposes: A calibration scaling factor for the output probabilities for binary and multiclass OVA
+    sigmoid::Float64 = 1.0::(_ > 0.0 )
+    boost_from_average::Bool = true
+
+    # Metric parameters
     metric::Vector{String} = ["None"]::(all(in.(_, (LGBM_METRICS, ))))
     metric_freq::Int = 1::(_ > 0)
     is_provide_training_metric::Bool = false
     eval_at::Vector{Int} = Vector{Int}([1, 2, 3, 4, 5])::(all(_ .> 0))
+    multi_error_top_k::Int = 1::(_ > 0)
+    auc_mu_weights::Vector{Float64} = Vector{Float64}()
 
-    # Implementation parameters
+    # Network parameters
     num_machines::Int = 1::(_ > 0)
-    num_threads::Int  = 0::(_ >= 0)
     local_listen_port::Int = 12400::(_ > 0)
     time_out::Int = 120::(_ > 0)
     machine_list_filename::String = ""
-    save_binary::Bool = false
-    device_type::String = "cpu"::(_ in ("cpu", "gpu"))
-    gpu_use_dp::Bool = false
+    machines::String = ""
+
+    # GPU parameters
     gpu_platform_id::Int = -1
     gpu_device_id::Int = -1
+    gpu_use_dp::Bool = false
     num_gpu::Int = 1
-    force_col_wise::Bool = false
-    force_row_wise::Bool = false
+
+    # Other (non-lightbm) parameters
     truncate_booster::Bool = true
 
 end

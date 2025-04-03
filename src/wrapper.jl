@@ -131,7 +131,21 @@ macro lightgbm(f, params...)
 end
 
 
-# function LGBM_DatasetCreateFromFile()
+function LGBM_DatasetCreateFromFile(
+    filename::String,
+    parameters::String,
+    reference::Dataset = Dataset(C_NULL)
+)
+    out = Ref{DatasetHandle}()
+    @lightgbm(
+        :LGBM_DatasetCreateFromFile,
+        filename => Cstring,
+        parameters => Cstring,
+        reference.handle => DatasetHandle,
+        out => Ref{DatasetHandle}
+    )
+    return Dataset(out[])
+end
 
 
 function LGBM_DatasetCreateFromCSC(
@@ -627,7 +641,29 @@ function LGBM_BoosterGetPredict(bst::Booster, data_idx::Integer)
     return out_results[1:out_len[]]
 end
 
-# function LGBM_BoosterPredictForFile()
+function LGBM_BoosterPredictForFile(
+    bst::Booster, 
+    data_filename::String, 
+    data_has_header::Bool, 
+    predict_type::Integer, 
+    start_iteration::Integer,
+    num_iteration::Integer, 
+    parameter::String,
+    result_filename::String)
+
+    @lightgbm(
+        :LGBM_BoosterPredictForFile,
+        bst.handle => BoosterHandle,
+        data_filename => Cstring,
+        data_has_header => Cint,
+        predict_type => Cint,
+        start_iteration => Cint,
+        num_iteration => Cint,
+        parameter => Cstring,
+        result_filename => Cstring,
+    )
+    return nothing
+end
 
 function LGBM_BoosterCalcNumPredict(bst::Booster, num_row::Integer, predict_type::Integer, start_iteration::Integer,
                                     num_iteration::Int)
@@ -656,7 +692,7 @@ function LGBM_BoosterPredictForMat(
     start_iteration::Integer,
     num_iteration::Integer,
     is_row_major::Bool = false,
-    num_threads::Integer = -1
+    parameter::String = ""
 ) where T<:Union{Float32,Float64}
 
     lgbm_data_type = jltype_to_lgbmid(T)
@@ -665,10 +701,6 @@ function LGBM_BoosterPredictForMat(
     alloc_len = LGBM_BoosterCalcNumPredict(bst, nrow, predict_type, start_iteration, num_iteration)
     out_result = Array{Cdouble}(undef, alloc_len)
 
-    parameter = ""  # full prediction, no early stopping
-    if num_threads > 0
-        parameter = "num_threads=$num_threads"
-    end
     @lightgbm(
         :LGBM_BoosterPredictForMat,
         bst.handle => BoosterHandle,
@@ -692,6 +724,18 @@ function LGBM_BoosterPredictForMat(bst::Booster, data::Matrix{T}, predict_type::
                                             num_iteration::Integer) where T<:Real
     return LGBM_BoosterPredictForMat(bst, convert(Matrix{Float64}, data), predict_type,
                                      num_iteration)
+end
+
+function LGBM_BoosterRefit(bst::Booster, leaf_preds::Matrix{Int32})
+    nrow, ncol = size(leaf_preds)
+    @lightgbm(
+        :LGBM_BoosterRefit,
+        bst.handle => BoosterHandle,
+        leaf_preds => Ptr{Int32},
+        nrow => Int32,
+        ncol => Int32
+    )
+    return nothing
 end
 
 function LGBM_BoosterSaveModel(
@@ -776,6 +820,14 @@ end
 # function LGBM_BoosterDumpModel()
 # function LGBM_BoosterGetLeafValue()
 # function LGBM_BoosterSetLeafValue()
+
+function LGBM_BoosterGetLinear(bst::Booster)
+    out = Ref{Bool}()
+    @lightgbm(:LGBM_BoosterGetLinear,
+              bst.handle => BoosterHandle,
+              out => Ref{Bool})
+    return out[]
+end
 
 function LGBM_BoosterNumModelPerIteration(bst::Booster)
     out_models = Ref{Cint}()

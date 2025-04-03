@@ -339,17 +339,149 @@ end
 
 
 @testset "LGBM_BoosterGetPredict" begin
+    # Regression test
+    numdata = 1000
+    mymat = randn(numdata, 2)
+    labels = dropdims(sum(mymat .^2; dims=2); dims=2)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=regression $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_regression = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to 1 * numdata for regression
+    @test length(preds_regression) == numdata
 
-    # Needs implementing
-    @test_broken false
+    # Classification test
+    labels = rand([0, 1], numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary num_class=1 $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_classification = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (1 * numdata for binary classification)
+    @test length(preds_classification) == numdata
+
+    # Multi-class test
+    num_classes = 3
+    labels = rand(0:num_classes-1, numdata)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=multiclass num_class=$num_classes $verbosity")
+    for _ in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+    preds_multiclass = LightGBM.LGBM_BoosterGetPredict(booster, 0)
+    # predictions should equal to num_class * numdata (3 * numdata for this example multi-class classification)
+    @test length(preds_multiclass) == num_classes * numdata
+
+end
+
+
+@testset "LGBM_BoosterPredictForFile" begin
+    # Setup test data from file
+    data = [
+        "feature1,feature2,label",
+        "1.0,2.0,0",
+        "2.0,3.0,1",
+        "3.0,4.0,0",
+        "4.0,5.0,1"
+    ]
+    data_filename = "dummy_data.csv"
+    # saving to .txt file so that it can be read without bringng in CSV.jl or other dependency
+    result_filename = "dummy_predictions.txt"
+    open(data_filename, "w") do f
+        for line in data
+            println(f, line)
+        end
+    end
+
+    # Setup booster with labels
+    mymat = [1.0 2.0; 2.0 3.0; 3.0 4.0; 4.0 5.0]
+    labels = [0.0, 1.0, 0.0, 1.0]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+
+    # Train the booster for more iterations 
+    for i in 1:10
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Call the LGBM_BoosterPredictForFile function
+    LightGBM.LGBM_BoosterPredictForFile(
+        booster, 
+        data_filename, 
+        true,  # data_has_header
+        0,  # predict_type (0 for raw score)
+        0,  # start_iteration
+        0,  # num_iteration
+        "", # no parameters
+        result_filename, 
+    )
+
+    # Check if the result file is created
+    @test isfile(result_filename)
+
+    # Read the results file and check the scores
+    open(result_filename, "r") do f
+        lines = readlines(f)
+        scores = parse.(Float64, lines)
+        @test length(scores) == 4
+        @test all(0 .<= scores .<= 1)
+        @test any(scores .!= 0)  # Ensure that not all scores are zero
+    end
+
+    # Clean up
+    rm(data_filename, force=true)
+    rm(result_filename, force=true)
 
 end
 
 
 @testset "LGBM_BoosterCalcNumPredict" begin
+    # Setup train data and booster
+    mymat = rand(100, 10)  # 100 rows and 10 features
+    labels = rand([0, 1], 100)
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    LightGBM.LGBM_DatasetSetField(dataset, "label", labels)
+    booster = LightGBM.LGBM_BoosterCreate(dataset, verbosity)
+    num_rows = size(mymat, 1)
+    num_features = size(mymat, 2)
 
-    # Needs implementing
-    @test_broken false
+    # Train the booster with a known number of trees
+    num_iterations = 10
+    for i in 1:num_iterations
+        LightGBM.LGBM_BoosterUpdateOneIter(booster)
+    end
+
+    # Verify the number of iterations completed
+    num_trees = LightGBM.LGBM_BoosterGetCurrentIteration(booster)
+
+    # Test for normal prediction (predict_type = 0, start_iteration = 0, num_iteration = num_iterations)
+    # For normal prediction, the number of predictions should be equal to the number of rows
+    # multiplied by the number of classes in case of multi-class classification or 1 for binary classification and regression
+    preds_normal = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 0, 0, num_iterations)
+    @test preds_normal == num_rows
+
+    # Test for raw score (predict_type = 1, start_iteration = 0, num_iteration = num_iterations)
+    # Similar to normal prediction, the number of predictions should be equal to the number of rows or multiplied by the number of classes
+    preds_raw = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 1, 0, num_iterations)
+    @test preds_raw == num_rows
+
+    # Test for predict leaf index (predict_type = 2, start_iteration = 0, num_iteration = num_iterations)
+    # The number of predictions should be equal to the number of rows multiplied by the number of trees
+    # As it returns the leaf indices for each tree in the model for each data point
+    preds_leaf = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 2, 0, num_iterations)
+    @test preds_leaf == num_rows * num_trees
+
+    # Test for predict contribution (predict_type = 3, start_iteration = 0, num_iteration = num_iterations)
+    # This returns the SHAP values (feature contributions) for each feature in the dataset and an additional bias term/base value
+    preds_contrib = LightGBM.LGBM_BoosterCalcNumPredict(booster, num_rows, 3, 0, num_iterations)
+    @test preds_contrib == num_rows * (num_features + 1)
 
 end
 
@@ -362,8 +494,35 @@ end
     preds = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1) 
     @test all(iszero, preds)
 
-    preds_threaded = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1, false, 2) 
+    preds_threaded = LightGBM.LGBM_BoosterPredictForMat(booster, mymat, 0, 0, -1, false, "num_threads=2") 
     @test all(iszero, preds_threaded)
+end
+
+
+@testset "LGBM_BoosterRefit" begin
+    # Sample dataset
+    X_train = randn(1000, 20)
+    y_train = rand([0, 1], 1000)
+    
+    # Create an estimator with predict_leaf_index set to true to obtain leaf index predictions
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1, predict_leaf_index = true, num_iterations = 20, verbosity = -1)
+    
+    # Fit the estimator with the training data
+    LightGBM.fit!(estimator, X_train, y_train, verbosity = -1)
+    
+    # Get the leaf predictions using the training data
+    leaf_predictions = LightGBM.predict(estimator, X_train)
+
+    # Convert to Int32 which is expected by the C API and should be for leaf indices
+    # Reshape the leaf predictions as their number of rows is number of data points/rows * num_trees/iterations
+    reshaped_leaf_predictions = reshape(convert(Matrix{Int32}, leaf_predictions), (size(X_train, 1), estimator.num_iterations))
+
+    # Refit the model using the reshaped leaf predictions
+    result = LightGBM.LGBM_BoosterRefit(estimator.booster, reshaped_leaf_predictions)
+    
+    # Test that LGBM_BoosterRefit returns nothing (meaning successful)
+    @test result == nothing
+ 
 end
 
 
@@ -451,6 +610,20 @@ end
 
     @test isapprox(gain_sub_importance, expected_sub_gain, atol=1e-4)
     @test split_sub_importance == expected_sub_split
+
+end
+
+
+@testset "LGBM_BoosterGetLinear" begin
+
+    mymat = [1. 2.; 3. 4.; 5. 6.]
+    dataset = LightGBM.LGBM_DatasetCreateFromMat(mymat, verbosity)
+    # non-linear example
+    booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary")
+    @test LightGBM.LGBM_BoosterGetLinear(booster) == 0
+    # linear example
+    linear_booster = LightGBM.LGBM_BoosterCreate(dataset, "objective=binary linear_tree=true")
+    @test LightGBM.LGBM_BoosterGetLinear(linear_booster) == 1
 
 end
 

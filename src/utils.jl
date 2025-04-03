@@ -1,5 +1,5 @@
 
-const INDEXPARAMS = [:categorical_feature]
+const INDEXPARAMS = [:categorical_feature, :interaction_constraints]
 
 const MAXIMIZE_METRICS = ["auc", "ndcg", "average_precision"]
 
@@ -59,7 +59,9 @@ the parameters or data of the estimator whose model was saved as `filename`.
 """
 function loadmodel!(estimator::LGBMEstimator, filename::String)
     estimator.booster = LGBM_BoosterCreateFromModelfile(filename)
-    estimator.num_class = LGBM_BoosterGetNumClasses(estimator.booster)
+    if !(estimator isa LGBMRegression)
+        estimator.num_class = LGBM_BoosterGetNumClasses(estimator.booster)
+    end
     return nothing
 end
 
@@ -118,3 +120,18 @@ gain_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator
 """
 split_importance(estimator::LGBMEstimator, num_iteration::Integer) = feature_importance_wrapper(estimator, 0, num_iteration)
 split_importance(estimator::LGBMEstimator) = feature_importance_wrapper(estimator, 0, 0)
+
+
+function convert_to_nan(mat::AbstractMatrix{Union{Missing, T}}) where {T<:Real}
+    # If the type is Int, cast to Float64
+    if T <: Int
+        mat = Float64.(mat)
+    end
+    
+    # Replace missing values with NaN required by LightGBM C API
+    mat = replace(mat, missing => NaN)
+    
+    return mat
+end
+
+convert_to_nan(mat::AbstractMatrix{T}) where {T<:Real} = mat

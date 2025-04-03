@@ -191,3 +191,5 @@ If you would like to override the existing files with your own binaries, you can
 ## Contributors ✨
 
 Please don't hesitate to add yourself when you contribute to CONTRIBUTORS.md.
+
+If you are contributing to this package and need to update MLJ-related documentation, please refer to the `docstrings.jl` file in the `src` directory. Follow the MLJModelInterface document string standard: [MLJ Documentation Standard](https://juliaai.github.io/MLJModelInterface.jl/dev/document_strings/#The-document-string-standard).
