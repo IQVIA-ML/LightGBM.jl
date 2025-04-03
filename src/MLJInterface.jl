@@ -500,7 +500,7 @@ MLJModelInterface.metadata_model(
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{<:MLJModelInterface.Finite},
     weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Classifier",
+    human_name="LightGBM classifier",
 )
 
 MLJModelInterface.metadata_model(
@@ -509,7 +509,9 @@ MLJModelInterface.metadata_model(
     input=MLJModelInterface.Table(MLJModelInterface.Continuous),
     target=AbstractVector{MLJModelInterface.Continuous},
     weights=true,
-    descr="Microsoft LightGBM FFI wrapper: Regressor",
+    human_name="LightGBM regressor",
 )
+
+include("docstrings.jl")
 
 end # module
