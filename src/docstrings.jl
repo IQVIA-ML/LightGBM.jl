@@ -80,11 +80,17 @@ mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
 
-# access feature importances
+# access feature importances via MLJ interface (recommended)
+importances = feature_importances(mach)  # vector of feature_name => importance pairs
+
+# or access directly from report
 model_report = report(mach)
-gain_importance = model_report.importance.gain
+gain_importance = model_report.importance.gain   # raw importance vectors
 split_importance = model_report.importance.split
 ```
+
+**Note**: The `feature_importance` hyperparameter (`:gain` or `:split`) controls which 
+importance method is used by `feature_importances()`. Default is `:gain`.
 
 See also
 [LightGBM.jl](https://github.com/IQVIA-ML/LightGBM.jl) and
@@ -164,11 +170,17 @@ mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
 
-# access feature importances
+# access feature importances via MLJ interface (recommended)
+importances = feature_importances(mach)  # vector of feature_name => importance pairs
+
+# or access directly from report
 model_report = report(mach)
-gain_importance = model_report.importance.gain
+gain_importance = model_report.importance.gain   # raw importance vectors
 split_importance = model_report.importance.split
 ```
+
+**Note**: The `feature_importance` hyperparameter (`:gain` or `:split`) controls which 
+importance method is used by `feature_importances()`. Default is `:gain`.
 
 See also
 [LightGBM.jl](https://github.com/IQVIA-ML/LightGBM.jl) and
