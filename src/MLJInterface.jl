@@ -23,6 +23,7 @@ const REGRESSION_OBJECTIVES = (
 
 const NON_LIGHTGBM_PARAMETERS = (
     :truncate_booster,
+    :feature_importance,
 )
 
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
@@ -150,6 +151,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.D
 
     # Other (non-lightbm) parameters
     truncate_booster::Bool = true
+    
+    # Feature importance method for MLJModelInterface.feature_importances
+    # :gain - importance based on information gain (default)
+    # :split - importance based on number of times feature was used in splits
+    feature_importance::Symbol = :gain::(_ in (:gain, :split))
 
 end
 
@@ -284,6 +290,11 @@ MLJModelInterface.@mlj_model mutable struct LGBMClassifier <: MLJModelInterface.
 
     # Other (non-lightbm) parameters
     truncate_booster::Bool = true
+    
+    # Feature importance method for MLJModelInterface.feature_importances
+    # :gain - importance based on information gain (default)
+    # :split - importance based on number of times feature was used in splits
+    feature_importance::Symbol = :gain::(_ in (:gain, :split))
 
 end
 
@@ -480,6 +491,46 @@ MLJModelInterface.predict(model::MLJInterface.LGBMRegressor, fitresult, Xnew) = 
 # multiple dispatch the model initialiser functions
 model_init(mlj_model::MLJInterface.LGBMClassifier, classes) = LightGBM.LGBMClassification(; mlj_to_kwargs(mlj_model, classes)...)
 model_init(mlj_model::MLJInterface.LGBMRegressor, targets) = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
+
+
+# Helper function to get feature names from a fitted model.
+# 
+# Requires a fitted model - the booster handle must be initialized (not C_NULL).
+# Once initialized, LightGBM always provides feature names - either custom names
+# (if set via LGBM_DatasetSetFeatureNames) or default names like "Column_0", "Column_1", etc.
+function get_feature_names(fitted_model::LightGBM.LGBMEstimator)
+    # Prevent segfault by checking if booster is initialized
+    if fitted_model.booster.handle == C_NULL
+        throw(ErrorException("Estimator does not contain a fitted model."))
+    end
+    
+    return LightGBM.LGBM_BoosterGetFeatureNames(fitted_model.booster)
+end
+
+# Implementation of feature_importances for MLJModelInterface
+function MLJModelInterface.feature_importances(model::MODELS, fitresult, report)
+    fitted_model, _, _ = fitresult
+    
+    # Get feature names
+    feature_names = get_feature_names(fitted_model)
+    
+    # Get the appropriate importance values based on the model's hyperparameter
+    importance_values = if model.feature_importance == :gain
+        LightGBM.gain_importance(fitted_model)
+    elseif model.feature_importance == :split
+        LightGBM.split_importance(fitted_model)
+    else
+        error("Unsupported feature importance method: $(model.feature_importance)")
+    end
+    
+    # Return as vector of Symbol => Real pairs
+    return [Symbol(name) => Float64(importance) for (name, importance) in zip(feature_names, importance_values)]
+end
+
+
+# Set the trait to indicate that both models support feature importances
+MLJModelInterface.reports_feature_importances(::Type{<:LGBMClassifier}) = true
+MLJModelInterface.reports_feature_importances(::Type{<:LGBMRegressor}) = true
 
 
 # metadata
