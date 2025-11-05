@@ -12,7 +12,8 @@ if !((VERSION ∈ (v"1.8.4", v"1.8.5")) && Sys.iswindows())
 end
 
 const LGBM_library = Ref{Ptr{Cvoid}}(C_NULL)
-const LOG_LIBRARY_DISCOVERY = Base.get_bool_env("LIGHTGBM_LOG_LIBRARY_DISCOVERY", true)
+const LOG_LIBRARY_DISCOVERY = !haskey(ENV, "LIGHTGBM_LOG_LIBRARY_DISCOVERY") ||
+                              lowercase(strip(ENV["LIGHTGBM_LOG_LIBRARY_DISCOVERY"])) != "false"
 
 
 struct LibraryNotFoundError <: Exception
