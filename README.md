@@ -47,6 +47,8 @@ Pkg.test("LightGBM")
 
 To skip MLJ testing when running tests, set the env var `DISABLE_MLJ_TESTS` to anything. (You might want to do this to get the tests to run faster)
 
+To silence library discovery messages during initialization, set the environment variable `LIGHTGBM_LOG_LIBRARY_DISCOVERY` to `false` before starting Julia.
+
 # A simple example using LightGBM example files
 
 First, download [LightGBM source](https://github.com/microsoft/LightGBM/archive/v3.3.5.zip)
