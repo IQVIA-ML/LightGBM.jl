@@ -12,14 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11']
+        version: ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12']
         os:  [windows-latest, ubuntu-latest, macOS-latest]
         arch:
           - x64
     env:
       DISABLE_MLJ_TESTS: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
@@ -45,9 +45,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11']
+        version: ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
@@ -59,7 +59,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@latest
       - name: Build package to grab binary
         run: julia --project -e 'using Pkg; Pkg.build(); Pkg.instantiate()'
