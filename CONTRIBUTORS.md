@@ -17,14 +17,15 @@ Thank you to our Amazing :star: Contributors:
     <td align="center"><a href="https://github.com/msekino"><img src="https://avatars3.githubusercontent.com/u/31726040" width="100px;" alt=""/><br /><sub><b>msekino</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/chilledgeek"><img src="https://avatars2.githubusercontent.com/u/44337585" width="100px;" alt=""/><br /><sub><b>chilledgeek</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/ablaom"><img src="https://avatars.githubusercontent.com/u/30517088" width="100px;" alt=""/><br /><sub><b>ablaom</b></sub></a><br /></td>
-    <td align="center"><a href="https://github.com/kollienne"><img src="https://avatars.githubusercontent.com/u/20397647" width="100px" alt=""/><br /><sub><b>kollienne</b></sub></a><br /></td>
-    <td align="center"><a href="https://github.com/artemsolod"><img src="https://avatars.githubusercontent.com/u/1939268" width="100px" alt=""/><br /><sub><b>artemsolod</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/kollienne"><img src="https://avatars.githubusercontent.com/u/20397647" width="100px;" alt=""/><br /><sub><b>kollienne</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/artemsolod"><img src="https://avatars.githubusercontent.com/u/1939268" width="100px;" alt=""/><br /><sub><b>artemsolod</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/josephsdavid"><img src="https://avatars.githubusercontent.com/u/42522233" width="100px;" alt=""/><br /><sub><b>josephsdavid</b></sub></a><br /></td>
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/characat0"><img src="https://avatars.githubusercontent.com/u/3645397" width="100px;" alt=""/><br /><sub><b>characat0</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/rikhuijzer"><img src="https://avatars.githubusercontent.com/u/20724914" width="100px;" alt=""/><br /><sub><b>rikhuijzer</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/giordano"><img src="https://avatars.githubusercontent.com/u/765740" width="100px;" alt=""/><br /><sub><b>giordano</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/DennisGoldfarb"><img src="https://avatars.githubusercontent.com/u/8868522" width="100px;" alt=""/><br /><sub><b>DennisGoldfarb</b></sub></a><br /></td>
   </tr>
 
 </table>
