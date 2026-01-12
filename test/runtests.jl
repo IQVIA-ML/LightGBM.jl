@@ -49,6 +49,10 @@ end
             include(joinpath("mlj", "user_report.jl"))
         end
 
+        @testset "MLJ Feature importances" begin
+            include(joinpath("mlj", "feature_importances.jl"))
+        end
+
     end
 
 end
