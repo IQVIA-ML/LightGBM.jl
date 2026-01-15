@@ -340,13 +340,32 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
     model = model_init(mlj_model, classes)
+    
+    # Capture feature names before converting to matrix.
+    # Prefer propertynames to avoid adding Tables.jl as a direct dependency.
+    # Works for common table types (MLJ.table, DataFrames, NamedTuples), but
+    # custom Tables.jl-only sources may not expose propertynames; in that case
+    # we fall back to nothing and use LightGBM's internal names.
+    feature_names = try
+        Tuple(propertynames(X))
+    catch
+        try
+            Tuple(propertynames(first(X)))
+        catch
+            nothing
+        end
+    end
+    if feature_names !== nothing && isempty(feature_names)
+        feature_names = nothing
+    end
+
     X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
     # slice of y_lgbm required to converts it from a SubArray to a copy of an actual Array
     train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w, truncate_booster=mlj_model.truncate_booster)
 
-    fitresult = (model, classes, deepcopy(mlj_model))
+    fitresult = (model, classes, deepcopy(mlj_model), feature_names)
     # because update needs access to the older version of training metrics we keep them in the cache
     # so the update can merge old and additional metrics as necessary.
     cache = (
@@ -362,7 +381,7 @@ end
 
 function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w=AbstractFloat[])
 
-    old_lgbm_model, old_classes, old_mlj_model = fitresult
+    old_lgbm_model, old_classes, old_mlj_model, feature_names = fitresult
 
     # we can continue boosting if and only if num_iterations has changed
     if !MLJModelInterface.is_same_except(old_mlj_model, mlj_model, :num_iterations)
@@ -400,7 +419,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
         LightGBM.Dates.now();
         truncate_booster=old_mlj_model.truncate_booster
     )
-    fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model))
+    fitresult = (old_lgbm_model, old_classes, deepcopy(mlj_model), feature_names)
 
     final_num_iter = LightGBM.get_iter_number(old_lgbm_model)
     iteration_history = deepcopy(cache.num_boostings_done)
@@ -431,7 +450,7 @@ end
 @inline prepare_targets(targets::AbstractVector, model::LGBMRegressor) = targets, []
 
 
-function predict_classifier((fitted_model, classes, _), Xnew)
+function predict_classifier((fitted_model, classes, _, _), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
@@ -445,7 +464,7 @@ function predict_classifier((fitted_model, classes, _), Xnew)
 end
 
 
-function predict_regression((fitted_model, classes, _), Xnew)
+function predict_regression((fitted_model, classes, _, _), Xnew)
 
     Xnew = MLJModelInterface.matrix(Xnew)
     return dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
@@ -509,10 +528,7 @@ end
 
 # Implementation of feature_importances for MLJModelInterface
 function MLJModelInterface.feature_importances(model::MODELS, fitresult, report)
-    fitted_model, _, _ = fitresult
-    
-    # Get feature names
-    feature_names = get_feature_names(fitted_model)
+    fitted_model, _, _, feature_names = fitresult
     
     # Get the appropriate importance values based on the model's hyperparameter
     importance_values = if model.feature_importance == :gain
@@ -523,8 +539,14 @@ function MLJModelInterface.feature_importances(model::MODELS, fitresult, report)
         error("Unsupported feature importance method: $(model.feature_importance)")
     end
     
-    # Return as vector of Symbol => Real pairs
-    return [Symbol(name) => Float64(importance) for (name, importance) in zip(feature_names, importance_values)]
+    # If feature_names is nothing (X was a plain matrix), fall back to LightGBM's internal names
+    # Otherwise use the original table column names for compatibility with MLJ tools
+    if feature_names === nothing
+        lgbm_names = get_feature_names(fitted_model)
+        return [Symbol(name) => Float64(importance) for (name, importance) in zip(lgbm_names, importance_values)]
+    else
+        return [name => Float64(importance) for (name, importance) in zip(feature_names, importance_values)]
+    end
 end
 
 
