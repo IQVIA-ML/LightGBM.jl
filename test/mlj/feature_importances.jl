@@ -160,6 +160,30 @@ end
         # Should throw an ErrorException with informative message
         @test_throws ErrorException LightGBM.MLJInterface.get_feature_names(estimator)
     end
+
+@testset "Feature names preservation" begin
+    # Test data
+    X_matrix = rand(100, 5)
+    y_reg = 10 .* X_matrix[:, 1] .+ 5 .* X_matrix[:, 2] .+ 2 .* X_matrix[:, 3]
+
+    function assert_feature_names(expected_names, X)
+        model = LightGBM.MLJInterface.LGBMRegressor(num_iterations=20, verbosity=-1)
+        fitresult, _, report = MLJBase.fit(model, 0, X, y_reg)
+        importances = feature_importances(model, fitresult, report)
+        feature_names = [pair.first for pair in importances]
+        @test Set(feature_names) == Set(expected_names)
+    end
+
+    @testset "Generic MLJ table schema feature names (x1, x2, ...)" begin
+        X = MLJBase.table(X_matrix)
+        assert_feature_names([:x1, :x2, :x3, :x4, :x5], X)
+    end
+
+    @testset "Custom feature names" begin
+        X = MLJBase.table(X_matrix, names=[:age, :income, :score, :height, :weight])
+        assert_feature_names([:age, :income, :score, :height, :weight], X)
+    end
+end
 end
 
 end # module

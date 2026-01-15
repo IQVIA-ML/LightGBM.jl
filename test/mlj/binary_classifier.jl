@@ -51,6 +51,7 @@ expected_return_type = Tuple{
     LightGBM.LGBMClassification,
     CategoricalArrays.CategoricalArray,
     LightGBM.MLJInterface.LGBMClassifier,
+    Union{Nothing, Tuple},
 }
 
 @test isa(fitresult, expected_return_type)

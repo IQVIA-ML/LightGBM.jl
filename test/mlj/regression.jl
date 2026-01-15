@@ -44,6 +44,7 @@ expected_return_type = Tuple{
     LightGBM.LGBMRegression,
     Vector{Any}, # blep
     LightGBM.MLJInterface.LGBMRegressor,
+    Union{Nothing, Tuple},
 }
 
 @test isa(fitresult, expected_return_type)
