@@ -19,12 +19,13 @@ last valid iteration.
 * `y::Vector{Ty<:Real}`: the labels.
 * `dataset::Dataset`: prepared dataset (either (X, y), or dataset needs to be specified as input)
 * `splits`: the iterable providing arrays of indices for the training dataset.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `verbosity::Union{Integer, Nothing}`: keyword argument that controls LightGBM's verbosity. `< 0`
+    for fatal logs only, `0` includes warning logs, `1` includes info logs, and `> 1` includes
+    debug logs. If `nothing`, uses `estimator.verbosity`.
 """
 function cv(
     estimator::LGBMEstimator, X::Matrix{TX}, y::Vector{Ty}, splits;
-    verbosity::Integer = nothing, truncate_booster::Bool = true,
+    verbosity::Union{Integer, Nothing} = nothing, truncate_booster::Bool = true,
 ) where {TX<:Real,Ty<:Real}
 
     verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
@@ -36,7 +37,7 @@ function cv(
 end
 
 # Pass Dataset class directly. This will speed up the process if it is part of an iterative process and a pre-constructed dataset is available
-function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Integer = nothing, truncate_booster::Bool=true)
+function cv(estimator::LGBMEstimator, dataset::Dataset, splits; verbosity::Union{Integer, Nothing} = nothing, truncate_booster::Bool=true)
 
     start_time = now()
     num_data = LGBM_DatasetGetNumData(dataset)

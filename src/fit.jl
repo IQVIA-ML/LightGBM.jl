@@ -41,8 +41,9 @@ array that holds the validation metric's value at each iteration.
     * `train_filepath::String`: path to the training data file.
     * `test_filepath::String`: (optional) path to the test data file.
 ## Keyword Arguments
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `verbosity::Union{Integer, Nothing}`: keyword argument that controls LightGBM's verbosity. `< 0`
+    for fatal logs only, `0` includes warning logs, `1` includes info logs, and `> 1` includes
+    debug logs. If `nothing`, uses `estimator.verbosity`.
 * `is_row_major::Bool`: keyword argument that indicates whether or not `X` is row-major. `true`
     indicates that it is row-major, `false` indicates that it is column-major (Julia's default).
     Should be consistent across train/test. Does not apply to `SparseArrays.SparseMatrixCSC` or `Dataset` constructors.
@@ -56,7 +57,7 @@ function fit!(
     X::Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, 
     y::Vector{Ty}, 
     test::Tuple{Union{AbstractMatrix{TX}, AbstractMatrix{Union{TX, Missing}}}, Vector{Ty}}...;
-    verbosity::Integer = nothing,
+    verbosity::Union{Integer, Nothing} = nothing,
     is_row_major::Bool = false,
     weights::Vector{Tw} = Float32[],
     init_score::Vector{Ti} = Float64[],
@@ -96,7 +97,7 @@ function fit!(
     estimator::LGBMEstimator,
     train_dataset::Dataset,
     test_datasets::Dataset...;
-    verbosity::Integer = nothing,
+    verbosity::Union{Integer, Nothing} = nothing,
     truncate_booster::Bool=true,
 )
     verbosity = isnothing(verbosity) ? estimator.verbosity : verbosity
@@ -124,7 +125,7 @@ end
 function fit!(
     estimator::LGBMEstimator, train_filepath::String;
     test_filepath::String = "",
-    verbosity::Integer = nothing,
+    verbosity::Union{Integer, Nothing} = nothing,
     truncate_booster::Bool=true,
 )
 
