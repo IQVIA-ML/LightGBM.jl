@@ -70,6 +70,15 @@ end
 
 end
 
+@testset "test fit! uses estimator verbosity by default" begin
+    estimator = LightGBM.LGBMClassification(objective = "binary", num_class = 1)
+    # verbosity is not provided, so it should use the estimator's verbosity
+    LightGBM.fit!(estimator, train_matrix, train_labels)
+    p_binary = LightGBM.predict(estimator, test_matrix, verbosity = -1)
+
+    @test length(size(p_binary)) == 2
+end
+
 @testset "test train! single test set -- binary" begin
     # Arrange
     estimator = LightGBM.LGBMClassification(

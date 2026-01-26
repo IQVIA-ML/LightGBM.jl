@@ -23,8 +23,9 @@ iteration.
 * `splits`: the iterable providing arrays of indices for the training dataset.
 * `params`: the iterable providing dictionaries of pairs of parameters (Symbols) and values to
     configure the `estimator` with.
-* `verbosity::Integer`: keyword argument that controls LightGBM's verbosity. `< 0` for fatal logs
-    only, `0` includes warning logs, `1` includes info logs, and `> 1` includes debug logs.
+* `verbosity::Union{Integer, Nothing}`: keyword argument that controls LightGBM's verbosity. `< 0`
+    for fatal logs only, `0` includes warning logs, `1` includes info logs, and `> 1` includes
+    debug logs. If `nothing`, uses `estimator.verbosity`.
 """
 function search_cv(
     estimator::LGBMEstimator,
@@ -32,7 +33,7 @@ function search_cv(
     y::Vector{Ty},
     splits,
     params;
-    verbosity::Integer = nothing,
+    verbosity::Union{Integer, Nothing} = nothing,
     truncate_booster::Bool=true
 ) where {TX<:Real,Ty<:Real}
 
