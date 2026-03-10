@@ -40,6 +40,16 @@ Train the machine using `fit!(mach, rows=...)`.
 
 - `predict(mach, Xnew)`: return predictions of the target given new features
   `Xnew`, which should have the same scitype as `X` above.
+- `predict(mach, rows=...)`: when using a machine bound to data, predict on a subset
+  of rows without passing new data (e.g. `predict(mach, rows=1:100)` or
+  `predict(mach, rows=test_idx)`). Uses cached reformatted data when available.
+
+# Resampling
+
+The model implements MLJ's optional data front-end (`reformat` and `selectrows`). When
+you use resampling (e.g. `evaluate!(mach; resampling=CV(...))`), MLJ builds the LightGBM
+dataset once and reuses subsets per fold (via `selectrows` and `predict(mach, rows=...)`)
+instead of slicing tabular data each time, which can be faster and use less memory.
 
 # Hyper-parameters
 See $LGBM_PARAMS_DOCS_LINK.
@@ -63,14 +73,13 @@ The fields of `report(mach)` are:
 # Examples
 
 ```julia
-
 using DataFrames
 using MLJ
 
 # load the model
-LGBMRegressor = @load LGBMRegressor pkg=LightGBM 
+LGBMRegressor = @load LGBMRegressor pkg=LightGBM
 
-X, y = @load_boston # a table and a vector 
+X, y = @load_boston # a table and a vector
 X = DataFrame(X)
 train, test = partition(collect(eachindex(y)), 0.70, shuffle=true)
 
@@ -79,6 +88,13 @@ lgb = LGBMRegressor() # initialise a model with default params
 mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
+
+# Machine bound to full data: can predict by row indices (uses cached reformatted data)
+mach_full = machine(lgb, X, y) |> fit!
+predict(mach_full, rows=test)
+
+# Resampling: cross-validation (uses the same optimised path internally)
+evaluate!(machine(lgb, X, y); resampling=CV(nfolds=5), measure=rms)
 
 # access feature importances via MLJ interface (recommended)
 importances = feature_importances(mach)  # vector of feature_name => importance pairs
@@ -103,15 +119,17 @@ LGBMRegressor
 """
 $(MLJModelInterface.doc_header(LGBMClassifier))
 
-`LightGBM, short for light gradient-boosting machine, is a
+LightGBM, short for light gradient-boosting machine, is a
 framework for gradient boosting based on decision tree algorithms and used for
 classification and other machine learning tasks, with a focus on
 performance and scalability. This model in particular is used for various types of
 classification tasks.
 
-# Training data In MLJ or MLJBase, bind an instance `model` to data with 
+# Training data
 
-  mach = machine(model, X, y) 
+In MLJ or MLJBase, bind an instance `model` to data with
+
+  mach = machine(model, X, y)
 
 Here:
 
@@ -119,8 +137,8 @@ Here:
   scitype `Continuous`; check the column scitypes with `schema(X)`; alternatively,
   `X` is any `AbstractMatrix` with `Continuous` elements; check the scitype with
   `scitype(X)`.
-- y is a vector of targets whose items are of scitype `Continuous`. Check the
-  scitype with scitype(y).
+- y is a vector of targets whose items are of scitype `Finite` (classification).
+  Check the scitype with `scitype(y)`.
 
 Train the machine using `fit!(mach, rows=...)`.
 
@@ -128,6 +146,16 @@ Train the machine using `fit!(mach, rows=...)`.
 
 - `predict(mach, Xnew)`: return predictions of the target given new features
   `Xnew`, which should have the same scitype as `X` above.
+- `predict(mach, rows=...)`: when using a machine bound to data, predict on a subset
+  of rows without passing new data (e.g. `predict(mach, rows=1:100)` or
+  `predict(mach, rows=test_idx)`). Uses cached reformatted data when available.
+
+# Resampling
+
+The model implements MLJ's optional data front-end (`reformat` and `selectrows`). When
+you use resampling (e.g. `evaluate!(mach; resampling=CV(...))`), MLJ builds the LightGBM
+dataset once and reuses subsets per fold (via `selectrows` and `predict(mach, rows=...)`)
+instead of slicing tabular data each time, which can be faster and use less memory.
 
 # Hyper-parameters
 See $LGBM_PARAMS_DOCS_LINK.
@@ -149,18 +177,16 @@ The fields of `report(mach)` are:
     - `gain`: The total gain of each split used by the model
     - `split`: The number of times each feature is used by the model.
 
-
 # Examples
 
 ```julia
-
 using DataFrames
 using MLJ
 
 # load the model
-LGBMClassifier = @load LGBMClassifier pkg=LightGBM 
+LGBMClassifier = @load LGBMClassifier pkg=LightGBM
 
-X, y = @load_iris 
+X, y = @load_iris
 X = DataFrame(X)
 train, test = partition(collect(eachindex(y)), 0.70, shuffle=true)
 
@@ -169,6 +195,13 @@ lgb = LGBMClassifier() # initialise a model with default params
 mach = machine(lgb, X[train, :], y[train]) |> fit!
 
 predict(mach, X[test, :])
+
+# Machine bound to full data: can predict by row indices (uses cached reformatted data)
+mach_full = machine(lgb, X, y) |> fit!
+predict(mach_full, rows=test)
+
+# Resampling: cross-validation (uses the same optimised path internally)
+evaluate!(machine(lgb, X, y); resampling=CV(nfolds=5), measure=cross_entropy)
 
 # access feature importances via MLJ interface (recommended)
 importances = feature_importances(mach)  # vector of feature_name => importance pairs

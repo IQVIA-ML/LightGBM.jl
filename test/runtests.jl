@@ -53,6 +53,10 @@ end
             include(joinpath("mlj", "feature_importances.jl"))
         end
 
+        @testset "MLJ resampling API (reformat/selectrows)" begin
+            include(joinpath("mlj", "resampling_api.jl"))
+        end
+
     end
 
 end
