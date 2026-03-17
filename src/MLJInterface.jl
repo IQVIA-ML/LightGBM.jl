@@ -26,6 +26,30 @@ const NON_LIGHTGBM_PARAMETERS = (
     :feature_importance,
 )
 
+struct LGBMFrontEndData
+    matrix::AbstractMatrix
+    dataset::LightGBM.Dataset
+    feature_names::Union{Nothing, Tuple}
+    dataset_params::String
+    # When selectrows is called with unsorted row indices, LightGBM's LGBM_DatasetGetSubset
+    # requires sorted indices. We then store invperm(sortperm(rows)) so predictions can be
+    # reordered to match the requested row order.
+    row_invperm::Union{Nothing, AbstractVector{Int}}
+end
+
+function extract_feature_names(X)
+    feature_names = try
+        Tuple(propertynames(X))
+    catch
+        try
+            Tuple(propertynames(first(X)))
+        catch
+            nothing
+        end
+    end
+    return feature_names === nothing || isempty(feature_names) ? nothing : feature_names
+end
+
 MLJModelInterface.@mlj_model mutable struct LGBMRegressor <: MLJModelInterface.Deterministic
 
     # Hyperparameters, see https://lightgbm.readthedocs.io/en/latest/Parameters.html for defaults
@@ -331,39 +355,160 @@ function mlj_to_kwargs(model::LGBMClassifier, classes)
 end
 
 
+# Build dataset parameters string. For LGBMClassifier, num_class is required for correct
+# dataset creation (and for LGBM_DatasetGetSubset during resampling). When classes are
+# provided, they are used; otherwise the estimator default (num_class=2) is used.
+function dataset_params(mlj_model::LGBMClassifier)
+    estimator = LightGBM.LGBMClassification(; mlj_to_kwargs(mlj_model)...)
+    return LightGBM.stringifyparams(estimator)
+end
+function dataset_params(mlj_model::LGBMClassifier, classes)
+    estimator = LightGBM.LGBMClassification(; mlj_to_kwargs(mlj_model, classes)...)
+    return LightGBM.stringifyparams(estimator)
+end
+function dataset_params(mlj_model::LGBMRegressor)
+    estimator = LightGBM.LGBMRegression(; mlj_to_kwargs(mlj_model)...)
+    return LightGBM.stringifyparams(estimator)
+end
+
+function build_frontend_data(mlj_model::MODELS, X)
+    matrix = MLJModelInterface.matrix(X)
+    feature_names = extract_feature_names(X)
+    ds_params = dataset_params(mlj_model)
+    dataset = LightGBM.dataset_constructor(matrix, ds_params, false)
+    if feature_names !== nothing
+        LightGBM.LGBM_DatasetSetFeatureNames(dataset, collect(String.(feature_names)))
+    end
+    return LGBMFrontEndData(matrix, dataset, feature_names, ds_params, nothing)
+end
+
+# Classifier: when y is available, include num_class in dataset params for correct dataset/subset creation.
+function build_frontend_data(mlj_model::LGBMClassifier, X, y)
+    matrix = MLJModelInterface.matrix(X)
+    feature_names = extract_feature_names(X)
+    classes = MLJModelInterface.classes(first(y))
+    ds_params = dataset_params(mlj_model, classes)
+    dataset = LightGBM.dataset_constructor(matrix, ds_params, false)
+    if feature_names !== nothing
+        LightGBM.LGBM_DatasetSetFeatureNames(dataset, collect(String.(feature_names)))
+    end
+    return LGBMFrontEndData(matrix, dataset, feature_names, ds_params, nothing)
+end
+
+"""
+    MLJModelInterface.reformat(model, X)
+    MLJModelInterface.reformat(model, X, y)
+    MLJModelInterface.reformat(model, X, y, w)
+
+Construct LightGBM front-end data for MLJ. Always returns a tuple.
+For LGBMRegressor, `reformat(model, X, y)[1]` equals `reformat(model, X)[1]`.
+For LGBMClassifier, when y is provided the first element is built with num_class from y
+so that dataset params are correct for resampling and LGBM_DatasetGetSubset; otherwise
+the default num_class is used.
+"""
+function MLJModelInterface.reformat(model::MODELS, X)
+    data = build_frontend_data(model, X)
+    return (data,)
+end
+function MLJModelInterface.reformat(model::MODELS, X, y)
+    data = MLJModelInterface.reformat(model, X)[1]
+    return (data, y)
+end
+function MLJModelInterface.reformat(model::MODELS, X, y, w)
+    data = MLJModelInterface.reformat(model, X)[1]
+    return (data, y, w)
+end
+# LGBMClassifier with y: use build_frontend_data(model, X, y) so dataset_params include num_class.
+function MLJModelInterface.reformat(model::LGBMClassifier, X, y)
+    data = build_frontend_data(model, X, y)
+    return (data, y)
+end
+function MLJModelInterface.reformat(model::LGBMClassifier, X, y, w)
+    data = build_frontend_data(model, X, y)
+    return (data, y, w)
+end
+
+
+# MLJBase uses the result as predict(model, fitresult, selectrows(...)...), so we return
+# a tuple so that splatting yields the correct number of arguments (one for X, or (X, y) etc.).
+function MLJModelInterface.selectrows(::MODELS, rows, data::LGBMFrontEndData)
+    return (selectrows_lgbm(data, rows),)
+end
+function MLJModelInterface.selectrows(::MODELS, rows, data::LGBMFrontEndData, y)
+    return (selectrows_lgbm(data, rows), MLJModelInterface.selectrows(y, rows))
+end
+function MLJModelInterface.selectrows(::MODELS, rows, data::LGBMFrontEndData, y, w)
+    return (
+        selectrows_lgbm(data, rows),
+        MLJModelInterface.selectrows(y, rows),
+        MLJModelInterface.selectrows(w, rows),
+    )
+end
+
+# Internal: subset LGBMFrontEndData by row indices.
+# LightGBM's LGBM_DatasetGetSubset requires used_row_indices to be sorted; we sort when
+# necessary and store row_invperm so predictions can be reordered to match the requested order.
+function selectrows_lgbm(data::LGBMFrontEndData, rows)
+    if rows isa Colon || rows isa Function
+        return data
+    end
+    row_indices = collect(rows)
+    if issorted(row_indices)
+        sorted_indices = row_indices
+        row_invperm = nothing
+    else
+        perm = sortperm(row_indices)
+        sorted_indices = row_indices[perm]
+        row_invperm = invperm(perm)
+    end
+    subset_dataset = LightGBM.LGBM_DatasetGetSubset(data.dataset, sorted_indices, data.dataset_params)
+    if data.feature_names !== nothing
+        LightGBM.LGBM_DatasetSetFeatureNames(subset_dataset, collect(String.(data.feature_names)))
+    end
+    matrix_view = @view data.matrix[sorted_indices, :]
+    return LGBMFrontEndData(matrix_view, subset_dataset, data.feature_names, data.dataset_params, row_invperm)
+end
+
+# selectrows(data, rows) / selectrows(tuple, rows) — for direct use (e.g. tests)
+function MLJModelInterface.selectrows(data::LGBMFrontEndData, rows)
+    return selectrows_lgbm(data, rows)
+end
+function MLJModelInterface.selectrows(data_tuple::Tuple{LGBMFrontEndData}, rows)
+    data = data_tuple[1]
+    return (MLJModelInterface.selectrows(data, rows),)
+end
+function MLJModelInterface.selectrows(data_tuple::Tuple{LGBMFrontEndData, Any}, rows)
+    data, y = data_tuple
+    return (MLJModelInterface.selectrows(data, rows), MLJModelInterface.selectrows(y, rows))
+end
+function MLJModelInterface.selectrows(data_tuple::Tuple{LGBMFrontEndData, Any, Any}, rows)
+    data, y, w = data_tuple
+    return (
+        MLJModelInterface.selectrows(data, rows),
+        MLJModelInterface.selectrows(y, rows),
+        MLJModelInterface.selectrows(w, rows),
+    )
+end
+
 # X and y and w must be untyped per MLJ docs
 function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
-    # MLJ docs are clear that 0 means silent. but 0 in LightGBM world means "warnings"
-    # and < 0 means fatal logs only, so we put intended silence to -1 (which is probably the closest we get)
-    verbosity = if verbosity == 0; -1 else verbosity end
+    # MLJ docs: 0 means silent. LightGBM: 0 = warnings, <0 = fatal only. Use -1 for silence.
+    # Respect both fit!(verbosity) and the model's verbosity hyperparameter (model wins if either is 0).
+    lightgbm_verbosity = (verbosity == 0 || mlj_model.verbosity == 0) ? -1 : verbosity
 
     y_lgbm, classes = prepare_targets(y, mlj_model)
     model = model_init(mlj_model, classes)
-    
-    # Capture feature names before converting to matrix.
-    # Prefer propertynames to avoid adding Tables.jl as a direct dependency.
-    # Works for common table types (MLJ.table, DataFrames, NamedTuples), but
-    # custom Tables.jl-only sources may not expose propertynames; in that case
-    # we fall back to nothing and use LightGBM's internal names.
-    feature_names = try
-        Tuple(propertynames(X))
-    catch
-        try
-            Tuple(propertynames(first(X)))
-        catch
-            nothing
-        end
-    end
-    if feature_names !== nothing && isempty(feature_names)
-        feature_names = nothing
-    end
+    # Booster is created with stringifyparams(model); C API reads verbosity from there and prints warnings.
+    model.verbosity = lightgbm_verbosity
+
+    feature_names = extract_feature_names(X)
 
     X = MLJModelInterface.matrix(X)
     # The FFI wrapper wants Float32 for these
     w = Float32.(w)
     # slice of y_lgbm required to converts it from a SubArray to a copy of an actual Array
-    train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=verbosity, weights=w, truncate_booster=mlj_model.truncate_booster)
+    train_results = LightGBM.fit!(model, X, y_lgbm[:]; verbosity=lightgbm_verbosity, weights=w, truncate_booster=mlj_model.truncate_booster)
 
     fitresult = (model, classes, deepcopy(mlj_model), feature_names)
     # because update needs access to the older version of training metrics we keep them in the cache
@@ -378,8 +523,40 @@ function fit(mlj_model::MODELS, verbosity::Int, X, y, w=AbstractFloat[])
 
 end
 
+function fit(mlj_model::MODELS, verbosity::Int, data::LGBMFrontEndData, y, w=AbstractFloat[])
+    lightgbm_verbosity = (verbosity == 0 || mlj_model.verbosity == 0) ? -1 : verbosity
+
+    y_lgbm, classes = prepare_targets(y, mlj_model)
+    model = model_init(mlj_model, classes)
+    # Booster is created with stringifyparams(model); C API reads verbosity from there.
+    model.verbosity = lightgbm_verbosity
+
+    if length(w) > 0
+        w = Float32.(w)
+        LightGBM.LGBM_DatasetSetField(data.dataset, "weight", w)
+    end
+    LightGBM.LGBM_DatasetSetField(data.dataset, "label", y_lgbm[:])
+
+    train_results = LightGBM.fit!(
+        model,
+        data.dataset;
+        verbosity=lightgbm_verbosity,
+        truncate_booster=mlj_model.truncate_booster,
+    )
+
+    fitresult = (model, classes, deepcopy(mlj_model), data.feature_names)
+    cache = (
+        num_boostings_done=[LightGBM.get_iter_number(model)],
+        training_metrics=train_results["metrics"],
+    )
+    report = user_fitreport(model, train_results)
+
+    return (fitresult, cache, report)
+end
+
 
 function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache, X, y, w=AbstractFloat[])
+    lightgbm_verbosity = (verbosity == 0 || mlj_model.verbosity == 0) ? -1 : verbosity
 
     old_lgbm_model, old_classes, old_mlj_model, feature_names = fitresult
 
@@ -415,7 +592,7 @@ function update(mlj_model::MLJInterface.MODELS, verbosity::Int, fitresult, cache
         old_lgbm_model,
         additional_iterations,
         String[],
-        verbosity,
+        lightgbm_verbosity,
         LightGBM.Dates.now();
         truncate_booster=old_mlj_model.truncate_booster
     )
@@ -451,24 +628,28 @@ end
 
 
 function predict_classifier((fitted_model, classes, _, _), Xnew)
-
-    Xnew = MLJModelInterface.matrix(Xnew)
+    row_invperm = Xnew isa LGBMFrontEndData ? Xnew.row_invperm : nothing
+    Xnew = Xnew isa LGBMFrontEndData ? Matrix(Xnew.matrix) : MLJModelInterface.matrix(Xnew)
     predicted = LightGBM.predict(fitted_model, Xnew)
     # when the objective == binary, lightgbm internally has classes = 1 and spits out only probability of positive class
     if size(predicted, 2) == 1
         predicted = hcat(1. .- predicted, predicted)
     end
-
+    if row_invperm !== nothing
+        predicted = predicted[row_invperm, :]
+    end
     return MLJModelInterface.UnivariateFinite(classes, predicted)
-
 end
 
 
 function predict_regression((fitted_model, classes, _, _), Xnew)
-
-    Xnew = MLJModelInterface.matrix(Xnew)
-    return dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
-
+    row_invperm = Xnew isa LGBMFrontEndData ? Xnew.row_invperm : nothing
+    Xnew = Xnew isa LGBMFrontEndData ? Matrix(Xnew.matrix) : MLJModelInterface.matrix(Xnew)
+    predicted = dropdims(LightGBM.predict(fitted_model, Xnew), dims=2)
+    if row_invperm !== nothing
+        predicted = predicted[row_invperm]
+    end
+    return predicted
 end
 
 # This function returns a user accessible report and therefore needs to not be a source of breaking changes
